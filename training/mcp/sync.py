@@ -60,6 +60,7 @@ def sync_ovhai(settings: Settings, *, limit: int = 50) -> dict[str, Any]:
         "configured": backends.ovhai_configured(settings),
         "imported": _import_rows(settings, rows),
         "total_seen": len(entries),
+        "limit": limit,
         "backend_ids": [row["backend_id"] for row in rows if row.get("backend_id")],
     }
 
@@ -75,6 +76,7 @@ def sync_wandb(settings: Settings, *, limit: int = 20) -> dict[str, Any]:
         "configured": True,
         "imported": _import_rows(settings, rows),
         "total_seen": len(runs),
+        "limit": limit,
         "backend_ids": [row["backend_id"] for row in rows if row.get("backend_id")],
     }
 
@@ -204,7 +206,14 @@ def sync_all(settings: Settings) -> dict[str, Any]:
             continue
         results[name] = result
         if result.get("configured") and isinstance(result.get("backend_ids"), list):
-            seen[name] = set(result["backend_ids"])
+            listing_limit = result.get("limit")
+            if listing_limit is None or result.get("total_seen", 0) < listing_limit:
+                seen[name] = set(result["backend_ids"])
+            else:
+                # A full page is not proof of absence: an active job just past
+                # the window would be failed as lost on a listing that never
+                # saw it, so only a provably complete page may mark ids lost.
+                results[name]["listing_may_be_truncated"] = True
     try:
         results["reconcile"] = reconcile_lost_backends(settings, seen=seen)
     except Exception as exc:

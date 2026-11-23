@@ -291,18 +291,18 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
         "results_rows": len(parsed),
     }
     by_arm: dict[str, dict[str, int]] = {}
-    graded_rows = 0
     for row in parsed:
-        verdict = _row_passed(row)
-        if verdict is None:
-            continue
-        graded_rows += 1
+        # Every row counts in its arm's total, graded or not: a case that
+        # produced no verdict failed its run as surely as a graded failure,
+        # and skipping those rows let 10 passes out of 50 attempts read as a
+        # perfect rate. rescore_eval_run counts an ungradeable check as
+        # failed for the same reason.
         arm = str(row.get("arm_id", "unknown"))
         slot = by_arm.setdefault(arm, {"total": 0, "passed": 0})
         slot["total"] += 1
-        if verdict:
+        if _row_passed(row) is True:
             slot["passed"] += 1
-    if graded_rows and by_arm:
+    if by_arm:
         rates = {arm: (s["passed"] / s["total"] if s["total"] else 0.0) for arm, s in by_arm.items()}
         out["arm_pass_rates"] = {
             arm: {"passed": by_arm[arm]["passed"], "total": by_arm[arm]["total"], "rate": rates[arm]} for arm in by_arm
@@ -311,7 +311,7 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
             out["delta_sft_minus_base"] = rates["sft"] - rates["base"]
     else:
         out["arm_pass_rates"] = None
-        out["note"] = "no pass/fail grades in results.jsonl (raw outputs only)"
+        out["note"] = "no results rows in results.jsonl"
     return out
 
 

@@ -509,11 +509,31 @@ def test_results_parser_honours_an_explicit_top_level_passed():
     assert parsed["arm_pass_rates"]["sft"]["rate"] == 1.0
 
 
-def test_results_parser_reports_no_grades_when_metrics_are_absent():
+def test_results_parser_counts_ungraded_rows_against_their_arm():
+    """A row with no verdict is a failed case, not an invisible one."""
     row = json.dumps({"arm_id": "sft", "state_metrics": [], "response": "x"})
     parsed = backends._parse_results_body(row.encode())
+    assert parsed["arm_pass_rates"]["sft"] == {"passed": 0, "total": 1, "rate": 0.0}
+
+
+def test_results_parser_counts_errored_rows_against_the_pass_rate():
+    """10 passes out of 50 attempts must not read as a perfect rate."""
+    body = "\n".join(
+        [
+            _result_row("sft", [True, True]),
+            _result_row("sft", [True, True]),
+            json.dumps({"arm_id": "sft", "status": "error", "response": None}),
+            json.dumps({"arm_id": "sft", "status": "error", "response": None}),
+        ]
+    ).encode()
+    parsed = backends._parse_results_body(body)
+    assert parsed["arm_pass_rates"]["sft"] == {"passed": 2, "total": 4, "rate": 0.5}
+
+
+def test_results_parser_reports_an_empty_results_file():
+    parsed = backends._parse_results_body(b"")
     assert parsed["arm_pass_rates"] is None
-    assert "raw outputs only" in parsed["note"]
+    assert "no results rows" in parsed["note"]
 
 
 # --- runner lifecycle (finished_at, cancel-vs-monitor, task4) ----------------
@@ -1474,3 +1494,71 @@ def test_log_dir_failure_lands_in_a_terminal_state(db_path, monkeypatch):
     assert "spawn failed" in (final["error"] or "")
     assert final["finished_at"] is not None
     assert recorded == ["job-mkdir"]
+
+
+@pytest.mark.parametrize("status", ["queued", "staging", "submitted", "running", "collecting"])
+def test_submit_counts_every_in_flight_phase_against_the_cap(server_env, status):
+    """A job holds its slot from `queued` through `collecting`, so every one of
+    those phases counts against `max_concurrent_jobs`."""
+    server, cfg, spawned = server_env
+    db.upsert_job(
+        cfg.db_path,
+        {"job_id": "job-phase", "kind": "eval_paired", "source": "local", "name": "b", "status": status},
+    )
+    planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
+    result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")
+    assert result["ok"] is False
+    assert "max concurrent jobs reached" in result["error"]
+    assert spawned == []
+
+
+def test_a_full_page_listing_does_not_mark_jobs_lost(db_path, monkeypatch):
+    """A truncated backend listing is not proof that a job vanished."""
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "ovh-busy", "kind": "eval_paired", "source": "ovhai", "status": "running", "backend_id": "old-job"},
+    )
+    db.upsert_job(
+        db_path,
+        {"job_id": "wand-gone", "kind": "train_sft", "source": "wandb", "status": "running", "backend_id": "r-old"},
+    )
+    monkeypatch.setattr(
+        sync,
+        "sync_ovhai",
+        lambda _s, **_k: {
+            "source": "ovhai",
+            "configured": True,
+            "imported": 0,
+            "total_seen": 50,
+            "limit": 50,
+            "backend_ids": [f"job-{i}" for i in range(50)],
+        },
+    )
+    monkeypatch.setattr(
+        sync,
+        "sync_wandb",
+        lambda _s, **_k: {
+            "source": "wandb",
+            "configured": True,
+            "imported": 0,
+            "total_seen": 1,
+            "limit": 20,
+            "backend_ids": ["r-new"],
+        },
+    )
+    monkeypatch.setattr(
+        sync,
+        "sync_r2_evals",
+        lambda _s: {"source": "r2", "configured": False, "imported": 0, "total_seen": 0, "backend_ids": []},
+    )
+
+    result = sync.sync_all(settings)
+
+    # The full-page listing is not trusted: the job just past the window stays.
+    assert db.get_job(db_path, "ovh-busy")["status"] == "running"
+    assert result["ovhai"]["listing_may_be_truncated"] is True
+    # The provably complete listing still reconciles its vanished job.
+    assert db.get_job(db_path, "wand-gone")["status"] == "failed"
+    assert "ovhai" not in result["reconcile"]["checked_sources"]
+    assert result["reconcile"]["checked_sources"] == ["wandb"]

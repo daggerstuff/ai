@@ -533,10 +533,12 @@ def submit_job(
             "error": "the recipe changed since this plan was approved; re-run plan_job for a fresh approval",
         }
     cost = float(planned["est_cost_usd"] or 0.0)
-    # Budget caps.
-    running = db.list_jobs(s.db_path, status="running")
-    queued = db.list_jobs(s.db_path, status="queued")
-    active_count = len(running) + len(queued)
+    # Budget caps. Every in-flight phase counts against the cap: a job holds
+    # its slot from `queued` through `collecting`, and counting only running
+    # and queued let a burst of submits sail past the cap while the earlier
+    # jobs sat in `submitted` or `collecting`.
+    in_flight = ("queued", "staging", "submitted", "running", "collecting")
+    active_count = sum(len(db.list_jobs(s.db_path, status=status_, limit=500)) for status_ in in_flight)
     if s.max_concurrent_jobs > 0 and active_count >= s.max_concurrent_jobs:
         # RUNBOOK documents this cap as "reject a submit that would exceed it",
         # and it is the only guard on how many jobs an agent can have in flight
