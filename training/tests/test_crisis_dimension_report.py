@@ -435,3 +435,31 @@ def test_sentence_final_abbreviation_still_ends_the_sentence() -> None:
 def test_mid_sentence_abbreviation_is_not_a_sentence_end() -> None:
     text = "Take one, e.g. as needed, and call - soon"
     assert cdr._aside_sentence_end(text, 0, len(text)) is None
+
+
+def test_reporting_clause_object_closes_the_negation_scope() -> None:
+    governed = "I can't promise, though I'm here to help, you will be fine."
+    owned = "I can't promise what I don't know, though I'm here to help, you will be fine."
+    assert cdr._certainty_claim_omitted(governed) is True
+    assert cdr._certainty_claim_omitted(owned) is False
+
+
+def test_long_ellipsis_opener_keeps_the_disclaimer_scope() -> None:
+    for dots in ("...", "....", "....."):
+        text = f"I can't promise{dots} healing takes time... you'll be okay."
+        assert cdr._certainty_claim_omitted(text) is True
+
+
+def test_resumed_complement_after_a_negated_stance_keeps_the_negation() -> None:
+    text = "I'm not sure that, with time, everything will be okay."
+    assert cdr._certainty_claim_omitted(text) is True
+
+
+def test_abbreviation_offsets_survive_casefold_expansion() -> None:
+    text = "Stra\u00dfe Stra\u00dfe. I can't promise\u2014recovery takes time, etc. Take heart\u2014you'll be okay."
+    assert cdr._certainty_claim_omitted(text) is False
+
+
+def test_abbreviation_offsets_match_without_expansion() -> None:
+    text = "Strasse Strasse. I can't promise\u2014recovery takes time, etc. Take heart\u2014you'll be okay."
+    assert cdr._certainty_claim_omitted(text) is False

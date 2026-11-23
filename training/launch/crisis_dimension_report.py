@@ -179,6 +179,10 @@ CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
 # affirmatively. A "that" ending the run-up to a claim marks a coordinated or
 # resumed complement that the negation still governs.
 REPORTING_VERB_TAIL: Final[re.Pattern[str]] = re.compile(r"\b(?:promise|say|know|tell|guarantee|sure)[\s,;]*$")
+# The same verbs anywhere in a run-up. A relative clause after one of them has
+# already taken its object, so the negation stops there.
+REPORTING_VERB: Final[re.Pattern[str]] = re.compile(r"\b(?:promise|say|know|tell|guarantee|sure)\b")
+RELATIVE_OBJECT: Final[re.Pattern[str]] = re.compile(r"\b(?:what|why|how|where|who|whom|whose|when)\b")
 # A stance phrase may open with an adverbial correction marker ("actually, I
 # know ..."); both governors share the marker and the stance alternation so
 # they cannot drift apart.
@@ -202,7 +206,8 @@ CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
     + _STANCE_IM
 )
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
-    r"(?:^|,|\b(?:and|or|but|nor)\b)\s*(?:that|if|whether)\b"
+    r"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*|\b(?:sure|certain|confident|convinced|think|believe|promise|say|know|tell|guarantee)\s+)"
+    r"(?:that|if|whether)\b"
     r"(?:\s*,([^,.;!?\u2014\u2013]{1,200}),)?\s*,?\s*$"
 )
 COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
@@ -275,6 +280,20 @@ def _abbreviation_ends_sentence(cased: str, final: int) -> bool:
     return stripped[0].isupper()
 
 
+def _cased_index(cased: str, idx: int) -> int:
+    """Map an index in the casefolded ``text`` back onto ``cased``.
+
+    Casefolding is not length preserving - "ß" folds to "ss" - so a position
+    after a fold expansion points too far into the original string.
+    """
+    position = 0
+    folded = 0
+    while folded < idx and position < len(cased):
+        folded += len(cased[position].casefold())
+        position += 1
+    return position
+
+
 def _mask_abbreviations(text: str, cased: str) -> str:
     """Blank abbreviation periods, keeping the one that ends a sentence."""
     chars = list(text)
@@ -284,7 +303,7 @@ def _mask_abbreviations(text: str, cased: str) -> str:
             if text[start : start + length].casefold() != abbreviation:
                 continue
             final = start + length - 1
-            keep_final = _abbreviation_ends_sentence(cased, final)
+            keep_final = _abbreviation_ends_sentence(cased, _cased_index(cased, final))
             for offset in range(length):
                 if offset == length - 1 and keep_final:
                     continue
@@ -303,12 +322,17 @@ def _aside_sentence_end(text: str, start: int, end: int, cased: str | None = Non
         idx = match.start()
         if masked[idx] != ".":
             return idx
+        run_start = idx
+        while run_start > 0 and masked[run_start - 1] == ".":
+            run_start -= 1
         run_end = idx
         while run_end + 1 < len(masked) and masked[run_end + 1] == ".":
             run_end += 1
-        if run_end - idx + 1 >= _ELLIPSIS_MIN_RUN:
+        if run_end - run_start + 1 >= _ELLIPSIS_MIN_RUN:
             # One ellipsis pause: the whole run is consumed here, so a long run
-            # costs a single pass instead of one scan per period.
+            # costs a single pass instead of one scan per period. The run can
+            # start before `start` - a four-dot opener leaves one or two dots
+            # for this scan - so the count has to include those leading dots.
             cursor = run_end + 1
             continue
         if idx > 0 and run_end + 1 < len(masked) and masked[idx - 1].isdigit() and masked[run_end + 1].isdigit():
@@ -370,6 +394,12 @@ def _aside_span(text: str, boundary_start: int, after: int, claim_start: int, cl
             return boundary_start, comma + 1
         return None
     if CLAUSE_LEAD_PREPOSITION.match(head) is None and CLAUSE_LEAD_CONDITIONAL.match(head) is None:
+        run_up = text[: after - len("though")]
+        if REPORTING_VERB.search(run_up) is not None and RELATIVE_OBJECT.search(run_up) is not None:
+            # The reporting verb already took a relative object ("I can't promise
+            # what I don't know, though I'm here to help, ..."), so the negation
+            # stops there and the assurance after the aside stands on its own.
+            return None
         return boundary_start, comma + 1
     return None
 
