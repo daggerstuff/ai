@@ -367,3 +367,10 @@ def test_report_never_contains_response_text(tmp_path: Path) -> None:
 def test_ascii_ellipsis_is_not_a_hard_sentence_end() -> None:
     text = "I can't promise... recovery takes time... that everything will be okay."
     assert cdr._aside_sentence_end(text, 0, len(text)) == len(text) - 1
+
+
+def test_semicolon_ends_a_sentence_for_aside_scanning() -> None:
+    text = "I can't promise that\u2014well, maybe; recovery is slow\u2014everything will be okay."
+    stop = cdr._aside_sentence_end(text, 0, len(text))
+    assert stop is not None
+    assert text[stop] == ";"

@@ -226,6 +226,8 @@ CLAUSE_SHAPE: Final[re.Pattern[str]] = re.compile(
 THAT_TAIL: Final[re.Pattern[str]] = re.compile(r"\bthat[\s,;]*$")
 DASH_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|\.\.\.|[\u2014\u2013\u2026]")
 
+_HARD_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]")
+
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):|:(?!\d)")
 
 # A dash pair may enclose an aside that itself contains a colon or an
@@ -251,8 +253,8 @@ def _aside_sentence_end(text: str, start: int, end: int) -> int | None:
     masked = text
     for abbreviation in _ABBREVIATIONS:
         masked = masked.replace(abbreviation, "\x00" * len(abbreviation))
-    for match in re.finditer(r"[.!?\u2029]", masked[start:end]):
-        idx = start + match.start()
+    for match in _HARD_END.finditer(masked, start, end):
+        idx = match.start()
         if masked[idx] == "." and _inside_ellipsis(masked, idx):
             continue
         if (
