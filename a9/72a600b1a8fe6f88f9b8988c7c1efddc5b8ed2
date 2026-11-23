@@ -1,0 +1,29 @@
+memory/foresight_nvidia/memory_ingestion_config.py
+  s_7d4811cf1b0ba7::t_46f9eadeaa97ad 11
+research/foresight_nvidia/memory_ingestion_config.py
+  s_7d4811cf1b0ba7::t_46f9eadeaa97ad 11
+pyproject.toml
+  s_7d4811cf1b0ba7::t_6b2e525ae5df99 51
+research/foresight_gemini/memory_ingestion_config.py
+  s_7d4811cf1b0ba7::t_46f9eadeaa97ad 11
+memory/foresight_gemini/memory_ingestion_config.py
+  s_7d4811cf1b0ba7::t_46f9eadeaa97ad 11
+uv.lock
+  s_7d4811cf1b0ba7::t_f3899ffd95dcc5 4080,4193,5745,5751-5767
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a972a600b1a8fe6f88f9b8988c7c1efddc5b8ed2",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
