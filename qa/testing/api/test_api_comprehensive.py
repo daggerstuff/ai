@@ -25,6 +25,22 @@ API_BASE_URL = "http://localhost:8000"
 TEST_API_KEY = "test_api_key_12345"
 
 
+def _api_reachable() -> bool:
+    """Return True when the API under test answers on API_BASE_URL."""
+
+    try:
+        requests.get(f"{API_BASE_URL}/health", timeout=1)
+    except requests.RequestException:
+        return False
+    return True
+
+
+pytestmark = pytest.mark.skipif(
+    not _api_reachable(),
+    reason=f"integration suite: needs a running API server at {API_BASE_URL}",
+)
+
+
 class TestPixelatedEmpathyAPI:
     """Comprehensive test suite for the Pixelated Empathy AI API."""
 

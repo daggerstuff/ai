@@ -237,7 +237,7 @@ class AcquisitionRubric:
         if source.license_id in APPROVED_LICENSES:
             qualifying.append(f"license {source.license_id} is approved")
         elif source.license_id in EXCEPTION_LICENSES:
-            qualifying.append(f"license {source.license_id} is eligible for exception process")
+            blocking.append(f"license {source.license_id} needs a granted exception before intake")
         else:
             blocking.append(f"license {source.license_id} is not approved and not exception-eligible")
 
@@ -425,6 +425,15 @@ class AcquisitionRubric:
             return gates
 
         if pilot is not None:
+            if pilot.source_id != intake.source_id:
+                gates.append(
+                    GateResult(
+                        "pilot",
+                        GateDecision.BLOCK,
+                        f"pilot source_id mismatch: report covers {pilot.source_id}, intake is {intake.source_id}",
+                    )
+                )
+                return gates
             pilot_result = self.evaluate_pilot(pilot)
             gates.append(
                 GateResult(
@@ -438,6 +447,16 @@ class AcquisitionRubric:
                 return gates
 
         if curation_exit is not None:
+            if curation_exit.source_id != intake.source_id:
+                gates.append(
+                    GateResult(
+                        "curation_exit",
+                        GateDecision.BLOCK,
+                        f"curation exit source_id mismatch: report covers "
+                        f"{curation_exit.source_id}, intake is {intake.source_id}",
+                    )
+                )
+                return gates
             exit_result = self.evaluate_curation_exit(curation_exit)
             gates.append(
                 GateResult(

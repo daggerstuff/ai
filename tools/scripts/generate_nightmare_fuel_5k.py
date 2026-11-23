@@ -1,5 +1,40 @@
-def _generate_with_llm():
-    return "", False
+"""Nightmare-fuel pair generation for edge-case distillation data."""
+
+from __future__ import annotations
+
+import os
+
+from pipelines.edge_case.generator import GenerationConfig, _call_nemo as _call_nemo_endpoint
+
+
+def _nemo_config() -> GenerationConfig:
+    """Build the NeMo client config from the environment."""
+
+    return GenerationConfig(
+        endpoint=os.environ.get("NEMO_ENDPOINT", ""),
+        api_key=os.environ.get("NEMO_API_KEY", ""),
+        model=os.environ.get("NEMO_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct"),
+    )
+
+
+def _call_nemo(prompt: str = "") -> str | None:
+    """Ask the configured NeMo endpoint for a completion, or None when unavailable."""
+
+    if not prompt:
+        return None
+    try:
+        return _call_nemo_endpoint(prompt, _nemo_config())
+    except Exception:
+        return None
+
+
+def _generate_with_llm(prompt: str = "") -> tuple[str, bool]:
+    """Return (text, generated) for a prompt, falling back to ("", False)."""
+
+    text = _call_nemo(prompt)
+    if not text:
+        return "", False
+    return text, True
 
 
 SCENARIOS = {
@@ -38,13 +73,6 @@ def generate_pairs(target_count, use_llm=False):
     return pairs
 
 
-def _call_nemo():
-    try:
-        return
-    except Exception:
-        return
-
-
 def _variate_response(text):
     return text + "."
 
@@ -52,5 +80,7 @@ def _variate_response(text):
 PROMPT_VARIATION_RATE = 0
 
 
-def _expand_chosen_with_llm():
-    return "", False
+def _expand_chosen_with_llm(prompt: str = "") -> tuple[str, bool]:
+    """Expand a chosen response with the LLM, falling back to ("", False)."""
+
+    return _generate_with_llm(prompt)

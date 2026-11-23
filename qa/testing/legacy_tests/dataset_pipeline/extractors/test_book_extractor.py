@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from pipelines.data_processing.extractors.book_extractor import BookExtractor
 
 
-@patch("dataset_pipeline.extractors.book_extractor.fitz")
+@patch("pipelines.data_processing.extractors.book_extractor.fitz")
 def test_extract_pdf_handles_exceptions(mock_fitz):
     # Mock fitz.open to raise an Exception
     mock_fitz.open.side_effect = Exception("Mocked PDF extraction error")
@@ -19,7 +19,7 @@ def test_extract_pdf_handles_exceptions(mock_fitz):
     assert result == ""
 
 
-@patch("dataset_pipeline.extractors.book_extractor.fitz")
+@patch("pipelines.data_processing.extractors.book_extractor.fitz")
 def test_extract_pdf_success(mock_fitz):
     # Mock fitz.open to return a mock document with mocked pages
     mock_doc = MagicMock()
@@ -43,8 +43,8 @@ def test_extract_pdf_success(mock_fitz):
     assert result == "Page 1 text\nPage 2 text\n"
 
 
-@patch("dataset_pipeline.extractors.book_extractor.epub")
-@patch("dataset_pipeline.extractors.book_extractor.BeautifulSoup")
+@patch("pipelines.data_processing.extractors.book_extractor.epub")
+@patch("pipelines.data_processing.extractors.book_extractor.BeautifulSoup")
 def test_extract_epub_success(mock_bs, mock_epub):
     # Mock epub.read_epub and BeautifulSoup
     mock_book = MagicMock()
@@ -69,7 +69,7 @@ def test_extract_epub_success(mock_bs, mock_epub):
     assert result == "Page 1 text\n"
 
 
-@patch("dataset_pipeline.extractors.book_extractor.epub")
+@patch("pipelines.data_processing.extractors.book_extractor.epub")
 def test_extract_epub_handles_exceptions(mock_epub):
     # Mock epub.read_epub to raise an Exception
     mock_epub.read_epub.side_effect = Exception("Mocked EPUB extraction error")
@@ -95,8 +95,8 @@ def test_chunk_text():
     assert chunks == ["word1 word2 word3", "word4 word5 word6"]
 
 
-@patch("dataset_pipeline.extractors.book_extractor.os.unlink")
-@patch("dataset_pipeline.extractors.book_extractor.os.path.exists")
+@patch("pipelines.data_processing.extractors.book_extractor.os.unlink")
+@patch("pipelines.data_processing.extractors.book_extractor.os.path.exists")
 def test_extract_all_success(mock_exists, mock_unlink):
     mock_streamer = MagicMock()
     mock_streamer.list_files.return_value = [

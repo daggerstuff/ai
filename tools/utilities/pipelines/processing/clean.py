@@ -34,6 +34,8 @@ _SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 _PHONE_PATTERN = re.compile(r"\b(?:\+\d{1,3}[-. ]?)?(?:\(?\d{3}\)?[-. ]?)?\d{3}[-. ]?\d{4}\b")
 _EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 
+logger = logging.getLogger(__name__)
+
 
 def _is_text_series(series: pd.Series) -> bool:
     return pd.api.types.is_object_dtype(series.dtype) or pd.api.types.is_string_dtype(series.dtype)
@@ -117,6 +119,19 @@ def _ensure_required_columns(frame: pd.DataFrame, required: list[str]) -> pd.Dat
     return frame
 
 
+def _count_pii_tokens(frame: pd.DataFrame, columns: Iterable[str]) -> int:
+    """Count PII-like tokens present across the given text columns."""
+
+    total = 0
+    for column in columns:
+        if column not in frame.columns:
+            continue
+        series = frame[column].astype(str)
+        for pattern in (_SSN_PATTERN, _PHONE_PATTERN, _EMAIL_PATTERN):
+            total += int(series.str.count(pattern).sum())
+    return total
+
+
 def clean_and_deduplicate(
     dataframes: list[pd.DataFrame] | pd.DataFrame,
     *,
@@ -136,6 +151,11 @@ def clean_and_deduplicate(
 
     if isinstance(dataframes, pd.DataFrame):
         dataframes = [dataframes]
+    if not isinstance(dataframes, list | tuple):
+        raise ValueError("dataframes must be a DataFrame or a list of DataFrames")
+    for frame in dataframes:
+        if not isinstance(frame, pd.DataFrame):
+            raise ValueError(f"Expected a DataFrame, got {type(frame).__name__}")
 
     log = logger or logging.getLogger(__name__)
     cfg = dict(config or {})
@@ -158,8 +178,21 @@ def clean_and_deduplicate(
     if cfg.get("force_lower", True):
         working = normalize_text_columns(working, text_columns)
 
-    # Redact sensitive text patterns from all free-text fields.
-    working = redact_pii_in_text_fields(working, text_columns, logger=log)
+    # Redact sensitive text patterns from every free-text field, including
+    # columns the caller did not nominate as text: PII turns up anywhere.
+    free_text_columns = {c for c in working.columns if _is_text_series(working[c])}
+    redacted_tokens = _count_pii_tokens(working, free_text_columns)
+    working = redact_pii_in_text_fields(working, free_text_columns | text_columns, logger=log)
+    log.info(
+        "Privacy audit: redacted %s PII-like token(s) across %s text column(s)",
+        redacted_tokens,
+        len(free_text_columns | text_columns),
+    )
+
+    # Redaction markers are upper-case by contract, so re-normalize the text
+    # columns the caller asked to normalize and keep the output lower-case.
+    if cfg.get("force_lower", True) and text_columns:
+        working = normalize_text_columns(working, text_columns)
 
     # Remove PII columns by name heuristics.
     if remove_pii_columns:

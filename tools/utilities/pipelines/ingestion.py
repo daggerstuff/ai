@@ -87,11 +87,11 @@ def load_datasets(
 ) -> dict[str, pd.DataFrame | list[pd.DataFrame]]:
     """Load one or many datasets described by mapping name -> path."""
 
-    logger = logger_override or logging.getLogger(__name__)
-    cfg = config if config is not None else _default_dataset_config()
+    logger = logger_override or load.logger
+    cfg = config if config is not None else load._default_dataset_config()
 
     if not cfg:
-        cfg = _default_dataset_config()
+        cfg = load._default_dataset_config()
     if not cfg:
         raise DatasetLoaderError("No dataset configuration provided")
 
@@ -110,6 +110,7 @@ class _LoadModule(SimpleNamespace):
 
 
 load = _LoadModule(
+    logger=logging.getLogger(__name__),
     load_datasets=load_datasets,
     DatasetLoaderError=DatasetLoaderError,
     _default_dataset_config=_default_dataset_config,

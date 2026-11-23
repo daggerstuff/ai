@@ -58,7 +58,7 @@ class SafetyGuardrails:
         # Preserve critical crisis-related expressions.
         for keyword in self.CRITICAL_KEYWORDS:
             if keyword in original_lower and keyword not in candidate_lower:
-                issues.append(f"CRITICAL: lost safety phrase '{keyword}'")
+                issues.append(f"CRITICAL: lost crisis phrase '{keyword}'")
 
         if re.search(r"\b(harm\b|hurt\b|die\b)", candidate_lower) and not re.search(
             r"\b(safety\b|support\b|help\b|resource\b)", candidate_lower

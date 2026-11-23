@@ -59,7 +59,7 @@ class SafetyGuardrails:
         # Preserve critical crisis-related expressions.
         for keyword in self.CRITICAL_KEYWORDS:
             if keyword in original_lower and keyword not in candidate_lower:
-                issues.append(f"CRITICAL: lost safety phrase '{keyword}'")
+                issues.append(f"CRITICAL: lost crisis phrase '{keyword}'")
 
         if re.search(r"\b(harm\b|hurt\b|die\b)", candidate_lower) and not re.search(
             r"\b(safety\b|support\b|help\b|resource\b)", candidate_lower
@@ -151,11 +151,17 @@ class DataAugmenter:
         if self.random() >= self.config.demographic_variation_probability:
             return output
 
-        for source, replacement in self._DEMOGRAPHIC_MAP.items():
-            pattern = re.compile(rf"\b{re.escape(source)}\b", flags=re.IGNORECASE)
-            if pattern.search(output):
-                output = pattern.sub(lambda m: self._match_case(replacement, m.group(0)), output)
-        return output
+        terms = "|".join(re.escape(term) for term in self._DEMOGRAPHIC_MAP)
+        pattern = re.compile(rf"\b(?:{terms})\b", flags=re.IGNORECASE)
+
+        def swap(match: re.Match[str]) -> str:
+            word = match.group(0)
+            replacement = self._DEMOGRAPHIC_MAP.get(word.lower())
+            if replacement is None:
+                return word
+            return self._match_case(replacement, word)
+
+        return pattern.sub(swap, output)
 
     def _match_case(self, replacement: str, original: str) -> str:
         if original.isupper():
