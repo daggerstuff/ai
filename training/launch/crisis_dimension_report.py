@@ -604,7 +604,10 @@ def _clause_start(
                 # The leftover dots of a four- or five-dot closing run belong to the
                 # same ellipsis: an aside that stops at the first three leaves a dot
                 # boundary behind, which would reset the clause and drop the negation.
-                aside_until = _ellipsis_run_end(text, closing.end(), limit)
+                closing_is_ellipsis = "..." in closing.group() or "\u2026" in closing.group()
+                aside_until = (
+                    _ellipsis_run_end(text, closing.end(), limit) if closing_is_ellipsis else closing.end()
+                )
                 asides.append((boundary.end(), closing.start()))
             continue
         if head.startswith("though"):
