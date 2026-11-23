@@ -581,7 +581,13 @@ def main():
     # Report command
     report_parser = subparsers.add_parser("report", help="Generate report for a batch")
     report_parser.add_argument("batch_id", help="Batch ID for report")
-    report_parser.add_argument("--output", help="Output file for report")
+    report_parser.add_argument(
+        "--output",
+        help=(
+            "Output file for report. Reporting a missing batch fails with exit "
+            "status 1 and a notice on stderr whether or not --output is given."
+        ),
+    )
 
     # List command
     subparsers.add_parser("list", help="List all batches")
