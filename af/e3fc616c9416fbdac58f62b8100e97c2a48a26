@@ -1,0 +1,21 @@
+inference/api/mcp_server/mcp_stdio_server.py
+  s_7d4811cf1b0ba7::t_c931d33c4f77ac 183-199
+  s_7d4811cf1b0ba7::t_800b850309ea1b 15-22
+  s_7d4811cf1b0ba7::t_f08b129e6d3229 200-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "afe3fc616c9416fbdac58f62b8100e97c2a48a26",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
