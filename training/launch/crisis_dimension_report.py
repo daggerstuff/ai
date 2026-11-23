@@ -191,18 +191,35 @@ _CORRECTION_MARKER: Final[str] = r"(?:(?:actually|honestly|frankly|truly|really)
 _STANCE_SUBJECT: Final[str] = r"\b(?:i|we|you|they|he|she|it)\b\s+(?:do\s+|did\s+)?"
 _STANCE_VERB: Final[str] = r"(?:know|think|believe|promise|guarantee)\b"
 _STANCE_IM: Final[str] = r"i'm\s+(?:sure|certain|confident)\b"
+# A modal in front of the stance verb ("..., and I can guarantee you that ...")
+# commits to the stance exactly as a bare verb does. Only the comma-delimited
+# governor reads it: AFFIRMATIVE_GOVERNER also scans the run-up to a claim, where
+# a disclaimer's own "I can't promise" must not count as affirmative.
+_STANCE_SUBJECT_MODAL: Final[str] = (
+    r"\b(?:i|we|you|they|he|she|it)\b\s+"
+    r"(?:do\s+|did\s+|can\s+|could\s+|will\s+|would\s+|may\s+|might\s+|should\s+|must\s+)"
+)
 AFFIRMATIVE_GOVERNER: Final[re.Pattern[str]] = re.compile(
     r"\s*" + _CORRECTION_MARKER + _STANCE_SUBJECT + _STANCE_VERB + r"|\s*" + _CORRECTION_MARKER + _STANCE_IM
 )
 # Inside an interrupter, only a governer that starts its own comma-delimited
 # segment corrects the stance ("..., I know, ..."); one buried in a subordinate
 # clause ("given what I know ...") cannot take the claim over.
+# A coordinating conjunction may open the segment ("..., and I can guarantee you
+# that ..."); the subject follows it.
+_CORRECTION_OPEN: Final[str] = r"(?:^|,)\s*(?:(?:and|or|but|nor|so)\s+)?"
 CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
-    r"(?:^|,)\s*"
+    _CORRECTION_OPEN
     + _CORRECTION_MARKER
     + _STANCE_SUBJECT
     + _STANCE_VERB
-    + r"|(?:^|,)\s*"
+    + r"|"
+    + _CORRECTION_OPEN
+    + _CORRECTION_MARKER
+    + _STANCE_SUBJECT_MODAL
+    + _STANCE_VERB
+    + r"|"
+    + _CORRECTION_OPEN
     + _CORRECTION_MARKER
     + _STANCE_IM
 )
@@ -605,9 +622,7 @@ def _clause_start(
                 # same ellipsis: an aside that stops at the first three leaves a dot
                 # boundary behind, which would reset the clause and drop the negation.
                 closing_is_ellipsis = "..." in closing.group() or "\u2026" in closing.group()
-                aside_until = (
-                    _ellipsis_run_end(text, closing.end(), limit) if closing_is_ellipsis else closing.end()
-                )
+                aside_until = _ellipsis_run_end(text, closing.end(), limit) if closing_is_ellipsis else closing.end()
                 asides.append((boundary.end(), closing.start()))
             continue
         if head.startswith("though"):
@@ -731,9 +746,16 @@ def _negation_in_clause(lowered: str, clause_start: int, claim_start: int, aside
                 # own ("I do not think, I know, that ..."). A bare word
                 # additionally needs a negated stance to govern.
                 resumed = _resumed_complement(run_up)
+                # A second assurance inside the resumed complement ("that, don't
+                # worry about it, everything will be fine") is its own statement:
+                # the negation reaches the complement, not past it.
+                reassurance = resumed is not None and any(
+                    cue.search(run_up[resumed.start() :]) is not None for cue in CERTAINTY_PATTERNS
+                )
                 if (
                     resumed is None
-                    or CORRECTION_GOVERNER.search(run_up[: resumed.start()]) is not None
+                    or reassurance
+                    or CORRECTION_GOVERNER.search(run_up) is not None
                     or (match.group() in GENERIC_NEGATION_CUES and NEGATED_STANCE.match(run_up) is None)
                 ):
                     continue

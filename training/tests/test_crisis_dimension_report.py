@@ -556,3 +556,23 @@ def test_an_object_pronoun_before_the_complementizer_keeps_the_disclaimer() -> N
         "I can't promise, and no one can tell them that everything will be okay.",
     ):
         assert cdr._certainty_claim_omitted(text) is True, text
+
+
+def test_an_affirmative_correction_inside_the_resumed_complement_flags_the_claim() -> None:
+    """A governed stance verb in the resumed complement restates the claim."""
+    for text in (
+        "I can't promise you that, and I can guarantee you that everything will be okay.",
+        "I can't promise you that, and honestly, I can guarantee you that everything will be okay.",
+        "I can't promise you that, but I know that everything will be fine.",
+    ):
+        assert cdr._certainty_claim_omitted(text) is False, text
+
+
+def test_a_second_assurance_after_the_resumed_complement_flags_the_claim() -> None:
+    """An insistence after the complement is a new statement, not a premise."""
+    for text in (
+        "I can't promise you that, don't worry about it, everything will be fine.",
+        "I can't promise you that, and don't worry, everything will be fine.",
+    ):
+        assert cdr._certainty_claim_omitted(text) is False, text
+    assert cdr._certainty_claim_omitted("I can't promise you that, honestly, everything will be okay.") is True
