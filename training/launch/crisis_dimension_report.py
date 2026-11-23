@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from bisect import bisect_left
 from enum import StrEnum
 from pathlib import Path
 from typing import Final
@@ -239,6 +240,22 @@ THAT_TAIL: Final[re.Pattern[str]] = re.compile(r"\bthat[\s,;]*$")
 DASH_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|\.\.\.|[\u2014\u2013\u2026]")
 _ELLIPSIS_OPENER: Final[re.Pattern[str]] = re.compile(r"\.\.\.|[\u2026]")
 DASH_ONLY_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|[\u2014\u2013]")
+_PAUSE_HEADS: Final = frozenset({"\u2014", "\u2013", "\u2026", "-", "..."})
+
+
+def _pause_scan_start(text: str, head: str, boundary_end: int) -> int:
+    """Return the offset a governing-correction check should read from.
+
+    A four- or five-dot run matches three dots in ``CLAUSE_BOUNDARY``; the
+    leftover dots are still part of the same pause, so a correction written
+    right after them has to stay visible to the governor check.
+    """
+    if head.rstrip() not in _PAUSE_HEADS:
+        return boundary_end
+    while boundary_end < len(text) and text[boundary_end] == ".":
+        boundary_end += 1
+    return boundary_end
+
 
 _HARD_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]")
 
@@ -280,30 +297,32 @@ def _abbreviation_ends_sentence(cased: str, final: int) -> bool:
     return stripped[0].isupper()
 
 
-def _cased_index(cased: str, idx: int) -> int:
-    """Map an index in the casefolded ``text`` back onto ``cased``.
+def _folded_starts(cased: str) -> list[int]:
+    """Return the casefolded offset at which each character of ``cased`` starts.
 
-    Casefolding is not length preserving - "ß" folds to "ss" - so a position
-    after a fold expansion points too far into the original string.
+    Casefolding is not length preserving - "ß" folds to "ss" - so an index in
+    the casefolded ``text`` has to be mapped back onto ``cased``. Building the
+    offsets once keeps that mapping out of the per-abbreviation loop.
     """
-    position = 0
+    starts: list[int] = []
     folded = 0
-    while folded < idx and position < len(cased):
-        folded += len(cased[position].casefold())
-        position += 1
-    return position
+    for char in cased:
+        starts.append(folded)
+        folded += len(char.casefold())
+    return starts
 
 
 def _mask_abbreviations(text: str, cased: str) -> str:
     """Blank abbreviation periods, keeping the one that ends a sentence."""
     chars = list(text)
+    starts = _folded_starts(cased)
     for start in range(len(text)):
         for abbreviation in _ABBREVIATIONS:
             length = len(abbreviation)
             if text[start : start + length].casefold() != abbreviation:
                 continue
             final = start + length - 1
-            keep_final = _abbreviation_ends_sentence(cased, _cased_index(cased, final))
+            keep_final = _abbreviation_ends_sentence(cased, bisect_left(starts, final))
             for offset in range(length):
                 if offset == length - 1 and keep_final:
                     continue
@@ -394,7 +413,11 @@ def _aside_span(text: str, boundary_start: int, after: int, claim_start: int, cl
             return boundary_start, comma + 1
         return None
     if CLAUSE_LEAD_PREPOSITION.match(head) is None and CLAUSE_LEAD_CONDITIONAL.match(head) is None:
-        run_up = text[: after - len("though")]
+        prefix = text[: after - len("though")]
+        # Only the sentence holding the aside can give the reporting verb its
+        # object: a "how" or "what" two sentences back cannot take it.
+        cut = max(prefix.rfind("."), prefix.rfind("!"), prefix.rfind("?"), prefix.rfind("\n"))
+        run_up = prefix[cut + 1 :]
         if REPORTING_VERB.search(run_up) is not None and RELATIVE_OBJECT.search(run_up) is not None:
             # The reporting verb already took a relative object ("I can't promise
             # what I don't know, though I'm here to help, ..."), so the negation
@@ -501,10 +524,11 @@ def _clause_start(
         group = boundary.group()
         head = group.lstrip(" ,;")
         bare = group[0] not in ",;"
+        pause_end = _pause_scan_start(text, head, boundary.end())
         if (
-            head.rstrip() in {"\u2014", "\u2013", "\u2026", "-", "..."}
+            head.rstrip() in _PAUSE_HEADS
             and (REPORTING_VERB_TAIL.search(text[: boundary.start()]) or THAT_TAIL.search(text[: boundary.start()]))
-            and AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_end]) is None
+            and AFFIRMATIVE_GOVERNER.match(text[pause_end:claim_end]) is None
         ):
             stop = _aside_sentence_end(text, boundary.end(), claim_start, cased)
             limit = stop if stop is not None else claim_start

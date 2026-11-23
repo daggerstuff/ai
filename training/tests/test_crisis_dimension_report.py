@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+from bisect import bisect_left
 from pathlib import Path
 
 import pytest
@@ -448,6 +449,28 @@ def test_long_ellipsis_opener_keeps_the_disclaimer_scope() -> None:
     for dots in ("...", "....", "....."):
         text = f"I can't promise{dots} healing takes time... you'll be okay."
         assert cdr._certainty_claim_omitted(text) is True
+
+
+def test_dot_count_does_not_change_the_verdict() -> None:
+    """A pause is one pause: leftover dots must not hide a correction after it."""
+    verdicts = {
+        cdr._certainty_claim_omitted(f"I can't promise{'.' * count} Actually, I know... you'll be okay.")
+        for count in (3, 4, 5)
+    }
+    assert len(verdicts) == 1
+
+
+def test_object_in_an_earlier_sentence_does_not_close_the_scope() -> None:
+    aside = "I can't promise, though I'm here to help, you will be fine."
+    prefixed = "I know how hard this is. " + aside
+    assert cdr._certainty_claim_omitted(prefixed) is cdr._certainty_claim_omitted(aside)
+
+
+def test_folded_starts_line_up_with_casefold_expansion() -> None:
+    starts = cdr._folded_starts("Stra\u00dfe")
+    assert starts == [0, 1, 2, 3, 4, 6]
+    inside_expansion = len(starts) - 1
+    assert bisect_left(starts, inside_expansion) == inside_expansion
 
 
 def test_resumed_complement_after_a_negated_stance_keeps_the_negation() -> None:
