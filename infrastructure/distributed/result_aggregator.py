@@ -9,16 +9,24 @@ import json
 import logging
 import sqlite3
 import statistics
+import sys
 import threading
 from collections import Counter, defaultdict
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from collections.abc import Mapping
 from typing import Any
+
+MISSING_BATCH_NOTICE = "No data found for batch"
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+# Quality-score bucket boundaries for the distribution report.
+QUALITY_EXCELLENT_THRESHOLD = 0.9
+QUALITY_GOOD_THRESHOLD = 0.7
+QUALITY_FAIR_THRESHOLD = 0.5
 
 
 @dataclass
@@ -45,7 +53,7 @@ class AggregatedResult:
 class ResultAggregator:
     """Aggregates quality validation results"""
 
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: str | None = None):
         self.db_path = db_path or "quality_results.db"
         self.results_cache: dict[str, list[dict[str, Any]]] = defaultdict(list)
         self.lock = threading.Lock()
@@ -268,11 +276,11 @@ class ResultAggregator:
 
         for result in results:
             score = result.get("quality_score", 0.0)
-            if score >= 0.9:
+            if score >= QUALITY_EXCELLENT_THRESHOLD:
                 distribution["excellent"] += 1
-            elif score >= 0.7:
+            elif score >= QUALITY_GOOD_THRESHOLD:
                 distribution["good"] += 1
-            elif score >= 0.5:
+            elif score >= QUALITY_FAIR_THRESHOLD:
                 distribution["fair"] += 1
             else:
                 distribution["poor"] += 1
@@ -480,12 +488,12 @@ class ResultAggregator:
             logger.error(f"Failed to get all batches: {e}")
             return []
 
-    def generate_report(self, batch_id: str, output_file: str = None) -> str:
+    def generate_report(self, batch_id: str, output_file: str | None = None) -> str:
         """Generate a detailed report for a batch"""
         aggregated = self.get_batch_summary(batch_id)
 
         if not aggregated:
-            return f"No data found for batch: {batch_id}"
+            return f"{MISSING_BATCH_NOTICE}: {batch_id}"
 
         # Generate report content
         report_lines = [
@@ -573,7 +581,13 @@ def main():
     # Report command
     report_parser = subparsers.add_parser("report", help="Generate report for a batch")
     report_parser.add_argument("batch_id", help="Batch ID for report")
-    report_parser.add_argument("--output", help="Output file for report")
+    report_parser.add_argument(
+        "--output",
+        help=(
+            "Output file for report. Reporting a missing batch fails with exit "
+            "status 1 and a notice on stderr whether or not --output is given."
+        ),
+    )
 
     # List command
     subparsers.add_parser("list", help="List all batches")
@@ -599,9 +613,12 @@ def main():
             pass
 
     elif args.command == "report":
-        aggregator.generate_report(args.batch_id, args.output)
+        report_content = aggregator.generate_report(args.batch_id, args.output)
+        if report_content.startswith(MISSING_BATCH_NOTICE):
+            sys.stderr.write(report_content + "\n")
+            sys.exit(1)
         if not args.output:
-            pass
+            sys.stdout.write(report_content + "\n")
 
     elif args.command == "list":
         aggregator.get_all_batches()
