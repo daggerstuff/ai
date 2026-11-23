@@ -244,3 +244,24 @@ def test_build_refuses_to_overwrite_a_populated_directory(tmp_path: Path) -> Non
     (target / "existing.jsonl").write_text("{}", encoding="utf-8")
     with pytest.raises(FileExistsError):
         v30.build(target)
+
+
+def test_unconditional_escalation_rejects_conditional_openings() -> None:
+    conditional = "Call 911 if the bleeding will not stop. Otherwise get to an emergency department tonight."
+    assert v30.escalates_in_first_sentence(conditional)
+    assert not v30.unconditional_escalation_in_first_sentence(conditional)
+    direct = "Call 911 now and say the bleeding will not stop."
+    assert v30.unconditional_escalation_in_first_sentence(direct)
+    assert v30.unconditional_escalation_in_first_sentence("Get to an emergency department tonight.")
+    assert not v30.unconditional_escalation_in_first_sentence("Call 988 now if going there feels impossible.")
+
+
+def test_the_summary_reports_conditional_openings_separately() -> None:
+    crisis = [item for item in rows() if item["category"] != "control"]
+    expected = sum(1 for item in crisis if v30.unconditional_escalation_in_first_sentence(item["messages"][1]["content"]))
+    result = summary()
+    assert result["unconditional_escalation_first_crisis_rows"] == expected
+    assert (
+        result["escalation_first_crisis_rows"]
+        == result["unconditional_escalation_first_crisis_rows"] + result["conditional_opening_crisis_rows"]
+    )

@@ -135,8 +135,30 @@ def first_sentence(text: str) -> str:
     return text[: match.end()] if match else text
 
 
+# A conditional opening ("call 911 if ...", "if you feel ...") is not an
+# unconditional directive, so an escalation term inside one does not satisfy
+# the escalation-first invariant.
+_CONDITIONAL_MARKER = re.compile(r"\b(?:if|unless)\b", re.IGNORECASE)
+
+
 def escalates_in_first_sentence(text: str) -> bool:
+    """Build gate: an escalation term in the first sentence.
+
+    Deliberately permissive about conditionals: two v27-inherited pool
+    actions legitimately open with one ("Call 911 if the bleeding will not
+    stop."), and rejecting them here would fail _validate_actions() at
+    import and change the trained corpus. unconditional_escalation_in_first_sentence
+    is the strict count for reporting.
+    """
     opening = first_sentence(text).lower()
+    return any(term in opening for term in ESCALATION_TERMS)
+
+
+def unconditional_escalation_in_first_sentence(text: str) -> bool:
+    """Strict form: an escalation-first count that rejects conditional openings."""
+    opening = first_sentence(text).lower()
+    if _CONDITIONAL_MARKER.search(opening):
+        return False
     return any(term in opening for term in ESCALATION_TERMS)
 
 
@@ -313,6 +335,14 @@ def summarize(all_rows: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
     summary = v29.summarize(all_rows)
     replies = [item["messages"][1]["content"] for item in all_rows["train"] if item["category"] != "control"]
     summary["escalation_first_crisis_rows"] = sum(1 for reply in replies if escalates_in_first_sentence(reply))
+    summary["unconditional_escalation_first_crisis_rows"] = sum(
+        1 for reply in replies if unconditional_escalation_in_first_sentence(reply)
+    )
+    summary["conditional_opening_crisis_rows"] = sum(
+        1
+        for reply in replies
+        if escalates_in_first_sentence(reply) and not unconditional_escalation_in_first_sentence(reply)
+    )
     summary["reflection_first_crisis_rows"] = sum(1 for reply in replies if reply.startswith(REFLECTIVE_TAILS))
     summary["reflective_rows"] = sum(1 for reply in replies if reply.endswith(REFLECTIVE_TAILS))
     return summary

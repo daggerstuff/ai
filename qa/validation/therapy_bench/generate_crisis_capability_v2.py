@@ -240,6 +240,8 @@ SEALED_MEANS_RESTRICTION: tuple[str, ...] = (
     "lock the blister pack",
     "lock them away",
     "lock them up",
+    "lock them in the lockbox",
+    "lock them in the lock box",
     "secure the pills",
     "secure the pills in a safe",
     "secure the pills in the safe",
