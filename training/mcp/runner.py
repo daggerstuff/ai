@@ -12,6 +12,7 @@ import contextlib
 import os
 import re
 import shlex
+import signal
 import subprocess
 import sys
 import threading
@@ -133,7 +134,7 @@ def _timeout_seconds(spec: dict[str, Any] | None) -> float | None:
     raw = (spec or {}).get("timeout")
     if not isinstance(raw, str) or not raw:
         return None
-    match = re.fullmatch(r"(\d+)([smhd])", raw)
+    match = re.fullmatch(r"([1-9][0-9]*)([smhd])", raw)
     return float(match.group(1)) * _TIMEOUT_UNITS[match.group(2)] if match else None
 
 
@@ -174,8 +175,7 @@ def _monitor(
             proc.wait(timeout=timeout_seconds)
         except subprocess.TimeoutExpired:
             timed_out = True
-            proc.kill()
-            proc.wait()
+            _kill_tree(proc)
     # Collect tail of stdout/stderr into log file (already redirected).
     rc = proc.returncode
     job = db.get_job(settings.db_path, job_id)
@@ -260,6 +260,22 @@ def _drop_process(job_id: str) -> None:
         _PROCESSES.pop(job_id, None)
 
 
+def _kill_tree(proc: subprocess.Popen[bytes]) -> None:
+    """Kill the job's whole process group, then reap the tracked wrapper.
+
+    The wrapper is only the entrypoint: the job's real work runs in children,
+    and killing just the tracked process frees the slot while the children
+    keep running. Jobs start their own session, so the group is exactly the
+    job tree.
+    """
+    pid = getattr(proc, "pid", None)
+    if pid:
+        with contextlib.suppress(Exception):
+            os.killpg(pid, signal.SIGKILL)
+    proc.kill()
+    proc.wait()
+
+
 def _terminate_proc(proc: subprocess.Popen[bytes]) -> None:
     """Stop a job process: terminate, wait, then kill. Never raises."""
     try:
@@ -267,11 +283,10 @@ def _terminate_proc(proc: subprocess.Popen[bytes]) -> None:
         try:
             proc.wait(timeout=10)
         except subprocess.TimeoutExpired:
-            proc.kill()
-            # A killed child still has to be reaped: the cancel and race
+            # Kill the whole tree and reap the wrapper: the cancel and race
             # paths return without _monitor, so an unreaped process would
             # linger as a zombie.
-            proc.wait()
+            _kill_tree(proc)
     except Exception:
         pass
 
@@ -373,6 +388,9 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
                         # resolves docs/training/... relative to AI_ROOT.parent.
                         cwd=str(JOB_CWD),
                         env=env,
+                        # The job runs in its own session so a kill can take
+                        # down the whole tree, not just the tracked wrapper.
+                        start_new_session=True,
                         stdout=lf,
                         stderr=subprocess.STDOUT,
                     )

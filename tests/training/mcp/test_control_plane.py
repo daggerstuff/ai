@@ -1940,3 +1940,51 @@ def test_an_ovhai_row_records_its_remote_job_name(db_path, monkeypatch, tmp_path
     job = db.get_job(db_path, "job-ovh")
     assert job["backend_id"] == "v22-eval-t1"
     assert job["status"] == "succeeded"
+
+
+def test_draft_validation_rejects_a_zero_or_non_string_timeout():
+    for bad in ["0s", 0, False]:
+        errors = recipes.validate_recipe_entry({**VALID_ENTRY, "timeout": bad})
+        assert any("timeout" in e for e in errors), bad
+
+
+def test_draft_validation_rejects_malformed_bounds_and_float_defaults():
+    errors = recipes.validate_recipe_entry(
+        {
+            **VALID_ENTRY,
+            "overrides": {
+                "epochs": {"type": "int", "min": "one", "default": 3},
+                "rate": {"type": "float", "min": 0.5, "default": 0.1},
+                "nan_rate": {"type": "float", "default": float("nan")},
+            },
+        }
+    )
+    assert any("epochs" in e and "min must be int" in e for e in errors)
+    assert any("rate" in e and "below min" in e for e in errors)
+    assert any("nan_rate" in e and "finite" in e for e in errors)
+
+
+def test_a_timed_out_job_kills_its_process_group(db_path, monkeypatch):
+    db.upsert_job(db_path, {"job_id": "job-grp", "kind": "build_release", "source": "local", "status": "running"})
+    killed_groups: list[tuple[int, object]] = []
+    monkeypatch.setattr(runner.os, "killpg", lambda pid, sig: killed_groups.append((pid, sig)))
+    monkeypatch.setattr(runner.time, "sleep", lambda _s: None)
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda *_a, **_k: None)
+
+    class _Proc:
+        pid = 4321
+        returncode = None
+
+        def wait(self, timeout=None):
+            if timeout is not None:
+                raise subprocess.TimeoutExpired(cmd="job", timeout=timeout)
+            return None
+
+        def kill(self):
+            self.returncode = -9
+
+    runner._monitor(_settings(db_path), "job-grp", _Proc(), "/tmp/x.log", timeout_seconds=3600.0)
+    assert killed_groups == [(4321, runner.signal.SIGKILL)]
+    job = db.get_job(db_path, "job-grp")
+    assert job["status"] == "failed"
+    assert job["error"] == "exceeded its recipe timeout"

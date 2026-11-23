@@ -78,18 +78,28 @@ def _override_default_errors(name: str, spec: dict[str, Any]) -> list[str]:
 
     plan_job records defaults into the spec without checking them, so a bad
     default would only fail at submit time - the registry refuses it instead.
+    The bounds are type-checked before they are compared, so a malformed
+    bound is reported instead of raising.
     """
     default = spec.get("default")
     otype = spec.get("type")
-    if otype == "int":
-        if not isinstance(default, int) or isinstance(default, bool):
-            return [f"override {name!r} default must be int"]
-        if "min" in spec and default < spec["min"]:
-            return [f"override {name!r} default below min {spec['min']}"]
-        if "max" in spec and default > spec["max"]:
-            return [f"override {name!r} default above max {spec['max']}"]
-    if otype == "float" and (not isinstance(default, (int, float)) or isinstance(default, bool)):
-        return [f"override {name!r} default must be number"]
+    numeric: type | tuple[type, ...] | None = {"int": int, "float": (int, float)}.get(otype)
+    if numeric is not None:
+        kind = "int" if otype == "int" else "number"
+        if not isinstance(default, numeric) or isinstance(default, bool):
+            return [f"override {name!r} default must be {kind}"]
+        if otype == "float" and not math.isfinite(default):
+            return [f"override {name!r} default must be a finite number"]
+        for bound in ("min", "max"):
+            if bound not in spec:
+                continue
+            limit = spec[bound]
+            if not isinstance(limit, numeric) or isinstance(limit, bool):
+                return [f"override {name!r} {bound} must be {kind}"]
+            outside = default < limit if bound == "min" else default > limit
+            if outside:
+                side = "below" if bound == "min" else "above"
+                return [f"override {name!r} default {side} {bound} {limit}"]
     if otype == "str" and not isinstance(default, str):
         return [f"override {name!r} default must be string"]
     if otype == "bool" and not isinstance(default, bool):
@@ -143,8 +153,10 @@ def validate_recipe_entry(entry: Any, known_ids: set[str] | None = None) -> list
         if field_value is not None and not isinstance(field_value, dict):
             errors.append(f"{field_name} must be a mapping")
     timeout = entry.get("timeout")
-    if timeout and (not isinstance(timeout, str) or re.fullmatch(r"(\d+)([smhd])", timeout) is None):
-        errors.append(f"timeout must be a duration like 2h, got {timeout!r}")
+    if timeout not in (None, "") and (
+        not isinstance(timeout, str) or re.fullmatch(r"([1-9][0-9]*)([smhd])", timeout) is None
+    ):
+        errors.append(f"timeout must be a positive duration like 2h, got {timeout!r}")
     overrides = entry.get("overrides") or {}
     if not isinstance(overrides, dict):
         errors.append("overrides must be a mapping")
