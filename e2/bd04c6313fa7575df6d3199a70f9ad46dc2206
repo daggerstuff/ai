@@ -1,0 +1,32 @@
+tests/training/mcp/test_control_plane.py
+  h_07d84030f79d30 379-384,418-426,1899-1909
+training/mcp/.env.example
+  h_07d84030f79d30 23-25
+training/mcp/RUNBOOK.md
+  h_07d84030f79d30 213
+training/mcp/backends.py
+  h_07d84030f79d30 437-439,446,448-451
+training/mcp/config.py
+  h_07d84030f79d30 89-98
+training/mcp/plan.py
+  h_07d84030f79d30 12,52-69,89,93-95
+training/mcp/recipes.py
+  h_07d84030f79d30 76-107,114-116,119,201-202
+training/mcp/runner.py
+  h_07d84030f79d30 280-285,287-296,349,486-499,501
+training/mcp/server.py
+  h_07d84030f79d30 16,37-56,583
+training/mcp/sync.py
+  h_07d84030f79d30 20,135-136,140-150,153-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e2bd04c6313fa7575df6d3199a70f9ad46dc2206",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
