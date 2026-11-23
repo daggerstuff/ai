@@ -209,11 +209,12 @@ CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
 _RESUMED_VERBS: Final[str] = r"sure|certain|confident|convinced|think|believe|promise|say|know|tell|guarantee"
 _RESUMED_VERB_ALTERNATIVE: Final[re.Pattern[str]] = re.compile(rf"\s*(?:{_RESUMED_VERBS})\b")
 # A negator in front of an inverted subject and modal ("nor can I promise",
-# "neither do I think") negates the stance verb itself, so the governor it
-# would otherwise look like is not affirmative.
+# "neither do I think", "nor need I promise") negates the stance verb itself,
+# so the governor it would otherwise look like is not affirmative.
 NEGATIVE_INVERSION: Final[re.Pattern[str]] = re.compile(
     r"\b(?:nor|neither)\s+"
-    r"(?:can|could|do|does|did|will|would|shall|should|may|might|must|have|has|had|am|is|are|was|were)\b\s*$"
+    r"(?:can|could|do|does|did|will|would|shall|should|may|might|must|need|dare"
+    r"|ought|have|has|had|am|is|are|was|were)\b\s*$"
 )
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
     rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*|\b(?:{_RESUMED_VERBS})\s+)"

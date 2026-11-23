@@ -500,6 +500,16 @@ def test_a_negative_inversion_keeps_the_disclaimer() -> None:
         assert cdr._certainty_claim_omitted(text) is True, text
 
 
+def test_a_modal_negative_inversion_keeps_the_disclaimer() -> None:
+    """'neither need I promise' negates the stance verb like 'nor can I' does."""
+    for text in (
+        "I can't say how this will turn out, nor need I promise that everything will be okay.",
+        "I can't say how this will turn out, neither dare I promise that everything will be okay.",
+        "I can't say how this will turn out, nor ought I promise that everything will be okay.",
+    ):
+        assert cdr._certainty_claim_omitted(text) is True, text
+
+
 def test_folded_starts_line_up_with_casefold_expansion() -> None:
     starts = cdr._folded_starts("Stra\u00dfe")
     assert starts == [0, 1, 2, 3, 4, 6]
