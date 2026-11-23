@@ -59,7 +59,7 @@ definitions:
       - uv sync --frozen
       - uv pip install -r config/requirements_enhanced.txt
       # Run mypy type checking
-      - uv run mypy . --ignore-missing-imports --show-error-codes || true
+      - uv run --no-sync mypy . --ignore-missing-imports --show-error-codes || true
 
   - step: &security-scan
       name: Security Vulnerability Scan
