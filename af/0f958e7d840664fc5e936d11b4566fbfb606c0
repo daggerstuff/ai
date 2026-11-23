@@ -1,0 +1,19 @@
+qa/validation/therapy_bench/paired_eval.py
+  s_b87e963288c693::t_2db622576fae33 693-701
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "af0f958e7d840664fc5e936d11b4566fbfb606c0",
+  "prompts": {},
+  "sessions": {
+    "s_b87e963288c693": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "cloudy-marten",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
