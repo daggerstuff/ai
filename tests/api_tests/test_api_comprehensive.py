@@ -105,6 +105,22 @@ def bulk_export_request():
     }
 
 
+def _api_reachable() -> bool:
+    """Return True when the API under test answers on API_BASE_URL."""
+
+    try:
+        httpx.get(f"{API_BASE_URL}/health", timeout=1)
+    except httpx.HTTPError:
+        return False
+    return True
+
+
+pytestmark = pytest.mark.skipif(
+    not _api_reachable(),
+    reason=f"integration suite: needs a running API server at {API_BASE_URL}",
+)
+
+
 class TestAPIAuthentication:
     """Test suite for API authentication."""
 

@@ -4,22 +4,49 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-try:
-    from ai.monitoring.safety_monitor_integration import SafetyMonitor
-except Exception:
 
-    class SafetyMonitor:
-        def __init__(self) -> None:
-            pass
+class TrainingSafetyMonitor:
+    """Audit trail for the training-run lifecycle.
 
-        def record_training_start(self, _config: dict[str, object]) -> None:
-            return None
+    The chat-safety monitors track live sessions and clinical contacts; they
+    have no notion of a training run. This records the two lifecycle events the
+    pipeline emits and keeps them inspectable.
+    """
 
-        def record_training_complete(self, **_kwargs: object) -> None:
-            return None
+    def __init__(self, *, logger: logging.Logger | None = None) -> None:
+        self.logger = logger or logging.getLogger(__name__)
+        self.events: list[dict[str, Any]] = []
+
+    def record_training_start(self, config: dict[str, object]) -> None:
+        self.events.append(
+            {
+                "event": "training_start",
+                "timestamp": datetime.now(UTC).isoformat(),
+                "config": dict(config),
+            }
+        )
+        self.logger.info(
+            "Training run started: model=%s epochs=%s",
+            config.get("model_name", "default"),
+            config.get("epochs"),
+        )
+
+    def record_training_complete(self, **kwargs: object) -> None:
+        self.events.append(
+            {
+                "event": "training_complete",
+                "timestamp": datetime.now(UTC).isoformat(),
+                **kwargs,
+            }
+        )
+        if kwargs.get("success"):
+            self.logger.info("Training run completed successfully")
+        else:
+            self.logger.error("Training run failed: %s", kwargs.get("payload"))
 
 
 try:
@@ -91,7 +118,7 @@ def finetune_with_unsloth(
     if compliance_system is not None and hasattr(compliance_system, "run_pre_training_checks"):
         compliance_system.run_pre_training_checks(config=config, sample_count=len(tokenized_data))
 
-    monitor = safety_monitor or SafetyMonitor()
+    monitor = safety_monitor or TrainingSafetyMonitor(logger=logger)
     monitor.record_training_start(config)
 
     try:
