@@ -214,9 +214,9 @@ training/*
 !training/ovh_v22_eval/*.sh
 !training/ovh_v23_qwen3_8b/
 !training/ovh_v23_qwen3_8b/*.sh
-!training/mcp/
-training/mcp/state/
-!training/mcp/*.yaml
+!training/control_plane/
+training/control_plane/state/
+!training/control_plane/*.yaml
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/
