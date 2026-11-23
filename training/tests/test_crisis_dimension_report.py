@@ -362,3 +362,8 @@ def test_report_never_contains_response_text(tmp_path: Path) -> None:
     out = tmp_path / "report.json"
     cdr.main(results, cases, out)
     assert secret not in out.read_text()
+
+
+def test_ascii_ellipsis_is_not_a_hard_sentence_end() -> None:
+    text = "I can't promise... recovery takes time... that everything will be okay."
+    assert cdr._aside_sentence_end(text, 0, len(text)) == len(text) - 1

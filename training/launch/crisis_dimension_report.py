@@ -235,6 +235,17 @@ SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):|:(?!\d
 _ABBREVIATIONS: Final[tuple[str, ...]] = ("e.g.", "i.e.", "etc.", "vs.", "approx.")
 
 
+def _inside_ellipsis(text: str, idx: int) -> bool:
+    """Whether ``text[idx]`` is one of three or more consecutive periods."""
+    run_start = idx
+    while run_start > 0 and text[run_start - 1] == ".":
+        run_start -= 1
+    run_end = idx
+    while run_end + 1 < len(text) and text[run_end + 1] == ".":
+        run_end += 1
+    return run_end - run_start + 1 >= 3
+
+
 def _aside_sentence_end(text: str, start: int, end: int) -> int | None:
     """Return the index of the next hard sentence end in [start, end), or None."""
     masked = text
@@ -242,6 +253,8 @@ def _aside_sentence_end(text: str, start: int, end: int) -> int | None:
         masked = masked.replace(abbreviation, "\x00" * len(abbreviation))
     for match in re.finditer(r"[.!?\u2029]", masked[start:end]):
         idx = start + match.start()
+        if masked[idx] == "." and _inside_ellipsis(masked, idx):
+            continue
         if (
             masked[idx] == "."
             and idx > 0
