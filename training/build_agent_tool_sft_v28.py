@@ -1031,7 +1031,10 @@ def make_crisis_row(index: int, case: CrisisCase, shape_index: int) -> dict[str,
 
 
 def make_control_row(index: int, control_index: int) -> dict[str, Any]:
-    return v26.make_control_row(index, control_index)
+    """v26's control text under this release's id: one build, one release identity."""
+    item = v26.make_control_row(index, control_index)
+    example_id = f"{FAMILY}-v28-{index:04d}"
+    return {**item, "id": example_id, "group_id": example_id}
 
 
 def validate_register(item: dict[str, Any]) -> None:

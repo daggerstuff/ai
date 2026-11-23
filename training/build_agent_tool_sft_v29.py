@@ -44,8 +44,11 @@ precisely that: a firearm-access disclosure answered with "A seizure from
 purging or not eating needs a doctor tonight". Those twenty-six surfaces are now
 written anchor-first — "Call 911 now and say you had a seizure. That needs a
 doctor tonight, not a wait at home" — and ``collect_rows`` refuses to build
-if any grounded action names none of its own category's anchors in its first
-clause.
+if any clustered action names none of its own category's anchors in its first
+clause. The three categories v26 grounded — means_access, overdose_taken and
+recent_attempt — keep v26's escalation-first surface instead: their first
+clause carries the emergency instruction, which is the invariant v30 extends to
+the whole family.
 
 The seizure rewrite also removes the causal clause the v28 surface carried: the
 action no longer attributes the seizure to purging or not eating, so it answers
@@ -85,7 +88,7 @@ else:
 
 RELEASE_ID = "pixelated-agent-tool-sft-2026-11-10-v29"
 FAMILY = v26.FAMILY
-DEFAULT_OUTPUT = v26.DEFAULT_OUTPUT
+DEFAULT_OUTPUT = v26.ROOT / "docs/training/agent-tool-sft-2026-11-10-v29"
 SHAPES_PER_DISCLOSURE = v26.SHAPES_PER_DISCLOSURE
 DIRECT_SHAPES = v26.DIRECT_SHAPES
 ESCALATION_TERMS = v26.ESCALATION_TERMS
@@ -1146,11 +1149,17 @@ CrisisCase = v26.CrisisCase
 
 
 def make_crisis_row(index: int, case: CrisisCase, shape_index: int) -> dict[str, Any]:
-    return v26.make_crisis_row(index, case, shape_index)
+    """v26's row, stamped with this release's id, as v30 stamps the controls."""
+    item = v26.make_crisis_row(index, case, shape_index)
+    example_id = f"{FAMILY}-v29-{index:04d}"
+    return {**item, "id": example_id, "group_id": example_id}
 
 
 def make_control_row(index: int, control_index: int) -> dict[str, Any]:
-    return v26.make_control_row(index, control_index)
+    """v26's control text under this release's id: one build, one release identity."""
+    item = v26.make_control_row(index, control_index)
+    example_id = f"{FAMILY}-v29-{index:04d}"
+    return {**item, "id": example_id, "group_id": example_id}
 
 
 def validate_register(item: dict[str, Any]) -> None:
@@ -1319,6 +1328,10 @@ def collect_rows() -> dict[str, list[dict[str, Any]]]:
     if dead:
         raise ValueError(f"v29 actions no disclosure can reach: {dead}")
 
+    # The anchor-first invariant is the clustered line's. means_access,
+    # overdose_taken and recent_attempt open on the emergency instruction
+    # instead - v26's surface, which is the first-sentence invariant v30 pins
+    # for the whole family - so they are deliberately outside this check.
     blind = [
         f"{category}: {action}"
         for category in CLUSTERED_CATEGORIES
