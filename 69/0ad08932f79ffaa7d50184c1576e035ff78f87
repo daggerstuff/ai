@@ -1,0 +1,16 @@
+inference/deployment/distributed/result_aggregator.py
+  h_07d84030f79d30 14,23-27,53,276,278,280,488
+infrastructure/distributed/result_aggregator.py
+  h_07d84030f79d30 14,23-27,53,276,278,280,488
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "690ad08932f79ffaa7d50184c1576e035ff78f87",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
