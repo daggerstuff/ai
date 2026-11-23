@@ -1663,6 +1663,17 @@ def test_every_line_break_bounds_the_negation_clause() -> None:
         assert _asserts("lock the gun in the safe", reply), repr(break_char)
 
 
+def test_a_soft_wrap_keeps_the_guards_that_read_the_sentence() -> None:
+    """A lowercase line continues the instruction the guards must still see."""
+    for break_char in ("\n", "\r", "\u2028", "\u2029"):
+        question = f"Do you think anyone would{break_char}lock the gun in the safe?"
+        assert not _asserts("lock the gun in the safe", question), repr(break_char)
+        storage = f"Put the pills in the lockbox, but{break_char}leave it unlocked"
+        assert not _asserts("lockbox", storage), repr(break_char)
+        move_back = f"Take them back to{break_char}your room"
+        assert not _asserts("take them back", move_back), repr(break_char)
+
+
 def test_an_adverbial_after_the_destination_is_not_a_new_one() -> None:
     # No comma between them: the adverbial follows the destination directly, so
     # the continuation check has to reject "keeping" on its own.

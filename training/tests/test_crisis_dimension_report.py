@@ -491,6 +491,15 @@ def test_an_affirmative_governor_after_the_comma_owns_the_claim() -> None:
         assert cdr._certainty_claim_omitted(text) is False, text
 
 
+def test_a_negative_inversion_keeps_the_disclaimer() -> None:
+    """A negated stance behind an inversion is not an affirmative governor."""
+    for text in (
+        "I can't say how this will turn out, nor can I promise that everything will be okay.",
+        "I can't say how this will turn out, neither do I think that everything will be okay.",
+    ):
+        assert cdr._certainty_claim_omitted(text) is True, text
+
+
 def test_folded_starts_line_up_with_casefold_expansion() -> None:
     starts = cdr._folded_starts("Stra\u00dfe")
     assert starts == [0, 1, 2, 3, 4, 6]

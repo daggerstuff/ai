@@ -208,6 +208,13 @@ CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
 )
 _RESUMED_VERBS: Final[str] = r"sure|certain|confident|convinced|think|believe|promise|say|know|tell|guarantee"
 _RESUMED_VERB_ALTERNATIVE: Final[re.Pattern[str]] = re.compile(rf"\s*(?:{_RESUMED_VERBS})\b")
+# A negator in front of an inverted subject and modal ("nor can I promise",
+# "neither do I think") negates the stance verb itself, so the governor it
+# would otherwise look like is not affirmative.
+NEGATIVE_INVERSION: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:nor|neither)\s+"
+    r"(?:can|could|do|does|did|will|would|shall|should|may|might|must|have|has|had|am|is|are|was|were)\b\s*$"
+)
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
     rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*|\b(?:{_RESUMED_VERBS})\s+)"
     r"(?:that|if|whether)\b"
@@ -399,7 +406,11 @@ def _resumed_complement(segment: str) -> re.Match[str] | None:
     if verb is not None:
         governed = segment[: match.start()] + match.group(0)[: verb.end()]
         governor = AFFIRMATIVE_GOVERNER.search(governed)
-        if governor is not None and governor.end() == len(governed.rstrip()):
+        if (
+            governor is not None
+            and governor.end() == len(governed.rstrip())
+            and NEGATIVE_INVERSION.search(governed[: governor.start()]) is None
+        ):
             return None
     aside = match.group(1)
     if aside is not None and AFFIRMATIVE_GOVERNER.match(aside) is not None:

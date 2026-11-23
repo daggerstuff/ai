@@ -895,6 +895,7 @@ _QUESTION_OPENERS = frozenset(
     }
 )
 _CLAUSE_END = re.compile(r"[.!?;\n\r\u2028\u2029]")
+_LINE_BREAKS: Final[frozenset[str]] = frozenset("\n\r\u2028\u2029")
 _INDIRECT_QUESTION = re.compile(
     r"\b(?:wonder(?:ing)?|not sure|don't know|do not know|am not sure|is not sure|isn't sure|unsure)\b"
     r"[^.?!]*?\b(?:if|whether)\b",
@@ -902,11 +903,29 @@ _INDIRECT_QUESTION = re.compile(
 )
 
 
-def _clause_bounds(text: str, index: int) -> tuple[int, int]:
-    """The start and end of the clause holding ``index``."""
+def _continues_on_the_next_line(text: str, offset: int) -> bool:
+    """Whether the line break ending at ``offset`` is a soft wrap.
+
+    Model replies wrap mid-sentence: a line that resumes in lowercase is the
+    same instruction, while a capitalised line starts a new one. The
+    destination matcher already reads a wrap this way.
+    """
+    rest = text[offset:].lstrip(" \t\u00a0\u2007\u202f")
+    return bool(rest) and rest[0] not in _LINE_BREAKS and rest[0].islower()
+
+
+def _clause_bounds(text: str, index: int, *, join_wrapped: bool = False) -> tuple[int, int]:
+    """The start and end of the clause holding ``index``.
+
+    ``join_wrapped`` keeps a soft-wrapped line inside the clause, so the
+    question, open-storage and move-back guards see the whole instruction a
+    reply wrapped. Negation does not join: a line break ends its scope.
+    """
     start = 0
     end = len(text)
     for match in _CLAUSE_END.finditer(text):
+        if join_wrapped and match.group() in _LINE_BREAKS and _continues_on_the_next_line(text, match.end()):
+            continue
         if match.end() <= index:
             start = match.end()
         else:
@@ -1079,17 +1098,18 @@ def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
     for match in re.finditer(r"(?<!\w)" + re.escape(needle), haystack):
         if _destination_continues(needle, haystack, cased, match.end()):
             continue
-        clause_start, clause_end = _clause_bounds(haystack, match.start())
+        clause_start, _ = _clause_bounds(haystack, match.start())
+        guard_start, guard_end = _clause_bounds(haystack, match.start(), join_wrapped=True)
         if not allow_negated and _negated_before(haystack, match.start(), clause_start):
             continue
-        if _is_question(haystack, clause_start, clause_end, match.start()):
+        if _is_question(haystack, guard_start, guard_end, match.start()):
             continue
-        clause = haystack[clause_start:clause_end]
+        clause = haystack[guard_start:guard_end]
         if _OPEN_STORAGE.search(clause):
             continue
         if _CHILD_SCOPE.match(haystack, match.end()):
             continue
-        if "back" in needle and _returns_to_the_person(haystack, match.end(), clause_end):
+        if "back" in needle and _returns_to_the_person(haystack, match.end(), guard_end):
             continue
         return True
     return False
