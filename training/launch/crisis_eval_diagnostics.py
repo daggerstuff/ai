@@ -129,8 +129,11 @@ def diagnose(results_path: Path, cases_path: Path, arms: tuple[str, ...] = ("bas
             continue
         record = Result.model_validate_json(line)
         key = (record.case_id, record.arm_id)
-        if key not in expected or key in results:
-            raise DiagnosticInputError(f"unexpected or duplicate result: {key}")
+        if key not in expected:
+            raise DiagnosticInputError(f"unexpected result: {key}")
+        # Resumed runs append retried cases to the same results file, and the
+        # harness's own resume reader (_read_completed) is last-record-wins;
+        # a duplicate key is the retry superseding the failed attempt.
         results[key] = record
     outcomes: list[Outcome] = []
     counts: dict[str, dict[Dimension, Count]] = {arm: {} for arm in arms}

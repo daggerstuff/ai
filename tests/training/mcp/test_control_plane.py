@@ -1446,3 +1446,31 @@ def test_resolve_command_preserves_whitespace_inside_a_quoted_value():
     )
     assert plan._resolve_command(recipe, {}, {"note": "a  b"}) == "python -m training.probe --note 'a  b'"
     assert plan._resolve_command(recipe, {}, {"note": "b"}) == "python -m training.probe --note b"
+
+
+def test_log_dir_failure_lands_in_a_terminal_state(db_path, monkeypatch):
+    """A preparation failure must fail the job, not strand it at `submitted`.
+
+    mkdir ran before the guarded spawn block: a permission error or a full disk
+    killed the daemon thread with the row still `submitted`, holding a
+    concurrency slot forever with no process and no provenance.
+    """
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path, {"job_id": "job-mkdir", "kind": "build_release", "source": "local", "name": "r", "status": "queued"}
+    )
+    row = db.get_job(db_path, "job-mkdir")
+    recorded: list[str] = []
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda _s, job_id: recorded.append(job_id))
+
+    def boom(_self, *_a, **_k):
+        raise OSError(28, "No space left on device")
+
+    monkeypatch.setattr(runner.Path, "mkdir", boom)
+    monkeypatch.setattr(runner.threading, "Thread", ImmediateThread)
+    runner.submit(settings, "job-mkdir", row, "python -m training.build_v30_release", "local")
+    final = db.get_job(db_path, "job-mkdir")
+    assert final["status"] == "failed"
+    assert "spawn failed" in (final["error"] or "")
+    assert final["finished_at"] is not None
+    assert recorded == ["job-mkdir"]

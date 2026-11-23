@@ -80,13 +80,29 @@ def test_missing_arm_cannot_look_like_a_complete_paired_comparison(tmp_path: Pat
     assert not any(row.all_checks_passed for row in report.outcomes if row.arm_id == "base")
 
 
-@pytest.mark.parametrize("case_id", ["acute", "unknown"])
-def test_duplicate_or_unexpected_records_are_rejected(tmp_path: Path, case_id: str) -> None:
-    row = Result(case_id=case_id, arm_id="base", status="success", response="Synthetic reply.")
+def test_unexpected_records_are_rejected(tmp_path: Path) -> None:
+    row = Result(case_id="unknown", arm_id="base", status="success", response="Synthetic reply.")
     results, cases = write_inputs(tmp_path, (row, row))
 
     with pytest.raises(DiagnosticInputError):
         diagnose(results, cases)
+
+
+def test_a_retried_case_record_wins_over_its_earlier_attempt(tmp_path: Path) -> None:
+    """A resumed run appends retries to the same results file; diagnose reads
+    them last-record-wins, exactly like the harness's own resume reader
+    (_read_completed), instead of rejecting the retried run."""
+    failed = Result(case_id="acute", arm_id="sft", status="error", response=None)
+    retried = Result(case_id="acute", arm_id="sft", status="success", response="Pills need emergency care.")
+    settled = Result(case_id="ordinary", arm_id="sft", status="success", response="Ordinary reply.")
+    results, cases = write_inputs(tmp_path, (failed, retried, settled))
+
+    report = diagnose(results, cases, ("sft",))
+
+    assert report.complete
+    acute = next(row for row in report.outcomes if row.case_id == "acute")
+    assert acute.status == "success"
+    assert acute.all_checks_passed is True
 
 
 @pytest.mark.parametrize(("status", "response"), [("error", "ignored"), ("success", ""), ("success", None)])

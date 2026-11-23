@@ -284,12 +284,24 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
                 return
             env = _build_env(settings)
             log_dir = settings.db_path.parent / "logs"
-            log_dir.mkdir(parents=True, exist_ok=True)
             log_path = str(log_dir / f"{job_id}.log")
             try:
+                log_dir.mkdir(parents=True, exist_ok=True)
                 cmd_list = shlex.split(resolved_command)
             except ValueError:
                 cmd_list = resolved_command.split()
+            except OSError as exc:
+                # Preparation failed (permissions, ENOSPC, ...): land the job
+                # in a terminal state instead of stranding the row at
+                # `submitted` with no process and no provenance.
+                if db.mark_job_terminal(
+                    settings.db_path,
+                    job_id,
+                    status="failed",
+                    error=f"spawn failed: {type(exc).__name__}: {exc}",
+                ):
+                    _record_terminal_outcome(settings, job_id)
+                return
             try:
                 with open(log_path, "w") as lf:
                     proc = subprocess.Popen(
