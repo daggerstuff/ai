@@ -26,11 +26,14 @@ from pathlib import Path
 from typing import Any, Protocol
 from urllib.parse import urlsplit
 
-_CONFIG_KEYS = {"schema_version", "run_id", "loader", "decoding", "pricing", "arms"}
-# How the arms must be loaded. Recorded in the config so the two arms cannot be
-# scored under a different quantisation or compute dtype than the one the run
-# record names.
-_LOADER_KEYS = {"load_in_4bit", "dtype"}
+_CONFIG_REQUIRED_KEYS = {"schema_version", "run_id", "decoding", "pricing", "arms"}
+# How the arms must be loaded. Optional because only the local runner has a
+# loader at all: a hosted config describes transport selection in its arms
+# alone. When present it is validated and hashed, so the two arms cannot be
+# scored under a different quantisation, compute dtype or base revision than
+# the one the run record names.
+_LOADER_REQUIRED_KEYS = {"load_in_4bit", "dtype"}
+_LOADER_OPTIONAL_KEYS = {"base_model_revision"}
 _DECODING_REQUIRED_KEYS = {"temperature", "max_tokens", "stop"}
 _DECODING_OPTIONAL_KEYS = {"chat_template_kwargs", "response_format"}
 _PRICING_KEYS = {
@@ -245,13 +248,15 @@ def _append_jsonl(path: Path, payload: dict[str, Any]) -> None:
 
 def load_config(path: Path) -> dict[str, Any]:
     config = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(config, dict) or set(config) != _CONFIG_KEYS:
-        raise EvaluationInputError(f"Config keys must be exactly {sorted(_CONFIG_KEYS)}")
+    allowed_keys = _CONFIG_REQUIRED_KEYS | {"loader"}
+    if not isinstance(config, dict) or not set(config) >= _CONFIG_REQUIRED_KEYS or set(config) - allowed_keys:
+        raise EvaluationInputError(f"Config keys must be within {sorted(allowed_keys)}")
     if config["schema_version"] != 1:
         raise EvaluationInputError("Only config schema_version 1 is supported")
     if not isinstance(config["run_id"], str) or not config["run_id"].strip():
         raise EvaluationInputError("run_id must be a nonempty string")
-    _validate_loader(config["loader"])
+    if "loader" in config:
+        _validate_loader(config["loader"])
     _validate_decoding(config["decoding"])
     _validate_pricing(config["pricing"])
     arms = config["arms"]
@@ -325,12 +330,17 @@ def _validate_arm(arm: Any) -> None:
 
 
 def _validate_loader(loader: Any) -> None:
-    if not isinstance(loader, dict) or set(loader) != _LOADER_KEYS:
-        raise EvaluationInputError(f"loader keys must be exactly {sorted(_LOADER_KEYS)}")
+    allowed_keys = _LOADER_REQUIRED_KEYS | _LOADER_OPTIONAL_KEYS
+    if not isinstance(loader, dict) or not set(loader) >= _LOADER_REQUIRED_KEYS or set(loader) - allowed_keys:
+        raise EvaluationInputError(f"loader keys must be within {sorted(allowed_keys)}")
     if not isinstance(loader["load_in_4bit"], bool):
         raise EvaluationInputError("loader.load_in_4bit must be a boolean")
     if not isinstance(loader["dtype"], str) or not loader["dtype"].strip():
         raise EvaluationInputError("loader.dtype must be a nonempty string")
+    if "base_model_revision" in loader and (
+        not isinstance(loader["base_model_revision"], str) or not loader["base_model_revision"].strip()
+    ):
+        raise EvaluationInputError("loader.base_model_revision must be a nonempty string")
 
 
 def _validate_pricing(pricing: Any) -> None:
