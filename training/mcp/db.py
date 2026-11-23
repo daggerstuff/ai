@@ -156,15 +156,9 @@ TERMINAL_JOB_STATUSES = frozenset({"succeeded", "failed", "cancelled"})
 _TERMINAL_STATUSES_SQL = ", ".join(f"'{status}'" for status in sorted(TERMINAL_JOB_STATUSES))
 
 
-def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
-    """Insert or refresh a job row. ``job_id`` is required.
-
-    The refresh is terminal-guarded: a backend import or reconcile sweep that
-    lands on a row whose outcome was already written must not resurrect it.
-    """
-    now = _now()
-    conn = _conn(db_path)
-    conn.execute(
+def _upsert_job_statement(now: str, job: dict[str, Any]) -> tuple[str, tuple]:
+    """The terminal-guarded insert-or-refresh statement for one job row."""
+    return (
         f"""
         INSERT INTO jobs (
             job_id, kind, source, name, status, stage, idempotency_key, backend_id,
@@ -220,6 +214,16 @@ def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
             job.get("finished_at"),
         ),
     )
+
+
+def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
+    """Insert or refresh a job row. ``job_id`` is required.
+
+    The refresh is terminal-guarded: a backend import or reconcile sweep that
+    lands on a row whose outcome was already written must not resurrect it.
+    """
+    conn = _conn(db_path)
+    conn.execute(*_upsert_job_statement(_now(), job))
     conn.commit()
 
 
@@ -297,6 +301,48 @@ def mark_job_terminal(db_path: Path, job_id: str, *, status: str, error: str) ->
     )
     conn.commit()
     return cursor.rowcount > 0
+
+
+def count_jobs(db_path: Path, *, in_flight: tuple[str, ...]) -> int:
+    """Count rows in the given statuses with no page truncation."""
+    placeholders = ", ".join("?" for _ in in_flight)
+    (count,) = (
+        _conn(db_path).execute(f"SELECT COUNT(*) FROM jobs WHERE status IN ({placeholders})", in_flight).fetchone()
+    )
+    return count
+
+
+def admit_job_under_cap(
+    db_path: Path,
+    job: dict[str, Any],
+    *,
+    in_flight: tuple[str, ...],
+    cap: int,
+) -> bool:
+    """Insert ``job`` only while the in-flight count stays under ``cap``.
+
+    The count and the insert share one IMMEDIATE transaction on a dedicated
+    connection, so two concurrent submits cannot both pass the check and both
+    insert: SQLite serializes writers on the database file. A ``cap <= 0``
+    disables the limit and admits unconditionally.
+    """
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(db_path), timeout=30)
+    try:
+        conn.executescript(SCHEMA)
+        _migrate(conn)
+        conn.isolation_level = None
+        conn.execute("BEGIN IMMEDIATE")
+        placeholders = ", ".join("?" for _ in in_flight)
+        (count,) = conn.execute(f"SELECT COUNT(*) FROM jobs WHERE status IN ({placeholders})", in_flight).fetchone()
+        if cap > 0 and count >= cap:
+            conn.execute("ROLLBACK")
+            return False
+        conn.execute(*_upsert_job_statement(_now(), job))
+        conn.execute("COMMIT")
+        return True
+    finally:
+        conn.close()
 
 
 def fail_orphaned_process_jobs(db_path: Path) -> list[str]:

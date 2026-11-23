@@ -291,6 +291,7 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
         "results_rows": len(parsed),
     }
     by_arm: dict[str, dict[str, int]] = {}
+    graded = any(_row_passed(row) is not None for row in parsed)
     for row in parsed:
         # Every row counts in its arm's total, graded or not: a case that
         # produced no verdict failed its run as surely as a graded failure,
@@ -302,7 +303,7 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
         slot["total"] += 1
         if _row_passed(row) is True:
             slot["passed"] += 1
-    if by_arm:
+    if graded and by_arm:
         rates = {arm: (s["passed"] / s["total"] if s["total"] else 0.0) for arm, s in by_arm.items()}
         out["arm_pass_rates"] = {
             arm: {"passed": by_arm[arm]["passed"], "total": by_arm[arm]["total"], "rate": rates[arm]} for arm in by_arm
@@ -310,8 +311,14 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
         if "base" in rates and "sft" in rates:
             out["delta_sft_minus_base"] = rates["sft"] - rates["base"]
     else:
+        # An all-ungradeable file must not read as a valid zero-rate arm: with
+        # zero thresholds that is a promotion. No graded row means no rates.
         out["arm_pass_rates"] = None
-        out["note"] = "no results rows in results.jsonl"
+        out["note"] = (
+            "no results rows in results.jsonl"
+            if not parsed
+            else "no graded rows in results.jsonl (errors and raw outputs only)"
+        )
     return out
 
 

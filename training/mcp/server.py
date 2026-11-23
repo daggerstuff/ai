@@ -533,34 +533,6 @@ def submit_job(
             "error": "the recipe changed since this plan was approved; re-run plan_job for a fresh approval",
         }
     cost = float(planned["est_cost_usd"] or 0.0)
-    # Budget caps. Every in-flight phase counts against the cap: a job holds
-    # its slot from `queued` through `collecting`, and counting only running
-    # and queued let a burst of submits sail past the cap while the earlier
-    # jobs sat in `submitted` or `collecting`.
-    in_flight = ("queued", "staging", "submitted", "running", "collecting")
-    active_count = sum(len(db.list_jobs(s.db_path, status=status_, limit=500)) for status_ in in_flight)
-    if s.max_concurrent_jobs > 0 and active_count >= s.max_concurrent_jobs:
-        # RUNBOOK documents this cap as "reject a submit that would exceed it",
-        # and it is the only guard on how many jobs an agent can have in flight
-        # at once. It used to be a bare `pass`, so the cap was advertised in
-        # `health.budget_caps` but never enforced.
-        audit(
-            "submit.rejected",
-            actor=requested_by,
-            recipe_id=recipe,
-            plan_hash=planned["plan_hash"],
-            detail={
-                "reason": "max concurrent jobs reached",
-                "cap": s.max_concurrent_jobs,
-                "active_count": active_count,
-            },
-        )
-        return {
-            "ok": False,
-            "error": (
-                f"max concurrent jobs reached ({s.max_concurrent_jobs}); wait for a running job to finish or cancel one"
-            ),
-        }
     # daily job cap — counts jobs a human or agent actually asked the control
     # plane to launch. Rows discovered by `import_history`/`sync_jobs` carry the
     # `import` actor and are excluded: a single backfill sweep would otherwise
@@ -622,7 +594,33 @@ def submit_job(
         "cost_estimate": cost,
         "requested_by": requested_by,
     }
-    db.upsert_job(s.db_path, job_row)
+    # RUNBOOK documents the concurrency cap as "reject a submit that would
+    # exceed it", and it is the only guard on how many jobs an agent can have
+    # in flight at once. It is enforced by the admission transaction itself
+    # rather than by a read before the insert: a plain check-then-insert let
+    # two concurrent submits both pass and both insert. Every in-flight phase
+    # counts (`queued` through `collecting`), and the count is unpaged, so a
+    # cap above one page is still enforced.
+    in_flight = ("queued", "staging", "submitted", "running", "collecting")
+    if not db.admit_job_under_cap(s.db_path, job_row, in_flight=in_flight, cap=s.max_concurrent_jobs):
+        active_count = db.count_jobs(s.db_path, in_flight=in_flight)
+        audit(
+            "submit.rejected",
+            actor=requested_by,
+            recipe_id=recipe,
+            plan_hash=planned["plan_hash"],
+            detail={
+                "reason": "max concurrent jobs reached",
+                "cap": s.max_concurrent_jobs,
+                "active_count": active_count,
+            },
+        )
+        return {
+            "ok": False,
+            "error": (
+                f"max concurrent jobs reached ({s.max_concurrent_jobs}); wait for a running job to finish or cancel one"
+            ),
+        }
     audit(
         "submit",
         actor=requested_by,

@@ -511,10 +511,23 @@ def test_results_parser_honours_an_explicit_top_level_passed():
 
 
 def test_results_parser_counts_ungraded_rows_against_their_arm():
-    """A row with no verdict is a failed case, not an invisible one."""
+    """Ungraded rows count against their arm once any row carries a grade."""
+    body = "\n".join(
+        [
+            json.dumps({"arm_id": "sft", "state_metrics": [], "response": "x"}),
+            _result_row("sft", [True, True]),
+        ]
+    ).encode()
+    parsed = backends._parse_results_body(body)
+    assert parsed["arm_pass_rates"]["sft"] == {"passed": 1, "total": 2, "rate": 0.5}
+
+
+def test_an_all_ungradeable_file_fails_closed():
+    """Zero graded rows must not read as a valid zero-rate arm."""
     row = json.dumps({"arm_id": "sft", "state_metrics": [], "response": "x"})
     parsed = backends._parse_results_body(row.encode())
-    assert parsed["arm_pass_rates"]["sft"] == {"passed": 0, "total": 1, "rate": 0.0}
+    assert parsed["arm_pass_rates"] is None
+    assert "no graded rows" in parsed["note"]
 
 
 def test_results_parser_counts_errored_rows_against_the_pass_rate():
@@ -1658,3 +1671,62 @@ def test_the_marker_is_forgotten_when_an_external_row_is_cancelled(db_path, monk
     assert runner.cancel(settings, "job-ext") is True
     assert db.get_job(db_path, "job-ext")["status"] == "cancelled"
     assert runner._is_cancelled("job-ext") is False
+
+
+def test_concurrent_admits_cannot_both_pass_the_cap(db_path):
+    """The count and the insert share one IMMEDIATE transaction."""
+    results: list[bool] = []
+    barrier = threading.Barrier(2)
+    in_flight = ("queued", "staging", "submitted", "running", "collecting")
+
+    def try_admit(index: int) -> None:
+        barrier.wait()
+        results.append(
+            db.admit_job_under_cap(
+                db_path,
+                {
+                    "job_id": f"job-race-{index}",
+                    "kind": "eval_paired",
+                    "source": "local",
+                    "name": "r",
+                    "status": "queued",
+                },
+                in_flight=in_flight,
+                cap=1,
+            )
+        )
+
+    threads = [threading.Thread(target=try_admit, args=(i,)) for i in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert sorted(results) == [False, True]
+    assert db.count_jobs(db_path, in_flight=("queued",)) == 1
+
+
+def test_the_cap_counts_rows_past_one_page(db_path):
+    """A paged count reads 500 and admits; the real count reads 501 and refuses."""
+    for i in range(501):
+        db.upsert_job(db_path, {"job_id": f"job-pg-{i}", "kind": "eval_paired", "source": "local", "status": "running"})
+    assert db.count_jobs(db_path, in_flight=("running",)) == 501
+    assert not db.admit_job_under_cap(
+        db_path,
+        {"job_id": "job-pg-new", "kind": "eval_paired", "source": "local", "status": "queued"},
+        in_flight=("running",),
+        cap=501,
+    )
+
+
+def test_a_locked_default_rejects_equal_values_of_the_wrong_type(db_path, monkeypatch):
+    recipe = recipes.Recipe(
+        id="locked-probe",
+        kind="other",
+        description="probe",
+        backend="local",
+        entrypoint="python -m training.probe --flag <flag>",
+        overrides={"flag": {"type": "bool", "locked": True, "default": False}},
+    )
+    monkeypatch.setattr(recipes, "load_recipes", lambda: [recipe])
+    with pytest.raises(plan.PlanError, match="is locked"):
+        plan.plan_job(_FakeSettings(db_path), "locked-probe", {}, {"flag": 0})
