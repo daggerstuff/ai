@@ -263,6 +263,9 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
         # Wait for single-flight slot.
         acquired = lock.acquire(timeout=300)
         if not acquired:
+            # The wait is over and no runner work will happen for this id, so
+            # its cancellation marker must not outlive the thread.
+            _forget_cancelled(job_id)
             # Guarded like every other terminal write: a cancel that landed
             # while this job waited for the slot owns the row and the record.
             if db.mark_job_terminal(settings.db_path, job_id, status="failed", error="single-flight timeout"):
@@ -394,4 +397,7 @@ def cancel(settings: Settings, job_id: str) -> bool:
         with contextlib.suppress(Exception):
             subprocess.run(["ovhai", "job", "stop", job["backend_id"]], capture_output=True, timeout=30, check=False)
     _record_terminal_outcome(settings, job_id)
+    # The row is terminal; a job with no runner thread (an imported row)
+    # would otherwise leave its marker in the process-global set forever.
+    _forget_cancelled(job_id)
     return True

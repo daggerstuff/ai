@@ -54,7 +54,10 @@ def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> li
         spec = recipe.overrides.get(name)
         if spec is None:
             raise PlanError(f"override '{name}' not allowed by recipe {recipe.id}")
-        if spec.get("locked"):
+        # The plan cache stores the resolved overrides and submit re-plans with
+        # them, so a locked override that names its own default must survive
+        # that round-trip instead of locking the submit out.
+        if spec.get("locked") and ("default" not in spec or value != spec["default"]):
             raise PlanError(f"override '{name}' is locked by recipe {recipe.id}")
         otype = spec.get("type")
         if otype == "int":

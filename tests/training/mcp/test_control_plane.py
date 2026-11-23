@@ -1587,3 +1587,74 @@ def test_a_killed_process_is_reaped():
 
     runner._terminate_proc(_Proc())
     assert calls == ["terminate", "wait", "kill", "wait"]
+
+
+def test_a_locked_default_survives_the_plan_roundtrip(db_path, monkeypatch):
+    """The cached spec carries locked defaults; submit re-plans with them."""
+    recipe = recipes.Recipe(
+        id="locked-probe",
+        kind="other",
+        description="probe",
+        backend="local",
+        entrypoint="python -m training.probe --lr <learning_rate>",
+        overrides={"learning_rate": {"type": "float", "locked": True, "default": 0.0001}},
+    )
+    monkeypatch.setattr(recipes, "load_recipes", lambda: [recipe])
+    settings = _FakeSettings(db_path)
+    planned = plan.plan_job(settings, "locked-probe", {}, {})
+    assert planned["spec"]["overrides"] == {"learning_rate": 0.0001}
+    again = plan.plan_job(settings, "locked-probe", {}, planned["spec"]["overrides"])
+    assert again["plan_hash"] == planned["plan_hash"]
+
+
+def test_draft_validation_reports_unhashable_fields_as_errors():
+    """A draft with a list or dict where an enum belongs is an error, not a crash."""
+    errors = recipes.validate_recipe_entry(
+        {
+            **VALID_ENTRY,
+            "kind": ["train_sft"],
+            "backend": {"name": "ovhai"},
+            "cost_class": ["cpu-minute"],
+        }
+    )
+    assert any("kind" in e for e in errors)
+    assert any("backend" in e for e in errors)
+    assert any("cost_class" in e for e in errors)
+
+
+def test_the_marker_is_forgotten_when_the_slot_wait_times_out(db_path, monkeypatch):
+    """The single-flight timeout path returns before the try/finally that
+    clears the marker, so it must clear it itself."""
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path, {"job_id": "job-sf2", "kind": "eval_paired", "source": "local", "name": "r", "status": "queued"}
+    )
+    row = db.get_job(db_path, "job-sf2")
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda *_a, **_k: None)
+
+    class BusyLock:
+        def acquire(self, timeout=None):
+            assert timeout == _SINGLE_FLIGHT_TIMEOUT
+            return False
+
+        def release(self):
+            pass
+
+    monkeypatch.setattr(runner, "_lock_for", lambda _backend: BusyLock())
+    monkeypatch.setattr(runner.threading, "Thread", ImmediateThread)
+    runner._mark_cancelled("job-sf2")
+    runner.submit(settings, "job-sf2", row, "python -m training.build_v30_release", "local")
+    assert db.get_job(db_path, "job-sf2")["status"] == "failed"
+    assert runner._is_cancelled("job-sf2") is False
+
+
+def test_the_marker_is_forgotten_when_an_external_row_is_cancelled(db_path, monkeypatch):
+    """An imported row has no runner thread to clear its marker in `finally`."""
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path, {"job_id": "job-ext", "kind": "train_sft", "source": "wandb", "name": "r", "status": "running"}
+    )
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda *_a, **_k: None)
+    assert runner.cancel(settings, "job-ext") is True
+    assert db.get_job(db_path, "job-ext")["status"] == "cancelled"
+    assert runner._is_cancelled("job-ext") is False

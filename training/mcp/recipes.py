@@ -88,12 +88,14 @@ def validate_recipe_entry(entry: Any, known_ids: set[str] | None = None) -> list
     recipe_id = entry.get("id")
     if isinstance(recipe_id, str) and known_ids and recipe_id in known_ids:
         errors.append(f"duplicate recipe id {recipe_id!r}")
-    if entry.get("kind") and entry["kind"] not in KINDS:
-        errors.append(f"unknown kind {entry['kind']!r} (expected one of {sorted(KINDS)})")
-    if entry.get("backend") and entry["backend"] not in BACKENDS:
-        errors.append(f"unknown backend {entry['backend']!r} (expected one of {sorted(BACKENDS)})")
+    kind = entry.get("kind")
+    if kind and (not isinstance(kind, str) or kind not in KINDS):
+        errors.append(f"unknown kind {kind!r} (expected one of {sorted(KINDS)})")
+    backend = entry.get("backend")
+    if backend and (not isinstance(backend, str) or backend not in BACKENDS):
+        errors.append(f"unknown backend {backend!r} (expected one of {sorted(BACKENDS)})")
     cost_class = entry.get("cost_class", "cpu-minute")
-    if cost_class not in COST_CLASSES:
+    if not isinstance(cost_class, str) or cost_class not in COST_CLASSES:
         errors.append(f"unknown cost_class {cost_class!r} (expected one of {sorted(COST_CLASSES)})")
     if "est_cost_usd" in entry:
         try:
@@ -122,7 +124,8 @@ def _launch_flag_errors(entry: dict[str, Any]) -> list[str]:
     submit successfully, report ``succeeded``, and never launch anything — the
     exact fabricated-success failure this control plane exists to prevent.
     """
-    if entry.get("kind") not in LAUNCH_KINDS:
+    kind = entry.get("kind")
+    if not isinstance(kind, str) or kind not in LAUNCH_KINDS:
         return []
     entrypoint = entry.get("entrypoint")
     if not isinstance(entrypoint, str):
