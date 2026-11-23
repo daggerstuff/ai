@@ -9,7 +9,7 @@ import json
 import mimetypes
 import os
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any
@@ -713,10 +713,27 @@ def _iso_datetime(value: Any, field: str, errors: list[str]) -> datetime | None:
         errors.append(f"{field} must be an ISO-8601 string")
         return None
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         errors.append(f"{field} is not a valid ISO-8601 timestamp: {value!r}")
         return None
+    # A naive parse (date-only, or no offset) and an aware one cannot be
+    # compared; naive timestamps are read as UTC so a mixed range validates
+    # instead of raising TypeError out of the validation contract.
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed
+
+
+def _enum_member(value: Any, allowed: frozenset[str], field: str, errors: list[str]) -> None:
+    """Record a message unless ``value`` is one of the allowed enum members.
+
+    The membership test needs a hashable value: a JSON list or dict in the
+    payload would raise TypeError on the frozenset lookup and escape the
+    validation contract as a 500, so non-strings are rejected here first.
+    """
+    if not isinstance(value, str) or value not in allowed:
+        errors.append(f"{field} must be one of {sorted(allowed)}, got {value!r}")
 
 
 def validate_analytics_request(data: Any, request_type: str = "export") -> dict[str, Any]:
@@ -736,13 +753,8 @@ def validate_analytics_request(data: Any, request_type: str = "export") -> dict[
         errors.append(f"unsupported analytics request type: {request_type!r}")
         return {"valid": False, "errors": errors}
 
-    export_type = data.get("export_type", "json")
-    if export_type not in ANALYTICS_EXPORT_TYPES:
-        errors.append(f"export_type must be one of {sorted(ANALYTICS_EXPORT_TYPES)}, got {export_type!r}")
-
-    metric_type = data.get("metric_type", "usage")
-    if metric_type not in ANALYTICS_METRIC_TYPES:
-        errors.append(f"metric_type must be one of {sorted(ANALYTICS_METRIC_TYPES)}, got {metric_type!r}")
+    _enum_member(data.get("export_type", "json"), ANALYTICS_EXPORT_TYPES, "export_type", errors)
+    _enum_member(data.get("metric_type", "usage"), ANALYTICS_METRIC_TYPES, "metric_type", errors)
 
     for key in ("filters", "options"):
         if not isinstance(data.get(key, {}), dict):
@@ -754,6 +766,48 @@ def validate_analytics_request(data: Any, request_type: str = "export") -> dict[
         errors.append("start_date must not be later than end_date")
 
     return {"valid": not errors, "errors": errors}
+
+
+def _validate_quality_fields(data: dict[str, Any], errors: list[str]) -> None:
+    """Quality-route fields: an optional non-empty list of known checks."""
+    checks = data.get("checks")
+    if checks is None:
+        return
+    if not isinstance(checks, list) or not checks:
+        errors.append("checks must be a non-empty list")
+        return
+    unknown = [c for c in checks if not isinstance(c, str) or c not in QUALITY_CHECKS]
+    if unknown:
+        errors.append(f"unknown checks: {unknown}; allowed: {sorted(QUALITY_CHECKS)}")
+
+
+def _validate_bias_fields(data: dict[str, Any], errors: list[str]) -> None:
+    """Bias-route fields: the detection type and the context object."""
+    _enum_member(data.get("detection_type", "demographic"), BIAS_DETECTION_TYPES, "detection_type", errors)
+    if not isinstance(data.get("context", {}), dict):
+        errors.append("context must be an object")
+
+
+def _validate_compliance_fields(data: dict[str, Any], errors: list[str]) -> None:
+    """Compliance-route fields: the compliance type."""
+    _enum_member(data.get("compliance_type", "HIPAA"), COMPLIANCE_TYPES, "compliance_type", errors)
+
+
+def _validate_schema_fields(data: dict[str, Any], errors: list[str]) -> None:
+    """Schema-route fields: a non-empty schema id and the strict flag."""
+    schema_id = data.get("schema_id")
+    if not isinstance(schema_id, str) or not schema_id.strip():
+        errors.append("schema_id must be a non-empty string")
+    if not isinstance(data.get("strict_mode", True), bool):
+        errors.append("strict_mode must be a boolean")
+
+
+_VALIDATION_FIELD_CHECKS = {
+    "quality": _validate_quality_fields,
+    "bias": _validate_bias_fields,
+    "compliance": _validate_compliance_fields,
+    "schema": _validate_schema_fields,
+}
 
 
 def validate_validation_request(data: Any, request_type: str = "quality") -> dict[str, Any]:
@@ -774,33 +828,11 @@ def validate_validation_request(data: Any, request_type: str = "quality") -> dic
     if not isinstance(data.get("options", {}), dict):
         errors.append("options must be an object")
 
-    if request_type == "quality":
-        checks = data.get("checks")
-        if checks is not None:
-            if not isinstance(checks, list) or not checks:
-                errors.append("checks must be a non-empty list")
-            else:
-                unknown = [c for c in checks if c not in QUALITY_CHECKS]
-                if unknown:
-                    errors.append(f"unknown checks: {unknown}; allowed: {sorted(QUALITY_CHECKS)}")
-    elif request_type == "bias":
-        detection_type = data.get("detection_type", "demographic")
-        if detection_type not in BIAS_DETECTION_TYPES:
-            errors.append(f"detection_type must be one of {sorted(BIAS_DETECTION_TYPES)}, got {detection_type!r}")
-        if not isinstance(data.get("context", {}), dict):
-            errors.append("context must be an object")
-    elif request_type == "compliance":
-        compliance_type = data.get("compliance_type", "HIPAA")
-        if compliance_type not in COMPLIANCE_TYPES:
-            errors.append(f"compliance_type must be one of {sorted(COMPLIANCE_TYPES)}, got {compliance_type!r}")
-    elif request_type == "schema":
-        schema_id = data.get("schema_id")
-        if not isinstance(schema_id, str) or not schema_id.strip():
-            errors.append("schema_id must be a non-empty string")
-        if not isinstance(data.get("strict_mode", True), bool):
-            errors.append("strict_mode must be a boolean")
-    else:
+    field_check = _VALIDATION_FIELD_CHECKS.get(request_type)
+    if field_check is None:
         errors.append(f"unsupported validation request type: {request_type!r}")
+    else:
+        field_check(data, errors)
 
     return {"valid": not errors, "errors": errors}
 
