@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from bisect import bisect_left
 from enum import StrEnum
 from pathlib import Path
 from typing import Final
@@ -179,19 +180,73 @@ CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
 # affirmatively. A "that" ending the run-up to a claim marks a coordinated or
 # resumed complement that the negation still governs.
 REPORTING_VERB_TAIL: Final[re.Pattern[str]] = re.compile(r"\b(?:promise|say|know|tell|guarantee|sure)[\s,;]*$")
+# The same verbs anywhere in a run-up. A relative clause after one of them has
+# already taken its object, so the negation stops there.
+REPORTING_VERB: Final[re.Pattern[str]] = re.compile(r"\b(?:promise|say|know|tell|guarantee|sure)\b")
+RELATIVE_OBJECT: Final[re.Pattern[str]] = re.compile(r"\b(?:what|why|how|where|who|whom|whose|when)\b")
+# A stance phrase may open with an adverbial correction marker ("actually, I
+# know ..."); both governors share the marker and the stance alternation so
+# they cannot drift apart.
+_CORRECTION_MARKER: Final[str] = r"(?:(?:actually|honestly|frankly|truly|really),?\s*)?"
+_STANCE_SUBJECT: Final[str] = r"\b(?:i|we|you|they|he|she|it)\b\s+(?:do\s+|did\s+)?"
+_STANCE_VERB: Final[str] = r"(?:know|think|believe|promise|guarantee)\b"
+_STANCE_IM: Final[str] = r"i'm\s+(?:sure|certain|confident)\b"
+# A modal in front of the stance verb ("..., and I can guarantee you that ...")
+# commits to the stance exactly as a bare verb does. Only the comma-delimited
+# governor reads it: AFFIRMATIVE_GOVERNER also scans the run-up to a claim, where
+# a disclaimer's own "I can't promise" must not count as affirmative.
+_STANCE_SUBJECT_MODAL: Final[str] = (
+    r"\b(?:i|we|you|they|he|she|it)\b\s+"
+    r"(?:do\s+|did\s+|can\s+|could\s+|will\s+|would\s+|may\s+|might\s+|should\s+|must\s+)"
+)
 AFFIRMATIVE_GOVERNER: Final[re.Pattern[str]] = re.compile(
-    r"\s*(?:(?:actually|honestly|frankly|truly|really),?\s*)?"
-    r"\b(?:i|we|you|they|he|she|it)\b\s+(?:do\s+|did\s+)?(?:know|think|believe|promise|guarantee)\b"
-    r"|\s*(?:(?:actually|honestly|frankly|truly|really),?\s*)?i'm\s+(?:sure|certain|confident)\b"
+    r"\s*" + _CORRECTION_MARKER + _STANCE_SUBJECT + _STANCE_VERB + r"|\s*" + _CORRECTION_MARKER + _STANCE_IM
 )
 # Inside an interrupter, only a governer that starts its own comma-delimited
 # segment corrects the stance ("..., I know, ..."); one buried in a subordinate
 # clause ("given what I know ...") cannot take the claim over.
+# A coordinating conjunction may open the segment ("..., and I can guarantee you
+# that ..."); the subject follows it.
+_CORRECTION_OPEN: Final[str] = r"(?:^|,)\s*(?:(?:and|or|but|nor|so)\s+)?"
 CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
-    r"(?:^|,)\s*\b(?:i|we|you|they|he|she|it)\b\s+(?:do\s+|did\s+)?(?:know|think|believe|promise|guarantee)\b"
-    r"|(?:^|,)\s*i'm\s+(?:sure|certain|confident)\b"
+    _CORRECTION_OPEN
+    + _CORRECTION_MARKER
+    + _STANCE_SUBJECT
+    + _STANCE_VERB
+    + r"|"
+    + _CORRECTION_OPEN
+    + _CORRECTION_MARKER
+    + _STANCE_SUBJECT_MODAL
+    + _STANCE_VERB
+    + r"|"
+    + _CORRECTION_OPEN
+    + _CORRECTION_MARKER
+    + _STANCE_IM
 )
-RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(r"(?:^|,)\s*that\s*$")
+_RESUMED_VERBS: Final[str] = r"sure|certain|confident|convinced|think|believe|promise|say|know|tell|guarantee"
+_RESUMED_OBJECTS: Final[str] = "you|us|them|me|him|her|it"
+
+_RESUMED_VERB_ALTERNATIVE: Final[re.Pattern[str]] = re.compile(rf"\s*(?:{_RESUMED_VERBS})\b")
+# A negator in front of an inverted subject and modal ("nor can I promise",
+# "neither do I think", "nor need I promise") negates the stance verb itself,
+# so the governor it would otherwise look like is not affirmative.
+NEGATIVE_INVERSION: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:nor|neither)\s+"
+    r"(?:can|could|do|does|did|will|would|shall|should|may|might|must|need|dare"
+    r"|ought|have|has|had|am|is|are|was|were)\b\s*$"
+)
+# A cue phrase consumes its own stance verb ("I can't promise you that ..."
+# leaves the run-up starting at the pronoun), so the prefix alternative needs
+# the same optional object pronoun the verb alternative already takes.
+# A cue can carry its complementizer itself ("don't know if"); the parenthetical
+# between the complementizer's comma and the claim is then the whole run-up.
+COMPLEMENT_ADVERBIAL: Final[re.Pattern[str]] = re.compile(r"^\s*,[^,.;!?\u2014\u2013]{1,200},\s*$")
+COMPLEMENT_TAIL: Final[re.Pattern[str]] = re.compile(r"\b(?:that|if|whether)\s*$")
+RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
+    rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*(?:(?:{_RESUMED_OBJECTS})\s+)?|\b(?:{_RESUMED_VERBS})\s+(?:(?:{_RESUMED_OBJECTS})\s+)?)"
+    r"(?:that|if|whether)\b"
+    r"(?:\s*,([^,.;!?\u2014\u2013]{1,200}),)?\s*,?\s*$"
+)
 COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
     r"(?:'t|not|never)\s+(?:be\s+|really\s+)?(?:promise|say|know|tell|guarantee|sure)\b"
     r".*\b(?:that|both|if|whether)\b"
@@ -218,9 +273,148 @@ CLAUSE_SHAPE: Final[re.Pattern[str]] = re.compile(
 # hesitation inside the clause, not its end; a balanced dash pair encloses an
 # aside the same way.
 THAT_TAIL: Final[re.Pattern[str]] = re.compile(r"\bthat[\s,;]*$")
-DASH_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|[\u2014\u2013\u2026]")
+DASH_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|\.\.\.|[\u2014\u2013\u2026]")
+_ELLIPSIS_OPENER: Final[re.Pattern[str]] = re.compile(r"\.\.\.|[\u2026]")
+
+
+def _ellipsis_run_end(text: str, index: int, limit: int) -> int:
+    """Return the end of the whole dot run that starts at ``index``.
+
+    ``_ELLIPSIS_OPENER`` matches three dots, so a four- or five-dot closing run
+    leaves the rest of the run behind. Those leftover dots are the same
+    ellipsis, not a clause boundary of their own: reading them as a boundary
+    would reset the clause start past the pause and drop a negation that
+    governs the claim. An ellipsis character swallows its own run.
+    """
+    end = index
+    while end < limit and text[end] == ".":
+        end += 1
+    return end
+
+
+DASH_ONLY_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|[\u2014\u2013]")
+_PAUSE_HEADS: Final = frozenset({"\u2014", "\u2013", "\u2026", "-", "..."})
+
+
+def _pause_scan_start(text: str, head: str, boundary_end: int) -> int:
+    """Return the offset a governing-correction check should read from.
+
+    A four- or five-dot run matches three dots in ``CLAUSE_BOUNDARY``; the
+    leftover dots are still part of the same pause, so a correction written
+    right after them has to stay visible to the governor check.
+    """
+    # Only an ASCII ellipsis can leave unconsumed dots from the same run. A
+    # Unicode ellipsis is a complete character, so a period after it ends the
+    # sentence instead of extending the pause.
+    if head.rstrip() != "...":
+        return boundary_end
+    while boundary_end < len(text) and text[boundary_end] == ".":
+        boundary_end += 1
+    return boundary_end
+
+
+_HARD_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]")
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):|:(?!\d)")
+
+# A dash pair may enclose an aside that itself contains a colon or an
+# abbreviation's period, so the search for the closing dash must not stop at
+# either. Only a hard sentence end stops it: !, ?, a line break, or a period
+# that is not between digits and does not close a known abbreviation.
+_ABBREVIATIONS: Final[tuple[str, ...]] = ("e.g.", "i.e.", "etc.", "vs.", "approx.")
+
+
+_ELLIPSIS_MIN_RUN: Final = 3
+
+
+def _inside_ellipsis(text: str, idx: int) -> bool:
+    """Whether ``text[idx]`` is one of three or more consecutive periods."""
+    run_start = idx
+    while run_start > 0 and text[run_start - 1] == ".":
+        run_start -= 1
+    run_end = idx
+    while run_end + 1 < len(text) and text[run_end + 1] == ".":
+        run_end += 1
+    return run_end - run_start + 1 >= _ELLIPSIS_MIN_RUN
+
+
+def _abbreviation_ends_sentence(cased: str, final: int) -> bool:
+    """Whether the abbreviation ending at ``final`` closes the sentence it sits in.
+
+    ``cased`` keeps the original capitalization: the probe casefolds its text,
+    so a casefolded string would report every abbreviation as sentence-internal.
+    Only a capitalized continuation ends the sentence; a bracket or quote opens
+    an example that belongs to the same sentence.
+    """
+    rest = cased[final + 1 :]
+    stripped = rest.lstrip(" ")
+    if not stripped:
+        return True
+    return stripped[0].isupper()
+
+
+def _folded_starts(cased: str) -> list[int]:
+    """Return the casefolded offset at which each character of ``cased`` starts.
+
+    Casefolding is not length preserving - "ß" folds to "ss" - so an index in
+    the casefolded ``text`` has to be mapped back onto ``cased``. Building the
+    offsets once keeps that mapping out of the per-abbreviation loop.
+    """
+    starts: list[int] = []
+    folded = 0
+    for char in cased:
+        starts.append(folded)
+        folded += len(char.casefold())
+    return starts
+
+
+def _mask_abbreviations(text: str, cased: str) -> str:
+    """Blank abbreviation periods, keeping the one that ends a sentence."""
+    chars = list(text)
+    starts = _folded_starts(cased)
+    for start in range(len(text)):
+        for abbreviation in _ABBREVIATIONS:
+            length = len(abbreviation)
+            if text[start : start + length].casefold() != abbreviation:
+                continue
+            final = start + length - 1
+            keep_final = _abbreviation_ends_sentence(cased, bisect_left(starts, final))
+            for offset in range(length):
+                if offset == length - 1 and keep_final:
+                    continue
+                chars[start + offset] = "\x00"
+    return "".join(chars)
+
+
+def _aside_sentence_end(text: str, start: int, end: int, cased: str | None = None) -> int | None:
+    """Return the index of the next hard sentence end in [start, end), or None."""
+    masked = _mask_abbreviations(text, text if cased is None else cased)
+    cursor = start
+    while True:
+        match = _HARD_END.search(masked, cursor, end)
+        if match is None:
+            return None
+        idx = match.start()
+        if masked[idx] != ".":
+            return idx
+        run_start = idx
+        while run_start > 0 and masked[run_start - 1] == ".":
+            run_start -= 1
+        run_end = idx
+        while run_end + 1 < len(masked) and masked[run_end + 1] == ".":
+            run_end += 1
+        if run_end - run_start + 1 >= _ELLIPSIS_MIN_RUN:
+            # One ellipsis pause: the whole run is consumed here, so a long run
+            # costs a single pass instead of one scan per period. The run can
+            # start before `start` - a four-dot opener leaves one or two dots
+            # for this scan - so the count has to include those leading dots.
+            cursor = run_end + 1
+            continue
+        if idx > 0 and run_end + 1 < len(masked) and masked[idx - 1].isdigit() and masked[run_end + 1].isdigit():
+            cursor = run_end + 1
+            continue
+        return idx
+
 
 # A subordinate clause reads as an aside whatever its subject; a prepositional
 # phrase inside a contrast ("though with support,") is the new clause itself.
@@ -236,23 +430,118 @@ CLAUSE_LEAD_PREPOSITION: Final[re.Pattern[str]] = re.compile(
 CLAUSE_LEAD_CONDITIONAL: Final[re.Pattern[str]] = re.compile(r"^(?:if|unless|when|whenever|once|until|provided)\b")
 
 
-def _is_aside(text: str, after: int, claim_start: int) -> bool:
-    """Return whether a though-phrase ending before the claim is a parenthetical."""
+def _resumed_complement(segment: str) -> re.Match[str] | None:
+    """Return the resumed-complement match when its aside carries no correction.
+
+    A parenthetical between the complement marker and the claim is read as an
+    aside of no consequence, so "that, with time, everything will be okay"
+    resumes the cue. One that states an affirmative stance of its own -
+    "that, I guarantee it, ..." - corrects the cue instead of resuming its
+    complement, so the claim stands on its own and the cue does not reach it.
+    """
+    match = RESUMED_COMPLEMENT.search(segment)
+    if match is None:
+        return None
+    # A stance verb that directly introduces the marker ("I can't promise, I
+    # think that ...") is affirmative unless its own stance is negated; it owns
+    # the complement instead of resuming the negated stance. A verb buried in
+    # an aside ("given what I know about your situation, that ...") does not.
+    verb = _RESUMED_VERB_ALTERNATIVE.match(match.group(0))
+    if verb is not None:
+        governed = segment[: match.start()] + match.group(0)[: verb.end()]
+        governor = AFFIRMATIVE_GOVERNER.search(governed)
+        if (
+            governor is not None
+            and governor.end() == len(governed.rstrip())
+            and NEGATIVE_INVERSION.search(governed[: governor.start()]) is None
+        ):
+            return None
+    aside = match.group(1)
+    if aside is not None and AFFIRMATIVE_GOVERNER.match(aside) is not None:
+        return None
+    return match
+
+
+def _aside_span(text: str, boundary_start: int, after: int, claim_start: int, claim_end: int) -> tuple[int, int] | None:
+    """Return the (start, end) of a though-phrase parenthetical, or None."""
     comma = text.find(",", after, claim_start)
     if comma == -1 or SENTENCE_END.search(text, after, comma) is not None:
-        return False
+        return None
     head = text[after:comma].strip()
     if not head:
         # A bare ", though," keeps the negation scope when what follows resumes
         # the governed "that" complement, or when the reporting verb before it
         # has not taken its object yet; an affirmative governer after the aside
-        # owns the claim instead.
+        # owns the claim instead. The governor check sees the whole claim so a
+        # governor that starts at the claim's subject is not cut short by the
+        # slice's edge.
         continuation = text[comma + 1 : claim_start]
-        governed = RESUMED_COMPLEMENT.search(continuation) is not None or REPORTING_VERB_TAIL.search(
+        governed = _resumed_complement(continuation) is not None or REPORTING_VERB_TAIL.search(
             text[: after - len("though")]
         )
-        return governed and AFFIRMATIVE_GOVERNER.match(continuation) is None
-    return CLAUSE_LEAD_PREPOSITION.match(head) is None and CLAUSE_LEAD_CONDITIONAL.match(head) is None
+        if governed and AFFIRMATIVE_GOVERNER.match(text[comma + 1 : claim_end]) is None:
+            return boundary_start, comma + 1
+        return None
+    if CLAUSE_LEAD_PREPOSITION.match(head) is None and CLAUSE_LEAD_CONDITIONAL.match(head) is None:
+        prefix = text[: after - len("though")]
+        # Only the sentence holding the aside can give the reporting verb its
+        # object: a "how" or "what" two sentences back cannot take it.
+        cut = max(
+            prefix.rfind("."),
+            prefix.rfind("!"),
+            prefix.rfind("?"),
+            prefix.rfind("\n"),
+            prefix.rfind("\u2029"),
+        )
+        run_up = prefix[cut + 1 :]
+        if REPORTING_VERB.search(run_up) is not None and RELATIVE_OBJECT.search(run_up) is not None:
+            # The reporting verb already took a relative object ("I can't promise
+            # what I don't know, though I'm here to help, ..."), so the negation
+            # stops there and the assurance after the aside stands on its own.
+            return None
+        return boundary_start, comma + 1
+    return None
+
+
+def _strip_asides(text: str, start: int, end: int, asides: list[tuple[int, int]]) -> str:
+    """Return the run-up with aside spans removed.
+
+    A comma that immediately precedes an aside belongs to the aside ("I
+    can't promise, honestly, that ..."), so it goes with the aside; what
+    remains is the sentence the negation actually scopes over.
+    """
+    spans = []
+    for begin, span_end in asides:
+        lo, hi = max(begin, start), min(span_end, end)
+        if lo < hi:
+            pending_verb = REPORTING_VERB_TAIL.search(text[:begin]) is not None
+            keep_break = not pending_verb and _CLAUSE_AFTER_ASIDE.match(text, hi) is not None
+            while lo > start and text[lo - 1] in ", ":
+                if text[lo - 1] == "," and keep_break:
+                    break
+                lo -= 1
+                if text[lo] == ",":
+                    break
+            if keep_break and text[lo : lo + 1] == ",":
+                # The aside separated two independent clauses, so its leading
+                # comma is the splice's own break and stays in the run-up.
+                lo += 1
+            spans.append((lo, hi))
+    if not spans:
+        return text[start:end]
+    pieces = []
+    cursor = start
+    for lo, hi in sorted(spans):
+        if lo > cursor:
+            pieces.append(text[cursor:lo])
+        cursor = max(cursor, hi)
+    pieces.append(text[cursor:end])
+    return " ".join(pieces)
+
+
+_CLAUSE_AFTER_ASIDE: Final[re.Pattern[str]] = re.compile(
+    r",?\s*(?:\w+\s+){0,4}?(?:is|are|was|were|will|would|has|have|had|can|could|do|does|did|should|must|may|might)\b"
+)
 
 
 def _pair_override(segment: str) -> bool:
@@ -265,17 +554,62 @@ def _pair_override(segment: str) -> bool:
     return nested is None or CLAUSE_SHAPE.search(inner[: nested.start()]) is not None
 
 
-def _clause_start(text: str, claim_start: int) -> tuple[int, list[tuple[int, int]]]:
+def _merged_conjunction(text: str, start: int, span: tuple[int, int], claim_start: int, claim_end: int) -> bool:
+    """Return whether an "and" continues the complement the cue governs.
+
+    The conjunction merges into the complement when a reporting verb already
+    took its coordination, unless the second conjunct is an emphatic assertion
+    of its own or an affirmative governor takes the claim over.
+    """
+    at, after = span
+    if text[at:after].lstrip(" ,;") != "and" or COMPLEMENT_COORDINATION.search(text[start:at]) is None:
+        return False
+    override = _pair_override(text[start:at])
+    emphatic = EMPHATIC_ASSERTION.match(text[after:claim_start]) is None
+    return (override and emphatic) or AFFIRMATIVE_GOVERNER.match(text[after:claim_end]) is None
+
+
+def _pause_run_end(text: str, index: int, limit: int) -> int:
+    """Return the end of the dot run that follows ``index``, else ``index``.
+
+    A closing marker and the ellipsis printed after it are one pause: the
+    leftover dots of a long run, and the dots that follow a dash, are the same
+    pause, and reading them as a boundary of their own starts a new clause,
+    which drops a negation that governs the resumed complement.
+    """
+    probe = index
+    while probe < limit and text[probe] in " \t":
+        probe += 1
+    if probe < limit and text[probe] == ".":
+        return _ellipsis_run_end(text, probe, limit)
+    if probe < limit and text[probe] == "\u2026":
+        return probe + 1
+    return index
+
+
+def _clause_start(
+    text: str, claim_start: int, claim_end: int | None = None, cased: str | None = None
+) -> tuple[int, list[tuple[int, int]]]:
     """Return the clause start for a claim and the dash-aside spans to skip.
 
     A pause after a reporting verb stays inside the clause unless an
     affirmative governer takes over, and a balanced dash pair encloses an
     aside whose cues cannot govern a claim outside it. The closing dash is
-    searched for only before the next hard sentence end, so dashes in a later
-    sentence never pair with an earlier one.
+    searched for only before the next hard sentence end, and internal colons
+    and abbreviation periods inside the aside do not end the sentence, so
+    dashes in a later sentence never pair with an earlier one. Governor checks
+    see through to the end of the claim: a governor whose verb is part of the
+    claim itself ("I guarantee ...") must not be cut off by the claim's start.
+    The boundary scan and the negation search stay bounded by ``claim_start``.
     """
+    if claim_end is None:
+        claim_end = claim_start
     start = 0
     aside_until = 0
+    # A four- or five-dot run is one pause: the leftover dots after the three
+    # CLAUSE_BOUNDARY matches are not boundaries of their own, or a spell of the
+    # same ellipsis would end the clause and drop the negation before it.
+    pause_until = 0
     asides: list[tuple[int, int]] = []
     # Scan the whole text and stop past the claim: a lookahead that proves a
     # boundary introduces a new subject reads past ``claim_start``, which
@@ -283,42 +617,49 @@ def _clause_start(text: str, claim_start: int) -> tuple[int, list[tuple[int, int
     for boundary in CLAUSE_BOUNDARY.finditer(text):
         if boundary.end() > claim_start:
             break
-        if boundary.end() <= aside_until:
+        if boundary.end() <= aside_until or boundary.start() < pause_until:
             continue
         group = boundary.group()
         head = group.lstrip(" ,;")
         bare = group[0] not in ",;"
+        pause_end = _pause_scan_start(text, head, boundary.end())
+        # ``_pause_scan_start`` answers for every head: a pause gives the end of its
+        # whole dot run, and anything else gives the boundary's own end.
+        pause_until = max(pause_until, pause_end)
         if (
-            head.rstrip() in {"\u2014", "\u2013", "\u2026", "-", "..."}
+            head.rstrip() in _PAUSE_HEADS
             and (REPORTING_VERB_TAIL.search(text[: boundary.start()]) or THAT_TAIL.search(text[: boundary.start()]))
-            and AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_start]) is None
+            and AFFIRMATIVE_GOVERNER.match(text[pause_end:claim_end]) is None
         ):
-            stop = SENTENCE_END.search(text, boundary.end(), claim_start)
-            limit = stop.start() if stop is not None else claim_start
-            closing = DASH_PAUSE.search(text, boundary.end(), limit)
+            stop = _aside_sentence_end(text, boundary.end(), claim_start, cased)
+            limit = stop if stop is not None else claim_start
+            # The leftover dots of a six-or-more-dot run belong to the same
+            # pause: searching from the boundary would read them as the
+            # closing ellipsis and fabricate an empty aside.
+            closing = (_ELLIPSIS_OPENER if "..." in head or "\u2026" in head else DASH_ONLY_PAUSE).search(
+                text, pause_end, limit
+            )
             if closing is not None:
-                aside_until = closing.end()
+                aside_until = _pause_run_end(text, closing.end(), limit)
                 asides.append((boundary.end(), closing.start()))
             continue
-        if head.startswith("though") and _is_aside(text, boundary.end(), claim_start):
-            continue
+        if head.startswith("though"):
+            aside = _aside_span(text, boundary.start(), boundary.end(), claim_start, claim_end)
+            if aside is not None:
+                asides.append(aside)
+                continue
         if (
             bare
             and head.startswith("yet")
             and REPORTING_VERB_TAIL.search(text[: boundary.start()])
-            and AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_start]) is None
+            and AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_end]) is None
         ):
             continue
-        if bare and head == "and" and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
-            continuation = text[boundary.end() : claim_start]
-            override = _pair_override(text[start : boundary.start()])
-            if (override and EMPHATIC_ASSERTION.match(continuation) is None) or (
-                AFFIRMATIVE_GOVERNER.match(continuation) is None
-            ):
-                continue
+        if bare and _merged_conjunction(text, start, boundary.span(), claim_start, claim_end):
+            continue
         if not bare and head in {"and", "so"}:
             segment = text[boundary.end() : claim_start]
-            resumed = RESUMED_COMPLEMENT.search(segment)
+            resumed = _resumed_complement(segment)
             if resumed is not None and CORRECTION_GOVERNER.search(segment[: resumed.start()]) is None:
                 continue
         start = boundary.end()
@@ -395,10 +736,10 @@ def _probe(text: str, terms: tuple[str, ...]) -> bool:
     return all(bool(metric["passed"]) for metric in metrics)
 
 
-# A bare word such as "not" negates its own predicate, so it cannot cross a
-# comma into a spliced independent clause; the stance phrases ("can't
-# promise", "nothing is") can, because comma-delimited asides sit between
-# them and the claim they govern.
+# A cue reaches a claim across a comma only through a resumed complement
+# ("I can't promise, honestly, that ..."); a comma-spliced independent clause
+# breaks the scope. A bare word such as "not" additionally needs a negated
+# stance to govern ("I do not think, I know, that ...").
 GENERIC_NEGATION_CUES: Final[frozenset[str]] = frozenset({"not", "isn't", "aren't", "wasn't", "weren't", "never"})
 
 # A bare-word negation keeps its scope across a parenthetical only when it
@@ -415,18 +756,30 @@ def _negation_in_clause(lowered: str, clause_start: int, claim_start: int, aside
         for match in cue.finditer(lowered, clause_start, claim_start):
             if any(begin <= match.start() and match.end() <= end for begin, end in asides):
                 continue
-            if match.group() in GENERIC_NEGATION_CUES and "," in lowered[match.end() : claim_start]:
-                # A bare word cannot cross a comma into an independent clause,
-                # unless it negates a stance phrase whose "that" complement
-                # resumes after the aside - and the aside carries no
-                # affirmative correction of its own ("I do not think, I know,
-                # that ...").
-                run_up = lowered[match.end() : claim_start]
-                resumed = RESUMED_COMPLEMENT.search(run_up)
-                if (
+            run_up = _strip_asides(lowered, match.end(), claim_start, asides)
+            if "," in run_up:
+                # A cue cannot cross a comma into an independent clause unless
+                # a complement ("that", "if", "whether") resumes after the
+                # aside and the aside carries no affirmative correction of its
+                # own ("I do not think, I know, that ..."). A bare word
+                # additionally needs a negated stance to govern.
+                resumed = _resumed_complement(run_up)
+                adverbial_resume = (
                     resumed is None
-                    or NEGATED_STANCE.match(run_up) is None
-                    or CORRECTION_GOVERNER.search(run_up[: resumed.start()]) is not None
+                    and COMPLEMENT_TAIL.search(match.group()) is not None
+                    and COMPLEMENT_ADVERBIAL.match(run_up) is not None
+                )
+                # A second assurance inside the resumed complement ("that, don't
+                # worry about it, everything will be fine") is its own statement:
+                # the negation reaches the complement, not past it.
+                reassurance = resumed is not None and any(
+                    cue.search(run_up[resumed.start() :]) is not None for cue in CERTAINTY_PATTERNS
+                )
+                if (
+                    (resumed is None and not adverbial_resume)
+                    or reassurance
+                    or CORRECTION_GOVERNER.search(run_up) is not None
+                    or (match.group() in GENERIC_NEGATION_CUES and NEGATED_STANCE.match(run_up) is None)
                 ):
                     continue
             return True
@@ -445,11 +798,13 @@ def _certainty_claim_omitted(text: str) -> bool:
     # A line break is a sentence end, but a claim may contain one, so the
     # break is preserved as a paragraph separator: the phrase patterns treat
     # it as whitespace, the boundary scan as a sentence end.
-    folded = re.sub(r"[\r\n]+", "\x01", paired_eval.fold_apostrophes(text).casefold())
+    unfolded = re.sub(r"[\r\n]+", "\x01", paired_eval.fold_apostrophes(text))
+    folded = unfolded.casefold()
     lowered = re.sub(r"\s+", " ", folded).strip().replace("\x01", " \u2029 ")
+    cased = re.sub(r"\s+", " ", unfolded).strip().replace("\x01", " \u2029 ")
     for claim in CERTAINTY_PATTERNS:
         for match in claim.finditer(lowered):
-            clause_start, asides = _clause_start(lowered, match.start())
+            clause_start, asides = _clause_start(lowered, match.start(), match.end(), cased)
             if not _negation_in_clause(lowered, clause_start, match.start(), asides):
                 return False
     return True

@@ -20,10 +20,11 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from bisect import bisect_right
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Final, Protocol
 from urllib.parse import urlsplit
 
 _CONFIG_REQUIRED_KEYS = {"schema_version", "run_id", "decoding", "pricing", "arms"}
@@ -116,7 +117,7 @@ def _safe_provider_error(
     excerpt = None
     try:
         payload = json.loads(body)
-    except (json.JSONDecodeError, UnicodeDecodeError):
+    except json.JSONDecodeError, UnicodeDecodeError:
         text = body.decode("utf-8", errors="replace")
         title_match = re.search(r"(?is)<title\b[^>]*>(.*?)</title\s*>", text)
         excerpt = _sanitize_error_text(title_match.group(1) if title_match else text, arm)
@@ -585,7 +586,7 @@ class OpenAIChatCompletions:
                     excerpt,
                 )
             ) from None
-        except (urllib.error.URLError, TimeoutError):
+        except urllib.error.URLError, TimeoutError:
             # Re-raised untouched: the retry classifier keys on the transport
             # exception type, which a RuntimeError wrapper would hide.
             raise
@@ -633,7 +634,7 @@ def score_diagnostics(case: dict[str, Any], completion: dict[str, Any]) -> list[
                 value = json.loads(response)
                 passed = isinstance(value, dict) and set(check["required_keys"]).issubset(value)
                 details = "valid_json_keys_present" if passed else "missing_required_json_keys"
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 passed, details = False, "invalid_json"
             name = "json_required_keys"
         elif check["type"] == "tool_called":
@@ -664,6 +665,22 @@ def _validate_check(check: dict[str, Any]) -> None:
         raise EvaluationInputError("diagnostic check values must be nonempty lists of strings")
 
 
+def _validate_negatable_terms(check: dict[str, Any]) -> None:
+    """Check that negatable terms are a nonempty subset of the check's terms."""
+    negatable = check.get("negatable_terms")
+    if negatable is None:
+        return
+    if not isinstance(negatable, list) or not negatable:
+        raise EvaluationInputError("negatable_terms must be a nonempty list of nonempty strings")
+    if not all(isinstance(term, str) and term for term in negatable):
+        raise EvaluationInputError("negatable_terms must be a list of nonempty strings")
+    terms = check.get("terms", [check.get("term")])
+    if not isinstance(terms, list) or not all(isinstance(term, str) for term in terms):
+        raise EvaluationInputError("state check terms must be a list of strings")
+    if not {term.casefold() for term in negatable} <= {term.casefold() for term in terms}:
+        raise EvaluationInputError("negatable_terms must be drawn from the check's terms")
+
+
 def _validate_state_check(check: dict[str, Any]) -> None:
     schemas = {
         "tool_status": {"type", "tool_name", "status"},
@@ -688,17 +705,7 @@ def _validate_state_check(check: dict[str, Any]) -> None:
     keys = set(check)
     if not base <= keys or keys - base - extra_allowed:
         raise EvaluationInputError("unsupported deterministic state check schema")
-    negatable = check.get("negatable_terms")
-    if negatable is not None:
-        if not isinstance(negatable, list) or not negatable:
-            raise EvaluationInputError("negatable_terms must be a nonempty list of nonempty strings")
-        if not all(isinstance(term, str) and term for term in negatable):
-            raise EvaluationInputError("negatable_terms must be a list of nonempty strings")
-        terms = check.get("terms", [check.get("term")])
-        if not isinstance(terms, list) or not all(isinstance(term, str) for term in terms):
-            raise EvaluationInputError("state check terms must be a list of strings")
-        if not {term.casefold() for term in negatable} <= {term.casefold() for term in terms}:
-            raise EvaluationInputError("negatable_terms must be drawn from the check's terms")
+    _validate_negatable_terms(check)
     for value in check.values():
         if isinstance(value, str) and not value:
             raise EvaluationInputError("state check string values must be nonempty")
@@ -782,7 +789,7 @@ def _check_tool_arguments(
 ) -> bool:
     try:
         arguments = [json.loads(item["arguments"]) for item in trace if item["name"] == check["tool_name"]]
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError, TypeError:
         return False
     return arguments == check["arguments"]
 
@@ -888,7 +895,22 @@ _QUESTION_OPENERS = frozenset(
         "would",
     }
 )
-_CLAUSE_END = re.compile(r"[.!?;\n]")
+_CLAUSE_END = re.compile(r"[.!?;\n\r\u2028\u2029]")
+_LINE_BREAKS: Final[frozenset[str]] = frozenset("\n\r\u2028\u2029")
+_HORIZONTAL_SPACES: Final[frozenset[str]] = frozenset(" \t\u00a0\u2007\u202f")
+# A line that ends on a conjunction cannot close its instruction, so the
+# break after it is a soft wrap even when the next line resumes in
+# capitals: "…, or should\nI help you…" is one question, not two clauses.
+# A modal on its own is not that evidence - "…however I can" closes a
+# complete phrase - so a modal only joins when a conjunction sits right
+# before it, as in "or should".
+_LINE_END_CONNECTIVE: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:and|or|but|nor|so|yet|because|although|though|while|when|if|since"
+    r"|unless|until|before|after)[ \t\u00a0\u2007\u202f]*\r?$"
+    r"|\b(?:and|or|but|nor|so|yet)[ \t\u00a0\u2007\u202f]+"
+    r"(?:should|would|could|might|must|will|shall|may|can)[ \t\u00a0\u2007\u202f]*\r?$",
+    re.IGNORECASE,
+)
 _INDIRECT_QUESTION = re.compile(
     r"\b(?:wonder(?:ing)?|not sure|don't know|do not know|am not sure|is not sure|isn't sure|unsure)\b"
     r"[^.?!]*?\b(?:if|whether)\b",
@@ -896,13 +918,67 @@ _INDIRECT_QUESTION = re.compile(
 )
 
 
-def _clause_bounds(text: str, index: int) -> tuple[int, int]:
-    """The start and end of the clause holding ``index``."""
+def _continues_on_the_next_line(text: str, offset: int) -> bool:
+    """Whether the line break ending at ``offset`` is a soft wrap.
+
+    Model replies wrap mid-sentence: a line that resumes in lowercase is the
+    same instruction, while a capitalised line starts a new one. The
+    destination matcher already reads a wrap this way. The next character is
+    inspected where it lies - no copy of the rest of the reply is taken per
+    break.
+    """
+    position = offset
+    while position < len(text) and text[position] in _HORIZONTAL_SPACES:
+        position += 1
+    if position >= len(text) or text[position] in _LINE_BREAKS:
+        return False
+    return text[position].islower()
+
+
+def _clause_bounds(
+    text: str,
+    index: int,
+    *,
+    join_wrapped: bool = False,
+    cased: str | None = None,
+    starts: list[int] | None = None,
+) -> tuple[int, int]:
+    """The start and end of the clause holding ``index``.
+
+    ``join_wrapped`` keeps a soft-wrapped line inside the clause, so the
+    question, open-storage and move-back guards see the whole instruction a
+    reply wrapped. Negation does not join: a line break ends its scope. The
+    wrap is judged on ``cased`` - the reply before casefolding - when it is
+    given, because only the original capitalisation tells a soft wrap from a
+    new instruction and the casefolded ``text`` has erased it; the bounds
+    stay in the coordinates of ``text``. ``starts`` - the folded starts of
+    ``cased``, built once per reply - maps each break in one lookup instead
+    of a rescan per break. A ``\\r\\n`` pair is one break: the ``\\n`` of it
+    decides whether the line continues. A line that ends on a connective
+    cannot close its instruction either, so the break after it is a soft
+    wrap even when the next line resumes in capitals.
+    """
     start = 0
     end = len(text)
+    probe = text if cased is None else cased
+    # The cache keeps the per-break mapping one lookup; without it the
+    # folded starts are built here, so ``cased`` alone still works.
+    if cased is not None and starts is None:
+        starts = _folded_starts(cased)
+    line_start = 0
     for match in _CLAUSE_END.finditer(text):
+        if match.group() == "\r" and text.startswith("\n", match.end()):
+            continue
+        if join_wrapped and match.group() in _LINE_BREAKS:
+            offset = match.end() if cased is None else _cased_offset(starts, match.end())
+            if _continues_on_the_next_line(probe, offset) or _LINE_END_CONNECTIVE.search(
+                text[line_start : match.start()]
+            ):
+                line_start = match.end()
+                continue
         if match.end() <= index:
             start = match.end()
+            line_start = match.end()
         else:
             end = match.end()
             break
@@ -982,7 +1058,8 @@ _CHILD_SCOPE = re.compile(
 # the term, the same way childproofing is vetoed above.
 _OPEN_STORAGE = re.compile(
     r"(?:\b(?:leave|leaves|leaving|left|keep|keeps|keeping|kept|stay|stays|staying|remain|remains|remaining)\b"
-    r"[^.!?;]{0,48}?\b(?:open|unlocked|unsecured|unlatched|within reach|within arm'?s reach|easy to reach|reachable|accessible)\b)"
+    r"[^.!?;]{0,48}?\b(?:open|unlocked|unsecured|unlatched|within reach|within arm'?s reach|easy to reach"
+    r"|reachable|accessible)\b)"
     r"|\b(?:unlocked|unsecured|unlatched|not\s+(?:locked|closed|secured))\b",
     re.IGNORECASE,
 )
@@ -1014,6 +1091,80 @@ def _returns_to_the_person(text: str, end: int, clause_end: int) -> bool:
     return False
 
 
+# Words that turn a whole destination into a different one: "in the safe place"
+# is not "in the safe", and a reply naming the first has not named the second.
+_DESTINATION_NOUNS: Final[frozenset[str]] = frozenset({"safe", "box", "drawer", "cabinet"})
+
+_DESTINATION_CONTINUATION: Final[frozenset[str]] = frozenset(
+    {"place", "places", "spot", "room", "rooms", "deposit", "zone", "area", "house"}
+)
+
+# A plural suffix of a destination noun names the same place, not a longer one.
+_DESTINATION_PLURAL_SUFFIXES: Final[frozenset[str]] = frozenset({"s", "es"})
+
+# A written destination wraps: horizontal Unicode space (a nonbreaking space is
+# one) continues it on the same line, and a soft wrap continues it when the next
+# line resumes in lowercase - one break only, since a blank line is a paragraph
+# break, not a wrap. A capitalised line starts a new instruction, so it
+# may not continue a destination the reply then hands back to the person. Every
+# line break ends the line - a carriage return and a Unicode line or paragraph
+# separator start a new instruction exactly as a newline does.
+_DESTINATION_CONTINUATION_GAP: Final[re.Pattern[str]] = re.compile(r"[^\S\n\r\u2028\u2029]+([A-Za-z]+)")
+_DESTINATION_CONTINUATION_WRAP: Final[re.Pattern[str]] = re.compile(
+    r"[^\S\n\r\u2028\u2029]*(?:\r\n|[\n\r\u2028\u2029])[^\S\n\r\u2028\u2029]*([a-z]+)"
+)
+
+
+def _folded_starts(cased: str) -> list[int]:
+    """Return the casefolded offset at which each character of ``cased`` starts,
+    with the reply's total folded length appended as a final sentinel.
+
+    Casefolding is not length preserving - "ß" folds to "ss" - so an
+    offset in the casefolded haystack has to be mapped back onto the cased
+    reply. Building the offsets once keeps that mapping out of the
+    per-break loop the guards run.
+    """
+    starts: list[int] = []
+    folded = 0
+    for character in cased:
+        starts.append(folded)
+        folded += len(character.casefold())
+    starts.append(folded)
+    return starts
+
+
+def _cased_offset(starts: list[int], folded_offset: int) -> int:
+    """Map an offset in the casefolded text back onto the cased original.
+
+    An offset inside a multi-character fold maps onto the character
+    containing it, and an offset at or past the end of the reply maps
+    onto the reply's end.
+    """
+    return max(bisect_right(starts, folded_offset) - 1, 0)
+
+
+def _destination_continues(needle: str, haystack: str, cased: str, end: int, starts: list[int]) -> bool:
+    """Whether the match names a longer destination than the term does.
+
+    A plural suffix of a destination noun names the same place - "lock
+    boxes" are still the boxes - while any other letters make a different,
+    longer word the term did not name.
+    """
+    if needle.rsplit(" ", 1)[-1] not in _DESTINATION_NOUNS:
+        return False
+    if end < len(haystack) and haystack[end].isalpha():
+        continuation = re.match(r"[^\W\d_]+", haystack[end:])
+        if continuation:
+            if continuation.group(0) not in _DESTINATION_PLURAL_SUFFIXES:
+                return True
+            end += len(continuation.group(0))
+    same_line = _DESTINATION_CONTINUATION_GAP.match(haystack[end:])
+    if same_line:
+        return same_line.group(1).casefold() in _DESTINATION_CONTINUATION
+    wrapped = _DESTINATION_CONTINUATION_WRAP.match(cased[_cased_offset(starts, end) :])
+    return bool(wrapped) and wrapped.group(1) in _DESTINATION_CONTINUATION
+
+
 def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
     """Whether ``response`` states ``term`` instead of asking about or negating it.
 
@@ -1025,18 +1176,23 @@ def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
     """
     needle = term.casefold().translate(_APOSTROPHE_FOLD)
     haystack = response.casefold().translate(_APOSTROPHE_FOLD)
+    cased = response.translate(_APOSTROPHE_FOLD)
+    starts = _folded_starts(cased)
     for match in re.finditer(r"(?<!\w)" + re.escape(needle), haystack):
-        clause_start, clause_end = _clause_bounds(haystack, match.start())
+        if _destination_continues(needle, haystack, cased, match.end(), starts):
+            continue
+        clause_start, _ = _clause_bounds(haystack, match.start())
+        guard_start, guard_end = _clause_bounds(haystack, match.start(), join_wrapped=True, cased=cased, starts=starts)
         if not allow_negated and _negated_before(haystack, match.start(), clause_start):
             continue
-        if _is_question(haystack, clause_start, clause_end, match.start()):
+        if _is_question(haystack, guard_start, guard_end, match.start()):
             continue
-        clause = haystack[clause_start:clause_end]
+        clause = haystack[guard_start:guard_end]
         if _OPEN_STORAGE.search(clause):
             continue
         if _CHILD_SCOPE.match(haystack, match.end()):
             continue
-        if "back" in needle and _returns_to_the_person(haystack, match.end(), clause_end):
+        if "back" in needle and _returns_to_the_person(haystack, match.end(), guard_end):
             continue
         return True
     return False
