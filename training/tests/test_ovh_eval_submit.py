@@ -140,13 +140,53 @@ def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: 
     assert set(plan["download"]) == {"code/launch.sh", "data/scenario-crisis-dev-v1.jsonl"}
     # The GET prefix carries a digest of the bundle, so a later submission cannot
     # replace the bytes a queued job has not fetched yet.
+    expected_digest = submit.bundle_digest(stage_dir, ["code/launch.sh", "data/scenario-crisis-dev-v1.jsonl"])
     download_prefix = (
         plan["download"]["code/launch.sh"].removeprefix("https://r2.test/get_object/").rsplit("/code/launch.sh", 1)[0]
     )
-    assert download_prefix.startswith("inputs/v22/")
-    assert len(download_prefix.rsplit("/", 1)[-1]) == len(hashlib.sha256(b"").hexdigest())
+    assert download_prefix == f"inputs/v22/{expected_digest}"
     assert plan["upload"]["eval-nf4-sealed/results.jsonl"].startswith("https://r2.test/put_object/evals/v23/")
     assert plan["bucket"] == "training"
+
+
+def test_submit_signs_the_files_below_a_nested_adapter_bundle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A copied adapter carries subdirectories, and stray bytecode must not block the launch."""
+    stage_dir = tmp_path / "stage"
+    (stage_dir / "code").mkdir(parents=True)
+    (stage_dir / "code" / "launch.sh").write_text("#!/bin/sh\n")
+    adapter = stage_dir / "adapters" / "sft"
+    nested = adapter / "nested"
+    nested.mkdir(parents=True)
+    (nested / "adapter_config.json").write_text("{}\n")
+    (adapter / "adapter_model.safetensors").write_text("weights\n")
+    bytecode = adapter / "__pycache__"
+    bytecode.mkdir()
+    (bytecode / "runner.cpython-314.pyc").write_text("bytecode\n")
+
+    monkeypatch.setattr(submit.r2_sync, "client", lambda **_: FakeS3(()))
+    monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
+    monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: [])
+    staged = [relative for relative in submit.staged_files(stage_dir) if not submit.r2_sync._skip(Path(relative))]
+    monkeypatch.setattr(
+        submit.r2_sync,
+        "list_prefix",
+        lambda *, prefix, **__: [{"key": f"{prefix}/{relative}", "size": 1, "etag": ""} for relative in staged],
+    )
+
+    report = submit.submit(tag="v23", stage_dir=stage_dir, restage=False)
+
+    env = dict(
+        entry.split("=", 1)
+        for entry in report["command"]
+        if isinstance(entry, str) and "=" in entry and not entry.startswith("--")
+    )
+    plan = r2_sync.decode_map(env["R2_MAP_B64"])
+
+    assert set(plan["download"]) == {
+        "code/launch.sh",
+        "adapters/sft/adapter_model.safetensors",
+        "adapters/sft/nested/adapter_config.json",
+    }
 
 
 def test_submit_refuses_to_launch_when_an_input_did_not_land(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

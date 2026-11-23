@@ -25,7 +25,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from training.launch import r2_sync
 
@@ -38,12 +38,12 @@ DEFAULT_TIMEOUT = "2h"
 DEFAULT_STAGE_DIR = Path(tempfile.gettempdir()) / "ovh-eval"
 # Where the container unpacks the bundle. Not a host path: the job sets ROOT to
 # this, and the bootstrap falls back to it when the variable is missing. A job
-# with no volume gets a read-only image filesystem, so this has to be under
-# the temp directory; the launchers default to the same directory. Derived
-# rather than spelled out, so the path cannot be read as a shared local /tmp
-# constant: only the container ever resolves it, and its image resolves the
-# same temp directory.
-REMOTE_ROOT = str(Path(tempfile.gettempdir()) / "work")
+# with no volume gets a read-only image filesystem, so this has to be the
+# container's temp directory; the launchers default to the same directory.
+# Built from segments because it is a POSIX path inside the container: the
+# submitting host's own temp directory is irrelevant to it, whatever platform
+# the submission happens to run from.
+REMOTE_ROOT = str(PurePosixPath("/", "tmp", "work"))
 # 344 MB each: kept out of the repo, staged from the training output directory.
 DEFAULT_ADAPTERS = {
     "bf16": AI_ROOT / "training/output/ovh-v22-qwen3-8b/adapter-final",
@@ -77,7 +77,7 @@ CASES_DIR = REPO_ROOT / "docs/training/execution-2026-10-17"
 # Runs inside the container before anything else. Kept to the standard library:
 # the image has no boto3, and the only thing it needs is HTTP.
 BOOTSTRAP = """\
-import base64, gzip, json, os, pathlib, shutil, subprocess, sys, urllib.request
+import base64, gzip, json, os, pathlib, shutil, subprocess, sys, time, urllib.request
 
 plan = json.loads(gzip.decompress(base64.urlsafe_b64decode(os.environ["R2_MAP_B64"].encode())))
 root = pathlib.Path(os.environ.get("ROOT", "/tmp/work"))
@@ -107,21 +107,28 @@ for relative, url in sorted(plan.get("upload", {}).items()):
         failed.append(relative)
         continue
     payload = source.read_bytes()
-    request = urllib.request.Request(
-        url,
-        data=payload,
-        method="PUT",
-        headers={
-            "Content-Type": "application/octet-stream",
-            "Content-Length": str(len(payload)),
-            "User-Agent": "pixelated-empathy-r2-sync/1.0",
-        },
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=900) as response:
-            print(f"  uploaded {relative} {len(payload)} bytes -> {response.status}", flush=True)
-    except Exception as error:
-        print(f"  upload failed {relative}: {error}", flush=True)
+    last = None
+    for attempt in range(3):
+        request = urllib.request.Request(
+            url,
+            data=payload,
+            method="PUT",
+            headers={
+                "Content-Type": "application/octet-stream",
+                "Content-Length": str(len(payload)),
+                "User-Agent": "pixelated-empathy-r2-sync/1.0",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=900) as response:
+                print(f"  uploaded {relative} {len(payload)} bytes -> {response.status}", flush=True)
+                break
+        except Exception as error:
+            last = error
+            if attempt < 2:
+                time.sleep(2.0 * (attempt + 1))
+    else:
+        print(f"  upload failed {relative}: {last}", flush=True)
         failed.append(relative)
 
 if failed:
@@ -302,8 +309,10 @@ def submit(
         stage(stage_dir, adapters=adapters, suite=suite)
     # `stage` returns top-level entries, and a nested adapter bundle comes back
     # as its directory: the digest and the download map need the files below it,
-    # not the directory, or `_file_digest` raises IsADirectoryError.
-    staged = staged_files(stage_dir)
+    # not the directory, or `_file_digest` raises IsADirectoryError. The skip
+    # filter keeps the list equal to what `upload_dir` really uploads, or the
+    # presence check below rejects a valid bundle over a stray __pycache__ file.
+    staged = [relative for relative in staged_files(stage_dir) if not r2_sync._skip(Path(relative))]
     inputs_prefix = f"{inputs_prefix.strip('/')}/{bundle_digest(stage_dir, staged)}"
 
     s3 = r2_sync.client()
