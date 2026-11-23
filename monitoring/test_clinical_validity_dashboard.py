@@ -13,7 +13,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 sys.modules.setdefault("streamlit", types.ModuleType("streamlit"))
 
-from clinical_validity_dashboard import ClinicalValidityDashboard
+from ai.monitoring.clinical_validity_dashboard import ClinicalValidityDashboard
 
 
 def test_calculate_current_metrics_with_recent_data():

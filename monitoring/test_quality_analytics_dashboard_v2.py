@@ -24,7 +24,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 import contextlib
 
 import pytest
-from quality_analytics_dashboard_v2 import QualityAnalytics, QualityAnalyticsDashboard
+
+from ai.monitoring.quality_analytics_dashboard_v2 import QualityAnalytics, QualityAnalyticsDashboard
 
 # Configure logging for tests
 logging.basicConfig(level=logging.WARNING)  # Reduce noise during tests

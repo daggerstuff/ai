@@ -20,7 +20,7 @@ import pytest
 # Add the monitoring directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from .quality_analytics_dashboard import QualityAnalytics, QualityAnalyticsDashboard
+from ai.monitoring.quality_analytics_dashboard import QualityAnalytics, QualityAnalyticsDashboard
 
 
 class TestQualityAnalyticsDashboard:
