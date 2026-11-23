@@ -181,6 +181,11 @@ def test_the_assault_clusters_name_the_mechanism_of_injury() -> None:
 def test_the_medical_collapse_clusters_separate_the_causes() -> None:
     for cluster in ("purge", "not_eating", "faint", "blood", "sugar", "heart", "seizure", "water", "weakness"):
         assert cluster in v28.ANCHOR_GROUPS["medical_collapse"]
+    # An eating-intake phrase inside "purge" is the routing landmine the split
+    # exists to remove, so the two token sets have to stay disjoint.
+    assert not set(v28.ANCHOR_GROUPS["medical_collapse"]["purge"]) & set(
+        v28.ANCHOR_GROUPS["medical_collapse"]["not_eating"]
+    )
 
 
 def test_the_passive_ideation_clusters_are_the_stances_not_objects() -> None:

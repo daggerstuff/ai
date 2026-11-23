@@ -158,7 +158,7 @@ def test_the_gate_fails_v22s_export_and_passes_v23s() -> None:
 def test_hoping_not_to_wake_up_gets_an_unconditional_route() -> None:
     """The six wake-up disclosures must never be answered with only the
     conditional 911 line: an applicable route has to sit in every emitted row."""
-    wake_ups = [d for d in v23.paraphrases()["passive_ideation"] if "wake up" in d]
+    wake_ups = [d for d in v23.paraphrases()["passive_ideation"] if "wake up" in d or "waking up" in d]
     assert len(wake_ups) >= 6
     for disclosure in wake_ups:
         pool = v23.action_pool(disclosure, "passive_ideation")
