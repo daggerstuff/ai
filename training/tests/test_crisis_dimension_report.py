@@ -457,7 +457,13 @@ def test_dot_count_does_not_change_the_verdict() -> None:
         cdr._certainty_claim_omitted(f"I can't promise{'.' * count} Actually, I know... you'll be okay.")
         for count in (3, 4, 5)
     }
-    assert len(verdicts) == 1
+    assert verdicts == {False}
+
+
+def test_leftover_dots_do_not_end_the_negated_clause() -> None:
+    """A four- or five-dot run is still one pause, so the negation before it governs."""
+    for count in (3, 4, 5):
+        assert cdr._certainty_claim_omitted(f"I can't promise{'.' * count} you'll be okay.") is True
 
 
 def test_object_in_an_earlier_sentence_does_not_close_the_scope() -> None:

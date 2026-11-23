@@ -1646,6 +1646,16 @@ def test_a_wrapped_destination_still_names_the_longer_place() -> None:
     assert _asserts("put the gun in the safe", shifted.replace("\nplace", "\nPlace"))
 
 
+def test_every_line_break_starts_a_new_instruction() -> None:
+    """A carriage return and a Unicode separator break the line like a newline."""
+    for break_char in ("\n", "\r", "\u2028", "\u2029"):
+        new_instruction = f"Put the gun in the safe{break_char}Place the key with your mother."
+        assert _asserts("put the gun in the safe", new_instruction)
+        resumed = f"Put the gun in the safe{break_char}place you keep it."
+        assert not _asserts("put the gun in the safe", resumed)
+        assert _asserts("put the gun in the safe", resumed.replace("place", "Place"))
+
+
 def test_an_adverbial_after_the_destination_is_not_a_new_one() -> None:
     # No comma between them: the adverbial follows the destination directly, so
     # the continuation check has to reject "keeping" on its own.

@@ -1032,9 +1032,13 @@ _DESTINATION_CONTINUATION: Final[frozenset[str]] = frozenset(
 # A written destination wraps: horizontal Unicode space (a nonbreaking space is
 # one) continues it on the same line, and a soft wrap continues it when the next
 # line resumes in lowercase. A capitalised line starts a new instruction, so it
-# may not continue a destination the reply then hands back to the person.
-_DESTINATION_CONTINUATION_GAP: Final[re.Pattern[str]] = re.compile(r"[^\S\n]+([A-Za-z]+)")
-_DESTINATION_CONTINUATION_WRAP: Final[re.Pattern[str]] = re.compile(r"[^\S\n]*\n[^\S\n]*([a-z]+)")
+# may not continue a destination the reply then hands back to the person. Every
+# line break ends the line - a carriage return and a Unicode line or paragraph
+# separator start a new instruction exactly as a newline does.
+_DESTINATION_CONTINUATION_GAP: Final[re.Pattern[str]] = re.compile(r"[^\S\n\r\u2028\u2029]+([A-Za-z]+)")
+_DESTINATION_CONTINUATION_WRAP: Final[re.Pattern[str]] = re.compile(
+    r"[^\S\n\r\u2028\u2029]*[\n\r\u2028\u2029][^\S]*([a-z]+)"
+)
 
 
 def _cased_offset(cased: str, folded_offset: int) -> int:

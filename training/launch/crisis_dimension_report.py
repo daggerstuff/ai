@@ -512,6 +512,10 @@ def _clause_start(
         claim_end = claim_start
     start = 0
     aside_until = 0
+    # A four- or five-dot run is one pause: the leftover dots after the three
+    # CLAUSE_BOUNDARY matches are not boundaries of their own, or a spell of the
+    # same ellipsis would end the clause and drop the negation before it.
+    pause_until = 0
     asides: list[tuple[int, int]] = []
     # Scan the whole text and stop past the claim: a lookahead that proves a
     # boundary introduces a new subject reads past ``claim_start``, which
@@ -519,12 +523,15 @@ def _clause_start(
     for boundary in CLAUSE_BOUNDARY.finditer(text):
         if boundary.end() > claim_start:
             break
-        if boundary.end() <= aside_until:
+        if boundary.end() <= aside_until or boundary.start() < pause_until:
             continue
         group = boundary.group()
         head = group.lstrip(" ,;")
         bare = group[0] not in ",;"
         pause_end = _pause_scan_start(text, head, boundary.end())
+        # ``_pause_scan_start`` answers for every head: a pause gives the end of its
+        # whole dot run, and anything else gives the boundary's own end.
+        pause_until = max(pause_until, pause_end)
         if (
             head.rstrip() in _PAUSE_HEADS
             and (REPORTING_VERB_TAIL.search(text[: boundary.start()]) or THAT_TAIL.search(text[: boundary.start()]))
