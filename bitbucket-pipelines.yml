@@ -55,8 +55,11 @@ definitions:
       # Install uv for fast Python dependency management
       - curl -LsSf https://astral.sh/uv/install.sh | sh
       - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+      # Install the enhanced requirements list so the bumped floor is resolved before type checking
+      - uv sync --frozen
+      - uv pip install -r config/requirements_enhanced.txt
       # Run mypy type checking
-      - uv run mypy . --ignore-missing-imports --show-error-codes || true
+      - uv run --no-sync mypy . --ignore-missing-imports --show-error-codes || true
 
   - step: &security-scan
       name: Security Vulnerability Scan

@@ -95,7 +95,9 @@ test:typecheck:
   stage: test
   script:
   - echo "🔍 Running type checks..."
-  - uv run mypy . --ignore-missing-imports || true
+  - echo "Installing enhanced requirements (config/requirements_enhanced.txt)..."
+  - uv pip install -r config/requirements_enhanced.txt
+  - uv run --no-sync mypy . --ignore-missing-imports || true
   allow_failure: true
   only:
   - branches
