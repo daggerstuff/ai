@@ -9,11 +9,11 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from configs.api_authentication import PermissionLevel
 from inference.api.dataset_api import (
     app,
     get_current_active_user_or_api_key,
 )
-from security.api_authentication import PermissionLevel
 
 client = TestClient(app)
 

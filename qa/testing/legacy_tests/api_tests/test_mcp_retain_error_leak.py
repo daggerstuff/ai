@@ -1,6 +1,6 @@
 import pathlib
 
-ROUTES = pathlib.Path(__file__).resolve().parents[2] / "api" / "mcp_server" / "routes.py"
+ROUTES = pathlib.Path(__file__).resolve().parents[4] / "api" / "mcp_server" / "routes.py"
 
 GENERIC_CONFLICT = "The requested retain operation could not be completed due to a scope conflict."
 GENERIC_ACCESS = "The requested document could not be accessed."
