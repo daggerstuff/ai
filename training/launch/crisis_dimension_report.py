@@ -202,7 +202,8 @@ CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
     + _STANCE_IM
 )
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
-    r"(?:^|,|\b(?:and|or|but|nor)\b)\s*(?:that|if|whether)\b(?:\s*,[^,]{0,40},)?\s*,?\s*$"
+    r"(?:^|,|\b(?:and|or|but|nor)\b)\s*(?:that|if|whether)\b"
+    r"(?:\s*,([^,.;!?\u2014\u2013]{1,200}),)?\s*,?\s*$"
 )
 COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
     r"(?:'t|not|never)\s+(?:be\s+|really\s+)?(?:promise|say|know|tell|guarantee|sure)\b"
@@ -294,20 +295,26 @@ def _mask_abbreviations(text: str, cased: str) -> str:
 def _aside_sentence_end(text: str, start: int, end: int, cased: str | None = None) -> int | None:
     """Return the index of the next hard sentence end in [start, end), or None."""
     masked = _mask_abbreviations(text, text if cased is None else cased)
-    for match in _HARD_END.finditer(masked, start, end):
+    cursor = start
+    while True:
+        match = _HARD_END.search(masked, cursor, end)
+        if match is None:
+            return None
         idx = match.start()
-        if masked[idx] == "." and _inside_ellipsis(masked, idx):
+        if masked[idx] != ".":
+            return idx
+        run_end = idx
+        while run_end + 1 < len(masked) and masked[run_end + 1] == ".":
+            run_end += 1
+        if run_end - idx + 1 >= _ELLIPSIS_MIN_RUN:
+            # One ellipsis pause: the whole run is consumed here, so a long run
+            # costs a single pass instead of one scan per period.
+            cursor = run_end + 1
             continue
-        if (
-            masked[idx] == "."
-            and idx > 0
-            and idx + 1 < len(masked)
-            and masked[idx - 1].isdigit()
-            and masked[idx + 1].isdigit()
-        ):
+        if idx > 0 and run_end + 1 < len(masked) and masked[idx - 1].isdigit() and masked[run_end + 1].isdigit():
+            cursor = run_end + 1
             continue
         return idx
-    return None
 
 
 # A subordinate clause reads as an aside whatever its subject; a prepositional
@@ -324,6 +331,24 @@ CLAUSE_LEAD_PREPOSITION: Final[re.Pattern[str]] = re.compile(
 CLAUSE_LEAD_CONDITIONAL: Final[re.Pattern[str]] = re.compile(r"^(?:if|unless|when|whenever|once|until|provided)\b")
 
 
+def _resumed_complement(segment: str) -> re.Match[str] | None:
+    """Return the resumed-complement match when its aside carries no correction.
+
+    A parenthetical between the complement marker and the claim is read as an
+    aside of no consequence, so "that, with time, everything will be okay"
+    resumes the cue. One that states an affirmative stance of its own -
+    "that, I guarantee it, ..." - corrects the cue instead of resuming its
+    complement, so the claim stands on its own and the cue does not reach it.
+    """
+    match = RESUMED_COMPLEMENT.search(segment)
+    if match is None:
+        return None
+    aside = match.group(1)
+    if aside is not None and AFFIRMATIVE_GOVERNER.match(aside) is not None:
+        return None
+    return match
+
+
 def _aside_span(text: str, boundary_start: int, after: int, claim_start: int, claim_end: int) -> tuple[int, int] | None:
     """Return the (start, end) of a though-phrase parenthetical, or None."""
     comma = text.find(",", after, claim_start)
@@ -338,7 +363,7 @@ def _aside_span(text: str, boundary_start: int, after: int, claim_start: int, cl
         # governor that starts at the claim's subject is not cut short by the
         # slice's edge.
         continuation = text[comma + 1 : claim_start]
-        governed = RESUMED_COMPLEMENT.search(continuation) is not None or REPORTING_VERB_TAIL.search(
+        governed = _resumed_complement(continuation) is not None or REPORTING_VERB_TAIL.search(
             text[: after - len("though")]
         )
         if governed and AFFIRMATIVE_GOVERNER.match(text[comma + 1 : claim_end]) is None:
@@ -360,7 +385,8 @@ def _strip_asides(text: str, start: int, end: int, asides: list[tuple[int, int]]
     for begin, span_end in asides:
         lo, hi = max(begin, start), min(span_end, end)
         if lo < hi:
-            keep_break = _CLAUSE_AFTER_ASIDE.match(text, hi) is not None
+            pending_verb = REPORTING_VERB_TAIL.search(text[:begin]) is not None
+            keep_break = not pending_verb and _CLAUSE_AFTER_ASIDE.match(text, hi) is not None
             while lo > start and text[lo - 1] in ", ":
                 if text[lo - 1] == "," and keep_break:
                     break
@@ -475,7 +501,7 @@ def _clause_start(
             continue
         if not bare and head in {"and", "so"}:
             segment = text[boundary.end() : claim_start]
-            resumed = RESUMED_COMPLEMENT.search(segment)
+            resumed = _resumed_complement(segment)
             if resumed is not None and CORRECTION_GOVERNER.search(segment[: resumed.start()]) is None:
                 continue
         start = boundary.end()
@@ -579,7 +605,7 @@ def _negation_in_clause(lowered: str, clause_start: int, claim_start: int, aside
                 # aside and the aside carries no affirmative correction of its
                 # own ("I do not think, I know, that ..."). A bare word
                 # additionally needs a negated stance to govern.
-                resumed = RESUMED_COMPLEMENT.search(run_up)
+                resumed = _resumed_complement(run_up)
                 if (
                     resumed is None
                     or CORRECTION_GOVERNER.search(run_up[: resumed.start()]) is not None

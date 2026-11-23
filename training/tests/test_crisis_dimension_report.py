@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from pathlib import Path
 
 import pytest
@@ -273,6 +274,21 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
         # sentence end after "etc." closes the aside instead of letting a
         # later dash pair across it.
         ("I can't promise\u2014recovery takes time, etc. Take heart\u2014you'll be okay.", False),
+        # An affirmative stance inside the complement's aside corrects the cue
+        # instead of resuming it, so a comma splice cannot carry the negation
+        # over an explicit guarantee.
+        ("I can't promise that, I guarantee it, you will be fine.", False),
+        ("I can't promise that, I promise, you will be fine.", False),
+        # A reporting verb still waiting for its object owns the comma before
+        # its "though" aside, so the following subject and auxiliary resume
+        # that object rather than opening an independent clause.
+        ("I can't promise, though, you will be fine.", True),
+        # The parenthetical inside the resumed complement is an aside whatever
+        # its length, as long as it carries no hard sentence end.
+        (
+            "I can't promise that, with the right support and enough time to recover, you will be fine.",
+            True,
+        ),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:
@@ -385,6 +401,15 @@ def test_report_never_contains_response_text(tmp_path: Path) -> None:
 def test_ascii_ellipsis_is_not_a_hard_sentence_end() -> None:
     text = "I can't promise... recovery takes time... that everything will be okay."
     assert cdr._aside_sentence_end(text, 0, len(text)) == len(text) - 1
+
+
+def test_a_long_ellipsis_run_is_scanned_in_one_pass() -> None:
+    """A single long run of periods must not cost one scan per period."""
+    text = "I can't promise" + "." * 20_000 + " I know you'll be okay"
+    began = time.monotonic()
+    assert cdr._aside_sentence_end(text, 0, len(text)) is None
+    budget = 2.0
+    assert time.monotonic() - began < budget
 
 
 def test_semicolon_ends_a_sentence_for_aside_scanning() -> None:
