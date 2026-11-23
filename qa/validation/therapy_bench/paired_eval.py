@@ -237,6 +237,22 @@ def sha256_bytes(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def _scorer_fingerprint() -> str:
+    """Fingerprint the scoring implementation for resume compatibility.
+
+    A resumed run reuses verdicts written by whichever code scored them. The
+    manifest's ``config_sha256`` covers the config, not this module, so an
+    interrupted run could otherwise keep verdicts produced under older scoring
+    rules beside verdicts produced under newer ones. Hashing this module is
+    deliberately conservative: any edit to the scorer invalidates cached
+    verdicts instead of mixing scoring regimes in one results file.
+    """
+    try:
+        return sha256_bytes(Path(__file__).read_bytes())
+    except OSError:
+        return "unavailable"
+
+
 def canonical_json(payload: Any) -> str:
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
@@ -1341,6 +1357,7 @@ def _make_manifest(context: ManifestContext) -> dict[str, Any]:
         "status": "running",
         "cases_sha256": context.cases_digest,
         "config_sha256": context.config_digest,
+        "scorer_sha256": _scorer_fingerprint(),
         "case_ids": [case["id"] for case in cases],
         "arm_ids": [arm["id"] for arm in selected],
         "comparison_mode": "paired" if len(selected) == _ARM_COUNT else "single_arm_diagnostic",
@@ -1378,7 +1395,8 @@ def _check_resume(manifest_path: Path, manifest: dict[str, Any]) -> None:
     previous = {key: existing.get(key) for key in manifest if key != "status"}
     current = {key: value for key, value in manifest.items() if key != "status"}
     if previous != current:
-        raise EvaluationInputError("resume rejected: case/config/arm identity changed")
+        changed = sorted(key for key in current if previous.get(key) != current[key])
+        raise EvaluationInputError(f"resume rejected: run identity changed ({', '.join(changed)})")
 
 
 def _nearest_rank(values: list[float], percentile: float) -> float | None:
