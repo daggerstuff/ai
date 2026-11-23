@@ -28,8 +28,13 @@ def _endpoint(settings: Any) -> str:
     return str(settings.env.get("FORESIGHT_URL") or FORESIGHT_DEFAULT_URL)
 
 
-def _initialize(client: httpx.Client, url: str) -> str | None:
-    """Perform the MCP initialize handshake, returning the session id."""
+def _initialize(client: httpx.Client, url: str) -> tuple[str | None, str]:
+    """Perform the MCP initialize handshake, returning id and protocol version.
+
+    The negotiated version must be echoed on every follow-up request: strict
+    Streamable HTTP servers reject a post-initialize request that omits
+    ``mcp-protocol-version`` with 400, which would silently drop terminal memories.
+    """
     resp = client.post(
         url,
         json={
@@ -47,10 +52,17 @@ def _initialize(client: httpx.Client, url: str) -> str | None:
     resp.raise_for_status()
     session_id = resp.headers.get("mcp-session-id")
     session_id = session_id if isinstance(session_id, str) else None
+    negotiated = _parse_sse(resp.text) or {}
+    version = negotiated.get("result", {}).get("protocolVersion")
+    protocol_version = version if isinstance(version, str) and version else "2025-06-18"
     # The MCP lifecycle requires notifications/initialized after a successful
     # initialize and before any other request; strict servers (FastMCP) reject
     # tools/call until they see it. It is a notification: no id, no response body.
-    headers = {"Accept": "application/json, text/event-stream", "Content-Type": "application/json"}
+    headers = {
+        "Accept": "application/json, text/event-stream",
+        "Content-Type": "application/json",
+        "mcp-protocol-version": protocol_version,
+    }
     if session_id:
         headers["mcp-session-id"] = session_id
     client.post(
@@ -58,7 +70,7 @@ def _initialize(client: httpx.Client, url: str) -> str | None:
         json={"jsonrpc": "2.0", "method": "notifications/initialized"},
         headers=headers,
     ).raise_for_status()
-    return session_id
+    return session_id, protocol_version
 
 
 def _parse_sse(body: str) -> dict[str, Any] | None:
@@ -129,10 +141,11 @@ def store_terminal_memory(settings: Any, job: dict[str, Any]) -> dict[str, Any]:
     }
     try:
         with httpx.Client(timeout=_TIMEOUT_S) as client:
-            session_id = _initialize(client, url)
+            session_id, protocol_version = _initialize(client, url)
             headers = {
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
+                "mcp-protocol-version": protocol_version,
             }
             if session_id:
                 headers["mcp-session-id"] = session_id

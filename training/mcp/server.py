@@ -94,18 +94,25 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     # Expire plans left over from previous runs.
     with contextlib.suppress(Exception):
         db.prune_plans(s.db_path, max_age_seconds=s.plan_ttl_seconds)
+    # Fail local jobs this process did not start: their subprocess died with the
+    # previous server, and a `running` row with no process blocks the slot it
+    # claims forever.
+    with contextlib.suppress(Exception):
+        db.fail_orphaned_local_jobs(s.db_path)
 
     # Periodic reconciler.
     async def _loop() -> None:
         while True:
             await asyncio.sleep(_RECONCILE_INTERVAL_S)
+            # Both calls block on SQLite/network I/O; run them off the event
+            # loop so a slow reconcile cannot stall HTTP handling or dispatch.
             with contextlib.suppress(Exception):
-                sync.sync_all(settings())
+                await asyncio.to_thread(sync.sync_all, settings())
             # Drop plan_cache rows past their TTL so the table does not grow
             # without bound and an expired approval cannot be resubmitted.
             with contextlib.suppress(Exception):
                 current = settings()
-                db.prune_plans(current.db_path, max_age_seconds=current.plan_ttl_seconds)
+                await asyncio.to_thread(db.prune_plans, current.db_path, max_age_seconds=current.plan_ttl_seconds)
 
     task = asyncio.create_task(_loop())
     try:

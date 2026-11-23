@@ -273,18 +273,13 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
             if _is_cancelled(job_id):
                 _record_terminal_outcome(settings, job_id)
                 return
-            db.upsert_job(
-                settings.db_path,
-                {
-                    "job_id": job_id,
-                    "kind": job_row["kind"],
-                    "source": job_row["source"],
-                    "name": job_row.get("name"),
-                    "status": "submitted",
-                    "stage": "submitted",
-                    "backend_id": job_row.get("backend_id"),
-                },
-            )
+            # Conditional on the row still being active: a cancellation that
+            # landed while this job waited for the slot must not be overwritten
+            # by `submitted`, or the operator's stop turns into a `succeeded`.
+            if not db.transition_job(settings.db_path, job_id, status="submitted", stage="submitted"):
+                _forget_cancelled(job_id)
+                _record_terminal_outcome(settings, job_id)
+                return
             env = _build_env(settings)
             log_dir = settings.db_path.parent / "logs"
             log_dir.mkdir(parents=True, exist_ok=True)
@@ -376,20 +371,12 @@ def cancel(settings: Settings, job_id: str) -> bool:
         # the marker set is process-global and long-lived).
         _forget_cancelled(job_id)
         return False
-    db.upsert_job(
-        settings.db_path,
-        {
-            "job_id": job_id,
-            "kind": job["kind"],
-            "source": job["source"],
-            "name": job.get("name"),
-            "status": "cancelled",
-            "stage": "cancelled",
-            "backend_id": job.get("backend_id"),
-            "error": "cancelled by operator",
-            "finished_at": db.now(),
-        },
-    )
+    # The UPDATE carries the terminal guard, so a monitor that committed
+    # `succeeded`/`failed` after the read above wins instead of being rewritten
+    # here: one terminal outcome per job.
+    if not db.mark_job_cancelled(settings.db_path, job_id):
+        _forget_cancelled(job_id)
+        return False
     # Best-effort backend cancel for ovhai.
     if job.get("source") == "ovhai" and job.get("backend_id"):
         with contextlib.suppress(Exception):

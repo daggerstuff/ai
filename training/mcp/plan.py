@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import shlex
 from typing import Any
 
 from training.mcp import db, recipes
@@ -113,7 +114,9 @@ def _resolve_command(recipe: recipes.Recipe, inputs: dict[str, Any], overrides: 
             return ""
         if isinstance(value, bool):
             return _bool_flag(recipe, key) if value else ""
-        return str(value)
+        # Quote so a value containing spaces or flags cannot split the
+        # argument list or inject an unintended CLI option.
+        return shlex.quote(str(value))
 
     resolved = re.sub(r"<([A-Za-z0-9_\-]+)>", repl, cmd)
     return " ".join(resolved.split())

@@ -207,6 +207,12 @@ def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
     conn.commit()
 
 
+#: Statuses that end a job's life. Nothing may overwrite a row in one of
+#: these states: the operator's cancellation and the monitor's process exit
+#: race, and whichever lands first is the outcome the job really had.
+TERMINAL_JOB_STATUSES = frozenset({"succeeded", "failed", "cancelled"})
+
+
 def transition_job(
     db_path: Path,
     job_id: str,
@@ -222,7 +228,9 @@ def transition_job(
     runs on the MCP request thread while the subprocess monitor writes from its
     own thread, so a monitor that read ``running`` before the cancel landed must
     not overwrite the terminal ``cancelled`` row with a process-exit status.
-    Returns False when the row was already cancelled (nothing was written).
+    Returns False when the row is already terminal (nothing was written): a
+    monitor that read an active row before an operator cancelled, or before
+    another terminal write landed, must not revive or rewrite that outcome.
     """
     conn = _conn(db_path)
     cursor = conn.execute(
@@ -233,12 +241,62 @@ def transition_job(
             error = ?,
             finished_at = COALESCE(?, finished_at),
             updated_at = ?
-        WHERE job_id = ? AND status <> 'cancelled'
+        WHERE job_id = ? AND status NOT IN ("succeeded", "failed", "cancelled")
         """,
         (status, stage, error, finished_at, _now(), job_id),
     )
     conn.commit()
     return cursor.rowcount > 0
+
+
+def mark_job_cancelled(db_path: Path, job_id: str) -> bool:
+    """Cancel a job only if it has not already reached a terminal state.
+
+    The guard lives in the UPDATE so a cancellation cannot overwrite a result the
+    monitor committed while the request thread was reading the row. Returns False
+    when the job was already over; the caller must not re-record the outcome.
+    """
+    conn = _conn(db_path)
+    now = _now()
+    cursor = conn.execute(
+        """
+        UPDATE jobs SET
+            status = 'cancelled',
+            stage = 'cancelled',
+            error = 'cancelled by operator',
+            finished_at = ?,
+            updated_at = ?
+        WHERE job_id = ? AND status NOT IN ('succeeded', 'failed', 'cancelled')
+        """,
+        (now, now, job_id),
+    )
+    conn.commit()
+    return cursor.rowcount > 0
+
+
+def fail_orphaned_local_jobs(db_path: Path) -> int:
+    """Fail local jobs left active by a previous server process.
+
+    A local job is a subprocess of this server, so any local row still active when
+    a new process starts belongs to a process that is gone. Left alone it stays
+    `running` forever and consumes the concurrency slot it no longer holds.
+    """
+    conn = _conn(db_path)
+    now = _now()
+    cursor = conn.execute(
+        """
+        UPDATE jobs SET
+            status = 'failed',
+            stage = 'failed',
+            error = 'orphaned: server restarted while the job was active',
+            finished_at = ?,
+            updated_at = ?
+        WHERE source = 'local' AND status IN ('queued', 'submitted', 'running', 'collecting')
+        """,
+        (now, now),
+    )
+    conn.commit()
+    return cursor.rowcount
 
 
 def get_job(db_path: Path, job_id: str) -> dict[str, Any] | None:
