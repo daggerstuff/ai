@@ -1,0 +1,28 @@
+conftest.py
+  s_7d4811cf1b0ba7::t_7a85fd4f7ddca5 12-19
+  s_7d4811cf1b0ba7::t_71d484bd94845c 20-23
+research/experiments/tests/safety/test_bias_privacy_hooks.py
+  s_7d4811cf1b0ba7::t_7a85fd4f7ddca5 19
+qa/testing/legacy_tests/api_tests/test_dataset_api_validation.py
+  s_7d4811cf1b0ba7::t_1848c402d7d6cd 2,8
+pytest.ini
+  s_7d4811cf1b0ba7::t_d7f4c03826d9b0 30-37
+qa/testing/legacy_tests/api_tests/test_dataset_api_auth.py
+  s_7d4811cf1b0ba7::t_1848c402d7d6cd 2,4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "df23ed55ea7144877f8c90a690e2147876d46e5f",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
