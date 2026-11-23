@@ -10,8 +10,8 @@ StartLimitBurst=5
 Type=simple
 WorkingDirectory=/home/vivi/pixelated/ai
 Environment=PATH=/home/vivi/.local/bin:/usr/local/bin:/usr/bin:/bin
-Environment=TRAINING_MCP_ENV_FILE=/home/vivi/pixelated/ai/training/mcp/.env
-ExecStart=/home/vivi/pixelated/ai/.venv/bin/python -m training.mcp
+Environment=TRAINING_MCP_ENV_FILE=/home/vivi/pixelated/ai/training/control_plane/.env
+ExecStart=/home/vivi/pixelated/ai/.venv/bin/python -m training.control_plane
 Restart=always
 RestartSec=5
 

@@ -17,8 +17,8 @@ from typing import Any, cast
 
 import wandb
 
+from training.control_plane.config import IMPORT_ACTOR, Settings
 from training.launch import r2_sync
-from training.mcp.config import IMPORT_ACTOR, Settings
 
 
 def _run(cmd: list[str], *, timeout: int = 60) -> subprocess.CompletedProcess[str]:
@@ -158,7 +158,7 @@ def wandb_runs(settings: Settings, *, limit: int = 20) -> list[dict[str, Any]]:
                 "created_at": str(run.created_at),
                 "url": run.url,
                 "tags": list(run.tags or []),
-                "summary": {k: v for k, v in (run.summary or {}).items() if isinstance(v, (int, float, str))},
+                "summary": {k: v for k, v in (run.summary or {}).items() if isinstance(v, int | float | str)},
             }
         )
     return out
@@ -208,9 +208,9 @@ def wandb_run_metrics(settings: Settings, run_id: str, *, max_points: int = 50) 
         run = api.run(path)
     except Exception as exc:  # wandb raises CommError/KeyError variants
         return {"error": f"run_not_found: {type(exc).__name__}"}
-    summary = {k: v for k, v in (run.summary or {}).items() if isinstance(v, (int, float, str))}
+    summary = {k: v for k, v in (run.summary or {}).items() if isinstance(v, int | float | str)}
     history = run.history(samples=max_points, pandas=False)
-    keys = [k for k in summary if isinstance(summary[k], (int, float))][:20]
+    keys = [k for k in summary if isinstance(summary[k], int | float)][:20]
     series = {k: [row.get(k) for row in history[-max_points:]] for k in keys}
     return {
         "run_id": run_id,

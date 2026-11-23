@@ -14,7 +14,7 @@ The control plane instead separates:
 - **Proposal** — anyone (including an advisor agent) can draft an entry and
   have the MCP validate it.
 - **Landing** — a human reviews and merges a PR to
-  `ai/training/mcp/recipes.yaml`. Only then does the recipe exist.
+  `ai/training/control_plane/recipes.yaml`. Only then does the recipe exist.
 
 ## 2. Validate a draft
 
@@ -41,7 +41,7 @@ entry = {
 Call the tool:
 
 ```bash
-cd ai && export TOKEN=$(grep -oP '(?<=^TRAINING_INFRA_MCP_TOKEN=).*' training/mcp/.env)
+cd ai && export TOKEN=$(grep -oP '(?<=^TRAINING_INFRA_MCP_TOKEN=).*' training/control_plane/.env)
 uv run python - <<'PY'
 import asyncio, json, os
 from fastmcp import Client
@@ -85,7 +85,7 @@ error before opening the PR.
 
 ## 4. Landing the recipe (human PR)
 
-1. Append the validated entry to `ai/training/mcp/recipes.yaml`.
+1. Append the validated entry to `ai/training/control_plane/recipes.yaml`.
 2. Open a PR. The PR description should state the entrypoint's real path, why
    the cost class is right, and what artifact the recipe produces.
 3. CI and review run as usual. A reviewer checks that the entrypoint exists

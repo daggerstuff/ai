@@ -233,7 +233,7 @@ ignore = []
     "PLR0912",
     "E501",
 ]
-"training/mcp/*.py" = [
+"training/control_plane/*.py" = [
     "PLR0911",
     "PLR0912",
     "PLR0913",

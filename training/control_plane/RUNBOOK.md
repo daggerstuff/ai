@@ -5,9 +5,9 @@ training work on the Eve fleet. It holds the backend credentials, validates
 every request against a reviewed recipe registry, and records an audit trail.
 
 - **Endpoint:** `http://127.0.0.1:8766/mcp` (streamable HTTP, localhost only)
-- **Repo path:** `ai/training/mcp/`
+- **Repo path:** `ai/training/control_plane/`
 - **Runtime:** Python 3.14 via `ai/.venv` (uv-managed)
-- **State:** `ai/training/mcp/state/jobs.db` (SQLite, WAL) + `state/logs/`
+- **State:** `ai/training/control_plane/state/jobs.db` (SQLite, WAL) + `state/logs/`
 
 ---
 
@@ -15,15 +15,15 @@ every request against a reviewed recipe registry, and records an audit trail.
 
 | Concern        | Where                                                                               |
 | -------------- | ----------------------------------------------------------------------------------- |
-| Service code   | `ai/training/mcp/server.py` (tools), `plan.py`, `runner.py`, `sync.py`              |
-| Recipes        | `ai/training/mcp/recipes.yaml` (reviewed PRs only — see `ai/training/mcp/RECIPE_WORKFLOW.md`)   |
-| Secrets        | `ai/training/mcp/.env` (mode 600, gitignored) — W&B, R2, OVH, `TRAINING_INFRA_MCP_TOKEN` |
+| Service code   | `ai/training/control_plane/server.py` (tools), `plan.py`, `runner.py`, `sync.py`              |
+| Recipes        | `ai/training/control_plane/recipes.yaml` (reviewed PRs only — see `ai/training/control_plane/RECIPE_WORKFLOW.md`)   |
+| Secrets        | `ai/training/control_plane/.env` (mode 600, gitignored) — W&B, R2, OVH, `TRAINING_INFRA_MCP_TOKEN` |
 | Budget caps    | same `.env`: `TRAINING_MCP_MAX_CONCURRENT_JOBS`, `TRAINING_MCP_DAILY_JOB_CAP`, `TRAINING_MCP_MONTHLY_COST_CAP_USD` |
-| systemd unit   | `ai/training/mcp/deploy/training-infra-mcp.service` (installed at `~/.config/systemd/user/training-infra-mcp.service`) |
-| Job registry   | `ai/training/mcp/state/jobs.db` — inspect with `list_jobs` / `get_job`              |
+| systemd unit   | `ai/training/control_plane/deploy/training-infra-mcp.service` (installed at `~/.config/systemd/user/training-infra-mcp.service`) |
+| Job registry   | `ai/training/control_plane/state/jobs.db` — inspect with `list_jobs` / `get_job`              |
 | Audit log      | same DB, `audit_log` table — inspect with `list_audit`                              |
-| Per-job logs   | `ai/training/mcp/state/logs/<job_id>.log`                                           |
-| Backends       | `ai/training/mcp/backends.py` (ovhai CLI, W&B API, R2 S3)                            |
+| Per-job logs   | `ai/training/control_plane/state/logs/<job_id>.log`                                           |
+| Backends       | `ai/training/control_plane/backends.py` (ovhai CLI, W&B API, R2 S3)                            |
 
 Agents **never** hold the backend credentials in the rows above
 (`WANDB_API_KEY`, `R2_*`, OVH/HF tokens). Of the control plane they hold only
@@ -51,7 +51,7 @@ systemctl --user enable training-infra-mcp.service
 ### Auth smoke test
 
 ```bash
-TOKEN=$(grep -oP '(?<=^TRAINING_INFRA_MCP_TOKEN=).*' ai/training/mcp/.env)
+TOKEN=$(grep -oP '(?<=^TRAINING_INFRA_MCP_TOKEN=).*' ai/training/control_plane/.env)
 
 # Expect 401 without the token
 curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:8766/mcp \
@@ -68,7 +68,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:8766/mcp \
 ### Inspect from Python (the supported client path)
 
 ```bash
-cd ai && export TOKEN=$(grep -oP '(?<=^TRAINING_INFRA_MCP_TOKEN=).*' training/mcp/.env)
+cd ai && export TOKEN=$(grep -oP '(?<=^TRAINING_INFRA_MCP_TOKEN=).*' training/control_plane/.env)
 uv run python - <<'PY'
 import asyncio, os
 from fastmcp import Client
@@ -160,14 +160,14 @@ reason. Read it with `list_audit(action="submit.rejected")`:
    job, reconcile marks it `failed` with `error: backend_lost`.
 3. `get_job_logs(job_id)` — serves the captured subprocess log when present,
    otherwise live OVH logs (the file also lives at
-   `ai/training/mcp/state/logs/<job_id>.log`).
+   `ai/training/control_plane/state/logs/<job_id>.log`).
 4. `job_metrics(job_id)` — W&B metrics once the run has started.
 5. `cancel_job(job_id)` if it must stop; the terminal state is written once and
    the monitor will not overwrite it.
 
 ### Agents cannot reach the MCP
 
-1. Confirm the token matches everywhere: `ai/training/mcp/.env` and **every**
+1. Confirm the token matches everywhere: `ai/training/control_plane/.env` and **every**
    agent that calls the MCP — today `agents/pipeline-agent/.env` and
    `agents/advisor-agent/.env` (`TRAINING_INFRA_MCP_TOKEN`). A token present in
    only one of them fails per-agent, not globally.
@@ -181,7 +181,7 @@ reason. Read it with `list_audit(action="submit.rejected")`:
 ### Rotating the shared token
 
 1. Generate a new value (`python3 -c "import secrets; print('timcp_'+secrets.token_urlsafe(32))"`).
-2. Set `TRAINING_INFRA_MCP_TOKEN` in `ai/training/mcp/.env` **and** in every
+2. Set `TRAINING_INFRA_MCP_TOKEN` in `ai/training/control_plane/.env` **and** in every
    agent `.env` that talks to the MCP.
 3. `systemctl --user restart training-infra-mcp.service`.
 4. Verify: unauthenticated curl →

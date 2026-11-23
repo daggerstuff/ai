@@ -14,8 +14,8 @@ import re
 import shlex
 from typing import Any
 
-from training.mcp import db, recipes
-from training.mcp.config import Settings
+from training.control_plane import db, recipes
+from training.control_plane.config import Settings
 
 
 class PlanError(Exception):
@@ -59,7 +59,7 @@ def _check_bounds(spec: dict[str, Any], name: str, value: float) -> None:
         if bound not in spec:
             continue
         limit = spec[bound]
-        if isinstance(limit, bool) or not isinstance(limit, (int, float)) or not math.isfinite(limit):
+        if isinstance(limit, bool) or not isinstance(limit, int | float) or not math.isfinite(limit):
             raise PlanError(f"override '{name}' {bound} must be a finite number")
         if bound == "min" and value < limit:
             raise PlanError(f"override '{name}' below min {limit}")
@@ -88,7 +88,7 @@ def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> li
                 raise PlanError(f"override '{name}' must be int")
             _check_bounds(spec, name, value)
         elif otype == "float":
-            if not isinstance(value, (int, float)) or isinstance(value, bool):
+            if not isinstance(value, int | float) or isinstance(value, bool):
                 raise PlanError(f"override '{name}' must be number")
             if not math.isfinite(value):
                 raise PlanError(f"override '{name}' must be a finite number")

@@ -71,7 +71,7 @@ Ops: `health`, `security_status`, `list_audit`.
 
 ```bash
 cd ai
-uv run ruff check training/mcp/ && uv run ruff format --check training/mcp/
-uv run pytest tests/training/mcp -q
+uv run ruff check training/control_plane/ && uv run ruff format --check training/control_plane/
+uv run pytest tests/training/control_plane -q
 systemctl --user restart training-infra-mcp.service
 ```

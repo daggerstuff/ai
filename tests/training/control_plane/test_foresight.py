@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from training.mcp import foresight
+from training.control_plane import foresight
 
 
 class _Response:

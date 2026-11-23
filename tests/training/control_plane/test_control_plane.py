@@ -23,9 +23,9 @@ AI_ROOT = Path(__file__).resolve().parents[3]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from training.mcp import (  # noqa: E402
+from training.control_plane import (  # noqa: E402
     backends,
-    config as mcp_config,
+    config as control_config,
     db,
     foresight,
     plan,
@@ -34,8 +34,8 @@ from training.mcp import (  # noqa: E402
     server,
     sync,
 )
-from training.mcp.config import IMPORT_ACTOR, Settings  # noqa: E402
-from training.mcp.server import count_toward_daily_cap  # noqa: E402
+from training.control_plane.config import IMPORT_ACTOR, Settings  # noqa: E402
+from training.control_plane.server import count_toward_daily_cap  # noqa: E402
 
 VALID_ENTRY = {
     "id": "eval-draft-v1",
@@ -851,7 +851,7 @@ def test_spawn_failure_lands_in_a_terminal_state(db_path, monkeypatch):
 # of its terminal state.
 
 
-#: ai/training/mcp/runner.py acquires the per-backend lock with this bound.
+#: ai/training/control_plane/runner.py acquires the per-backend lock with this bound.
 _SINGLE_FLIGHT_TIMEOUT = 300
 
 
@@ -986,10 +986,10 @@ def test_job_cwd_and_pythonpath_point_at_real_directories():
     `parents[2]` of the registry path lands on `ai/training`, not `ai`, so a
     recipe's cwd-relative path (the launch config) never resolved.
     """
-    assert runner.JOB_CWD == mcp_config.WORKSPACE_ROOT
+    assert runner.JOB_CWD == control_config.WORKSPACE_ROOT
     assert runner.JOB_CWD.is_dir()
     env = runner._build_env(_settings(Path("/tmp") / "x" / "state" / "jobs.db"))
-    assert str(mcp_config.AI_ROOT) in (env.get("PYTHONPATH") or "")
+    assert str(control_config.AI_ROOT) in (env.get("PYTHONPATH") or "")
 
 
 def test_build_env_does_not_leak_unlisted_secrets(monkeypatch):
@@ -1088,7 +1088,7 @@ def test_train_recipe_and_docs_agree_with_the_real_entrypoints():
     for recipe in recipes.load_recipes():
         if recipe.kind in {"train_sft", "eval_paired"}:
             assert "--execute" in recipe.entrypoint, recipe.id
-    here = Path(__file__).resolve().parents[3] / "training" / "mcp"
+    here = Path(__file__).resolve().parents[3] / "training" / "control_plane"
     for name in ("RECIPE_WORKFLOW.md", "MULTI_NODE_DECISION.md"):
         assert (here / name).is_file()
 
@@ -1721,14 +1721,15 @@ def test_concurrent_admits_cannot_both_pass_the_cap(db_path):
 
 def test_the_cap_counts_rows_past_one_page(db_path):
     """A paged count reads 500 and admits; the real count reads 501 and refuses."""
-    for i in range(501):
+    rows_past_one_page = 501
+    for i in range(rows_past_one_page):
         db.upsert_job(db_path, {"job_id": f"job-pg-{i}", "kind": "eval_paired", "source": "local", "status": "running"})
-    assert db.count_jobs(db_path, in_flight=("running",)) == 501
+    assert db.count_jobs(db_path, in_flight=("running",)) == rows_past_one_page
     assert not db.admit_job_under_cap(
         db_path,
         {"job_id": "job-pg-new", "kind": "eval_paired", "source": "local", "status": "queued"},
         in_flight=("running",),
-        cap=501,
+        cap=rows_past_one_page,
     )
 
 
@@ -1821,7 +1822,8 @@ def test_admission_initializes_the_registry_like_every_other_call(db_path):
         in_flight=("queued",),
         cap=0,
     )
-    assert (os.stat(db_path).st_mode & 0o777) == 0o600
+    registry_file_mode = 0o600
+    assert (os.stat(db_path).st_mode & 0o777) == registry_file_mode
     journal = sqlite3.connect(str(db_path)).execute("PRAGMA journal_mode").fetchone()[0]
     assert journal == "wal"
 
@@ -1872,7 +1874,6 @@ def test_a_recipe_timeout_kills_a_hung_job(db_path, monkeypatch):
         def wait(self, timeout=None):
             if timeout is not None:
                 raise subprocess.TimeoutExpired(cmd="job", timeout=timeout)
-            return None
 
         def kill(self):
             self.returncode = -9
@@ -1888,9 +1889,9 @@ def test_a_recipe_timeout_kills_a_hung_job(db_path, monkeypatch):
 
 
 def test_timeout_strings_parse_to_seconds():
-    assert runner._timeout_seconds({"timeout": "2h"}) == 7200.0
-    assert runner._timeout_seconds({"timeout": "30m"}) == 1800.0
-    assert runner._timeout_seconds({"timeout": "2d"}) == 172800.0
+    expected = {"2h": 7200.0, "30m": 1800.0, "2d": 172800.0}
+    for spec, seconds in expected.items():
+        assert runner._timeout_seconds({"timeout": spec}) == seconds
     assert runner._timeout_seconds({"timeout": ""}) is None
     assert runner._timeout_seconds({}) is None
     assert runner._timeout_seconds({"timeout": "soon"}) is None
@@ -2002,7 +2003,6 @@ def test_a_timed_out_job_kills_its_process_group(db_path, monkeypatch):
         def wait(self, timeout=None):
             if timeout is not None:
                 raise subprocess.TimeoutExpired(cmd="job", timeout=timeout)
-            return None
 
         def kill(self):
             self.returncode = -9

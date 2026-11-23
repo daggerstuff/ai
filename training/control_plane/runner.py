@@ -20,8 +20,8 @@ import time
 from pathlib import Path
 from typing import Any
 
-from training.mcp import db, foresight
-from training.mcp.config import AI_ROOT, WORKSPACE_ROOT, Settings
+from training.control_plane import db, foresight
+from training.control_plane.config import AI_ROOT, WORKSPACE_ROOT, Settings
 
 # Single-flight locks per backend kind.
 _LOCKS: dict[str, threading.Lock] = {}

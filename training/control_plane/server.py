@@ -25,9 +25,9 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import StaticTokenVerifier
 from fastmcp.server.dependencies import get_http_request
 
-from training.mcp import backends, db, plan, recipes, runner, sync
-from training.mcp.config import Settings, load_settings
-from training.mcp.plan import PlanError
+from training.control_plane import backends, db, plan, recipes, runner, sync
+from training.control_plane.config import Settings, load_settings
+from training.control_plane.plan import PlanError
 
 _STATE: dict[str, Any] = {}
 _HEALTH_TTL_S = 60.0
@@ -42,7 +42,7 @@ def _finite_cost(value: object) -> float:
     poison the running total (nan comparisons are always False, so a nan sum
     would silently disable the cap).
     """
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         parsed = float(value)
     elif isinstance(value, str):
         try:
@@ -285,15 +285,15 @@ def validate_recipe(entry: dict[str, Any]) -> dict[str, Any]:
             "ok": True,
             "valid": False,
             "errors": errors,
-            "note": "Fix the errors, then land the entry via a reviewed PR to training/mcp/recipes.yaml.",
+            "note": "Fix the errors, then land the entry via a reviewed PR to training/control_plane/recipes.yaml.",
         }
     return {
         "ok": True,
         "valid": True,
         "errors": [],
         "note": (
-            "Entry is valid; land it via a reviewed PR to training/mcp/recipes.yaml. "
-            "See training/mcp/RECIPE_WORKFLOW.md."
+            "Entry is valid; land it via a reviewed PR to training/control_plane/recipes.yaml. "
+            "See training/control_plane/RECIPE_WORKFLOW.md."
         ),
     }
 

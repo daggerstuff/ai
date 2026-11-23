@@ -6,7 +6,7 @@ fails fast at service start rather than mid-submit.
 
 P3.3: ``validate_recipe_entry`` exposes the same checks for a *draft* entry so
 an advisor can propose a recipe and a human can open the PR that lands it
-(see ``training/mcp/RECIPE_WORKFLOW.md``). The MCP never writes ``recipes.yaml``.
+(see ``training/control_plane/RECIPE_WORKFLOW.md``). The MCP never writes ``recipes.yaml``.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ REQUIRED_FIELDS = ("id", "kind", "description", "backend", "entrypoint")
 LAUNCH_KINDS = frozenset({"train_sft", "eval_paired"})
 
 # P3.4: multi-node / multi-GPU training is deliberately deferred. The decision
-# and its rationale live in ``training/mcp/MULTI_NODE_DECISION.md``; the registry
+# and its rationale live in ``training/control_plane/MULTI_NODE_DECISION.md``; the registry
 # enforces it so a recipe cannot quietly reintroduce an unsupported shape.
 MULTI_NODE_KEYS = ("nodes", "num_nodes", "multi_node", "world_size")
 
@@ -247,7 +247,7 @@ def _multi_node_errors(entry: dict[str, Any]) -> list[str]:
         if match and int(match.group(1)) > 1:
             problems.append(f"gpu={gpu!r} requests {match.group(1)} GPUs; P3.4 defers multi-GPU")
     if problems:
-        problems.append("see training/mcp/MULTI_NODE_DECISION.md")
+        problems.append("see training/control_plane/MULTI_NODE_DECISION.md")
     return problems
 
 

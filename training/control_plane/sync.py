@@ -20,8 +20,8 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from training.mcp import backends, db
-from training.mcp.config import IMPORT_ACTOR, NON_REQUESTING_ACTORS, Settings
+from training.control_plane import backends, db
+from training.control_plane.config import IMPORT_ACTOR, NON_REQUESTING_ACTORS, Settings
 
 #: Statuses a registry row can still leave. Anything else is terminal and is
 #: never rewritten by the reconciler.

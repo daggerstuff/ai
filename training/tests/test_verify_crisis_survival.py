@@ -12,7 +12,8 @@ import pytest
 
 from training import verify_crisis_survival as survival
 from training.build_agent_tool_sft_v12 import collect_rows as v12_rows
-from training.export_tinker_release import CRISIS_SOURCE_PREFIX, Datum, TokenLimits
+from training.export_fireworks_release import CRISIS_SOURCE_PREFIX
+from training.export_tinker_release import Datum, TokenLimits
 from training.verify_crisis_survival import audit, crisis_row_numbers
 
 

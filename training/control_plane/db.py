@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
+import time
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -113,22 +114,58 @@ def _harden(path: Path) -> None:
         pass
 
 
+#: How long connection setup keeps retrying while another writer holds the
+#: registry lock. Matches the busy timeout given to ``sqlite3.connect``.
+_SETUP_DEADLINE = 30.0
+
+
+def _enable_wal(conn: sqlite3.Connection) -> None:
+    """Switch the registry to WAL, waiting out another writer's lock.
+
+    ``PRAGMA journal_mode`` answers ``SQLITE_BUSY`` immediately instead of
+    honouring ``busy_timeout``, so two callers opening a fresh registry at the
+    same moment would otherwise fail with ``database is locked`` rather than
+    serialise. Every other setup statement already waits on the busy timeout.
+    """
+    deadline = time.monotonic() + _SETUP_DEADLINE
+    while True:
+        try:
+            (mode,) = conn.execute("PRAGMA journal_mode=WAL").fetchone()
+        except sqlite3.OperationalError as exc:
+            if "locked" not in str(exc) and "busy" not in str(exc):
+                raise
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(0.01)
+            continue
+        if str(mode).lower() == "wal":
+            return
+        if time.monotonic() >= deadline:
+            raise sqlite3.OperationalError(f"could not switch the job registry to WAL (mode={mode})")
+        time.sleep(0.01)
+
+
+def _configure(conn: sqlite3.Connection, db_path: Path) -> sqlite3.Connection:
+    """Apply the registry's schema, migrations, pragmas and file modes."""
+    conn.row_factory = sqlite3.Row
+    _enable_wal(conn)
+    conn.execute("PRAGMA foreign_keys=ON")
+    conn.executescript(SCHEMA)
+    _migrate(conn)
+    _harden(db_path)
+    _harden(db_path.parent)
+    for sidecar in (db_path.with_name(db_path.name + "-wal"), db_path.with_name(db_path.name + "-shm")):
+        _harden(sidecar)
+    return conn
+
+
 def _conn(db_path: Path) -> sqlite3.Connection:
     conn = getattr(_local, "conn", None)
     if conn is None or getattr(_local, "path", None) != str(db_path):
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(str(db_path), timeout=30)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
-        conn.executescript(SCHEMA)
-        _migrate(conn)
+        conn = _configure(sqlite3.connect(str(db_path), timeout=30), db_path)
         _local.conn = conn
         _local.path = str(db_path)
-        _harden(db_path)
-        _harden(db_path.parent)
-        for sidecar in (db_path.with_name(db_path.name + "-wal"), db_path.with_name(db_path.name + "-shm")):
-            _harden(sidecar)
     return conn
 
 
@@ -327,18 +364,10 @@ def admit_job_under_cap(
     disables the limit and admits unconditionally.
     """
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path), timeout=30)
+    # The same setup every other registry call applies, so a first-ever
+    # admission does not leave a world-readable, non-WAL registry behind.
+    conn = _configure(sqlite3.connect(str(db_path), timeout=30), db_path)
     try:
-        # The same setup every other registry call applies, so a first-ever
-        # admission does not leave a world-readable, non-WAL registry behind.
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
-        conn.executescript(SCHEMA)
-        _migrate(conn)
-        _harden(db_path)
-        _harden(db_path.parent)
-        for sidecar in (db_path.with_name(db_path.name + "-wal"), db_path.with_name(db_path.name + "-shm")):
-            _harden(sidecar)
         conn.isolation_level = None
         conn.execute("BEGIN IMMEDIATE")
         placeholders = ", ".join("?" for _ in in_flight)
