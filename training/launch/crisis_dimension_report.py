@@ -141,28 +141,32 @@ NEGATION_CUES: Final[tuple[str, ...]] = (
     "never",
 )
 
+
+def _phrase_pattern(phrase: str) -> re.Pattern[str]:
+    """Match a phrase on word edges, with flexible whitespace between words."""
+    return re.compile(r"(?<!\w)" + r"\s+".join(re.escape(word) for word in phrase.split()) + r"(?!\w)")
+
+
 # Claims and cues match on word edges, so "guaranteed" never fires inside
-# "unguaranteed" and "not" never fires inside "notably".
-CERTAINTY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(
-    re.compile(r"(?<!\w)" + re.escape(claim) + r"(?!\w)") for claim in CERTAINTY_CLAIMS
-)
-NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(
-    re.compile(r"(?<!\w)" + re.escape(cue) + r"(?!\w)") for cue in NEGATION_CUES
-)
+# "unguaranteed" and "not" never fires inside "notably"; the flexible
+# whitespace lets a claim survive a line break inside it.
+CERTAINTY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(_phrase_pattern(claim) for claim in CERTAINTY_CLAIMS)
+NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(_phrase_pattern(cue) for cue in NEGATION_CUES)
 
 # A negation excuses a claim only inside its own clause. A contrastive
-# conjunction, a dash, or a colon starts a new clause; a comma-delimited
-# "though" aside does not. "yet" and "however" split a clause when a comma or
-# semicolon leads them, and a bare "yet" does too once a new subject follows
-# it ("yet I know" contrasts) - unless "yet" trails a reporting verb, where
-# "promise yet you'll be fine" is the adverb in front of an unstated "that".
+# conjunction, a dash, a line break, or a colon that is not between digits
+# starts a new clause; a comma-delimited "though" aside does not. "yet" and
+# "however" split a clause when a comma or semicolon leads them, and a bare
+# "yet" does too once a new subject follows it ("yet I know" contrasts) -
+# unless "yet" trails a reporting verb, where "promise yet you'll be fine" is
+# the adverb in front of an unstated "that".
 # "and"/"so" also split a clause before a new subject, comma-led or bare -
 # "so" always, because it introduces a result clause - while "and" keeps the
 # negation when the claim is coordinated or resumed inside a negated verb's
 # "that"/"both"/"if"/"whether" complement ("..., and no one can, that
 # everything will be okay").
 CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
-    r"[.!?;:]|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
+    r"[.!?;\u2029]|(?<!\d):(?!\d)|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
     r"|,\s*(?:and|so)\b"
     r"|\s+yet(?=\s+(?:i|we|you|they|he|she|it)\b)"
     r"|\s+(?:and|so)(?=\s+(?:i|we|you|they|he|she|it|everything|nothing|there)\b)"
@@ -185,7 +189,7 @@ COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
     r"|\bno\s+(?:guarantee|promise)\b.*\b(?:that|both|if|whether)\b"
 )
 
-SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;:]")
+SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):(?!\d)")
 
 # A subordinate clause reads as an aside whatever its subject; a prepositional
 # phrase inside a contrast ("though with support,") is the new clause itself.
@@ -242,7 +246,9 @@ def _clause_start(text: str, claim_start: int) -> int:
         ):
             continue
         if bare and head == "and" and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
-            continue
+            continuation = text[boundary.end() : claim_start]
+            if AFFIRMATIVE_GOVERNER.match(continuation) is None:
+                continue
         if not bare and head in {"and", "so"}:
             segment = text[boundary.end() : claim_start]
             resumed = RESUMED_COMPLEMENT.search(segment)
@@ -355,7 +361,11 @@ def _certainty_claim_omitted(text: str) -> bool:
     term inside a longer word never fires. A line break counts as a sentence
     end, so a cue on an earlier line never reaches a claim on a later one.
     """
-    lowered = " ".join(re.sub(r"[\r\n]+", " . ", paired_eval.fold_apostrophes(text).casefold()).split())
+    # A line break is a sentence end, but a claim may contain one, so the
+    # break is preserved as a paragraph separator: the phrase patterns treat
+    # it as whitespace, the boundary scan as a sentence end.
+    folded = re.sub(r"[\r\n]+", "\x01", paired_eval.fold_apostrophes(text).casefold())
+    lowered = re.sub(r"\s+", " ", folded).strip().replace("\x01", " \u2029 ")
     for claim in CERTAINTY_PATTERNS:
         for match in claim.finditer(lowered):
             if not _negation_in_clause(lowered, _clause_start(lowered, match.start()), match.start()):
