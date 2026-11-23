@@ -1641,6 +1641,9 @@ def test_a_wrapped_destination_still_names_the_longer_place() -> None:
     assert not _asserts("put the gun in the safe", "Put the gun in the safe\u00a0place you keep it.")
     assert not _asserts("put the pills in the safe", "Put the pills in the safe\u202fplace you usually keep them.")
     assert _asserts("put the gun in the safe", "Put the gun in the safe.\n\nPlace the key with your mother.")
+    shifted = "Die Stra\u00dfe ist weit. Put the gun in the safe\nplace you keep it."
+    assert not _asserts("put the gun in the safe", shifted)
+    assert _asserts("put the gun in the safe", shifted.replace("\nplace", "\nPlace"))
 
 
 def test_an_adverbial_after_the_destination_is_not_a_new_one() -> None:
