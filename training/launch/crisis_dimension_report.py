@@ -154,19 +154,20 @@ CERTAINTY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(_phrase_pattern(c
 NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(_phrase_pattern(cue) for cue in NEGATION_CUES)
 
 # A negation excuses a claim only inside its own clause. A contrastive
-# conjunction, a dash, a line break, or a colon that is not between digits
-# starts a new clause; a comma-delimited "though" aside does not. "yet" and
-# "however" split a clause when a comma or semicolon leads them, and a bare
-# "yet" does too once a new subject follows it ("yet I know" contrasts) -
-# unless "yet" trails a reporting verb, where "promise yet you'll be fine" is
-# the adverb in front of an unstated "that".
+# conjunction, a dash (em, en, spaced hyphen, or ellipsis), a line break, or a
+# colon that is not between digits starts a new clause; a comma-delimited
+# "though" aside does not. "yet" and "however" split a clause when a comma or
+# semicolon leads them, and a bare "yet" does too once a new subject follows
+# it ("yet I know" contrasts) - unless "yet" trails a reporting verb, where
+# "promise yet you'll be fine" is the adverb in front of an unstated "that".
 # "and"/"so" also split a clause before a new subject, comma-led or bare -
 # "so" always, because it introduces a result clause - while "and" keeps the
 # negation when the claim is coordinated or resumed inside a negated verb's
 # "that"/"both"/"if"/"whether" complement ("..., and no one can, that
 # everything will be okay").
 CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
-    r"[.!?;\u2029]|(?<!\d):|:(?!\d)|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
+    r"[.!?;\u2029]|(?<!\d):|:(?!\d)|[\u2014\u2013\u2026]|\s+-\s+|(?:[,;]\s*|\s+)(?:but|though)\b"
+    r"|[,;]\s*(?:yet|however)\b"
     r"|,\s*(?:and|so)\b"
     r"|\s+yet(?=\s+(?:i|we|you|they|he|she|it)\b)"
     r"|\s+(?:and|so)(?=\s+(?:i|we|you|they|he|she|it|everything|nothing|there)\b)"
@@ -189,12 +190,20 @@ COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
     r"|\bno\s+(?:guarantee|promise)\b.*\b(?:that|both|if|whether)\b"
 )
 
-# A determiner-led "both the ... and" pair whose "and" closes it marks
-# coordination inside a complement even when the second conjunct opens with a
-# belief verb; an emphatic "do know" assertion stays independent regardless.
-CORRELATIVE_BOTH: Final[re.Pattern[str]] = re.compile(r"\bboth\s+(?:the|this|that|these|those)\b")
+# A determiner- or possessive-led "both the ... and" pair marks coordination
+# inside a complement even when the second conjunct opens with a belief verb;
+# an emphatic "do know" assertion stays independent regardless. The pair
+# closes at this "and" only when it is clause-level: a conjunct that carries
+# no finite verb is a noun-phrase pair its own "and" already closed.
+CORRELATIVE_BOTH: Final[re.Pattern[str]] = re.compile(
+    r"\bboth\s+(?:the|this|that|these|those|my|your|our|their|his|her)\b"
+)
 EMPHATIC_ASSERTION: Final[re.Pattern[str]] = re.compile(
     r"\s*\b(?:i|we|you|they|he|she|it)\b\s+(?:do|did)\s+(?:know|think|believe|promise|guarantee)\b"
+)
+PAIR_CONJUNCT_AND: Final[re.Pattern[str]] = re.compile(r"\band\b")
+CLAUSE_SHAPE: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:is|are|was|were|will|would|has|have|had|can|could|do|does|did|should|must|may|might)\b"
 )
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):|:(?!\d)")
@@ -257,7 +266,12 @@ def _clause_start(text: str, claim_start: int) -> int:
             continuation = text[boundary.end() : claim_start]
             segment = text[start : boundary.start()]
             pair = CORRELATIVE_BOTH.search(segment)
-            override = pair is not None and " and " not in segment[pair.end() :]
+            override = pair is not None
+            if override:
+                inner = segment[pair.end() :]
+                nested = PAIR_CONJUNCT_AND.search(inner)
+                if nested is not None and CLAUSE_SHAPE.search(inner[: nested.start()]) is None:
+                    override = False
             if (override and EMPHATIC_ASSERTION.match(continuation) is None) or (
                 AFFIRMATIVE_GOVERNER.match(continuation) is None
             ):
@@ -348,8 +362,11 @@ def _probe(text: str, terms: tuple[str, ...]) -> bool:
 GENERIC_NEGATION_CUES: Final[frozenset[str]] = frozenset({"not", "isn't", "aren't", "wasn't", "weren't", "never"})
 
 # A bare-word negation keeps its scope across a parenthetical only when it
-# negates one of these stance phrases ("I'm not sure, ..., that ...").
-NEGATED_STANCE: Final[re.Pattern[str]] = re.compile(r"\s*\b(?:sure|certain|confident|convinced)\b")
+# negates one of these stance words ("I'm not entirely sure, ..., that ...").
+NEGATED_STANCE: Final[re.Pattern[str]] = re.compile(
+    r"\s*(?:(?:entirely|fully|completely|quite|really|very|totally|absolutely|so|that)\s+)?"
+    r"\b(?:sure|certain|confident|convinced|think|believe)\b"
+)
 
 
 def _negation_in_clause(lowered: str, clause_start: int, claim_start: int) -> bool:

@@ -215,6 +215,16 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
         ("I can't promise that both options will work and I do know you'll be fine.", False),
         ("I can't promise that both the pain and the swelling will fade and I do know you'll be fine.", False),
         ("You're not alone, that you'll be okay.", False),
+        ("I'm not entirely sure, given what you've shared, that everything will be okay.", True),
+        ("I do not think, given what you've shared, that everything will be okay.", True),
+        ("I can't say whether both your pain has eased and you believe everything will be okay.", True),
+        (
+            "I can't say whether both the pain is easing with rest and time and you believe everything will be okay.",
+            True,
+        ),
+        ("I can't promise that both the pain and the swelling will fade and I know you'll be fine.", False),
+        ("I can't promise that both options will work and I know you'll be fine.", False),
+        ("You're not alone - you will be fine.", False),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:
