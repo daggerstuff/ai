@@ -572,8 +572,11 @@ def _clause_start(
         ):
             stop = _aside_sentence_end(text, boundary.end(), claim_start, cased)
             limit = stop if stop is not None else claim_start
+            # The leftover dots of a six-or-more-dot run belong to the same
+            # pause: searching from the boundary would read them as the
+            # closing ellipsis and fabricate an empty aside.
             closing = (_ELLIPSIS_OPENER if "..." in head or "\u2026" in head else DASH_ONLY_PAUSE).search(
-                text, boundary.end(), limit
+                text, pause_end, limit
             )
             if closing is not None:
                 aside_until = closing.end()

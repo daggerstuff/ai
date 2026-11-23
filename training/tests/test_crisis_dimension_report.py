@@ -530,3 +530,11 @@ def test_abbreviation_offsets_survive_casefold_expansion() -> None:
 def test_abbreviation_offsets_match_without_expansion() -> None:
     text = "Strasse Strasse. I can't promise\u2014recovery takes time, etc. Take heart\u2014you'll be okay."
     assert cdr._certainty_claim_omitted(text) is False
+
+
+def test_six_dots_are_one_pause_not_an_empty_aside() -> None:
+    """A six-dot run must not serve as its own closing ellipsis."""
+    three_dots = "I can't promise... well, maybe... that everything will be okay."
+    six_dots = "I can't promise...... well, maybe... that everything will be okay."
+    assert cdr._certainty_claim_omitted(three_dots) is True
+    assert cdr._certainty_claim_omitted(six_dots) is True

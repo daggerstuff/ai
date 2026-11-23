@@ -1730,19 +1730,48 @@ def test_a_plural_destination_still_names_the_place() -> None:
 def test_cased_offsets_are_mapped_from_precomputed_starts() -> None:
     """Casefolding is not length preserving: one "ss" folds from one German "ß"."""
     starts = paired_eval._folded_starts("Stra\u00dfe")
-    assert starts == [0, 1, 2, 3, 4, 6]
-    sharp_s = len(starts) - 2
-    expansion_end = starts[-1]
+    assert starts == [0, 1, 2, 3, 4, 6, 7]
+    sharp_s = len(starts) - 3
+    inside_fold = starts[sharp_s + 1] - 1
+    fold_end = starts[-1]
     assert paired_eval._cased_offset(starts, starts[sharp_s]) == sharp_s
-    assert paired_eval._cased_offset(starts, expansion_end - 1) == len(starts) - 1
-    assert paired_eval._cased_offset(starts, expansion_end + 99) == len(starts)
+    assert paired_eval._cased_offset(starts, inside_fold) == sharp_s
+    assert paired_eval._cased_offset(starts, fold_end) == len(starts) - 1
+    assert paired_eval._cased_offset(starts, fold_end + 99) == len(starts) - 1
 
 
 def test_many_wrapped_lines_are_joined_in_one_pass() -> None:
-    """The guard's offset mapping must not rescan the reply per line break."""
-    reply = "Keep your hands busy and\nrest when you are tired\n" * 3000
+    """The guard's wrap scan must neither rescan nor copy the reply per break."""
+    reply = "Keep your hands busy and\nrest when you are tired\n" * 40000
     reply += "Keep the pills in the safe."
     began = time.monotonic()
     assert _asserts("keep the pills in the safe", reply)
     budget = 2.0
     assert time.monotonic() - began < budget
+
+
+def test_a_closed_phrase_ending_in_a_modal_starts_a_new_clause() -> None:
+    """A completed "however I can" is not evidence of a wrap."""
+    question = "I'm here to help however I can\nCan you put the gun in the safe?"
+    assert not _asserts("put the gun in the safe", question)
+    storage = "Put the pills in the lockbox if you can\nNever leave it unlocked."
+    assert _asserts("put the pills in the lockbox", storage)
+
+
+def test_a_word_after_an_accepted_plural_still_extends_the_place() -> None:
+    """A plural destination followed by a place word is a longer place."""
+    assert not _asserts("put the gun in the safe", "Put the gun in the safes room at the shooting range.")
+    assert _asserts("put the gun in the safe", "Put the gun in the safes.")
+
+
+def test_clause_bounds_joins_a_wrap_without_a_precomputed_cache() -> None:
+    """``cased`` without ``starts`` still maps offsets, as before the cache."""
+    cased = "Keep the gun in the safe\nplace you keep it."
+    folded = cased.casefold()
+    bounds = paired_eval._clause_bounds(folded, folded.index("safe"), join_wrapped=True, cased=cased)
+    assert bounds == (0, len(folded))
+
+
+def test_a_blank_line_after_a_destination_is_a_new_instruction() -> None:
+    """A paragraph break is not a soft wrap for a destination."""
+    assert _asserts("put the gun in the safe", "Put the gun in the safe\n\nplace you keep it.")

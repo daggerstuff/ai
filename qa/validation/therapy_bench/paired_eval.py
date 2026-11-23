@@ -20,7 +20,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from bisect import bisect_left
+from bisect import bisect_right
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -897,14 +897,19 @@ _QUESTION_OPENERS = frozenset(
 )
 _CLAUSE_END = re.compile(r"[.!?;\n\r\u2028\u2029]")
 _LINE_BREAKS: Final[frozenset[str]] = frozenset("\n\r\u2028\u2029")
-# A line that ends on a connective or a modal cannot close its
-# instruction, so the break after it is a soft wrap even when the next
-# line resumes in capitals: "…, or should\nI help you…" is one question,
-# not two clauses.
+_HORIZONTAL_SPACES: Final[frozenset[str]] = frozenset(" \t\u00a0\u2007\u202f")
+_HORIZONTAL_SPACES: Final[frozenset[str]] = frozenset(" \t\u00a0\u2007\u202f")
+# A line that ends on a conjunction cannot close its instruction, so the
+# break after it is a soft wrap even when the next line resumes in
+# capitals: "…, or should\nI help you…" is one question, not two clauses.
+# A modal on its own is not that evidence - "…however I can" closes a
+# complete phrase - so a modal only joins when a conjunction sits right
+# before it, as in "or should".
 _LINE_END_CONNECTIVE: Final[re.Pattern[str]] = re.compile(
     r"\b(?:and|or|but|nor|so|yet|because|although|though|while|when|if|since"
-    r"|unless|until|before|after|should|would|could|might|must|will|shall|may|can)"
-    r"[ \t\u00a0\u2007\u202f]*\r?$",
+    r"|unless|until|before|after)[ \t\u00a0\u2007\u202f]*\r?$"
+    r"|\b(?:and|or|but|nor|so|yet)[ \t\u00a0\u2007\u202f]+"
+    r"(?:should|would|could|might|must|will|shall|may|can)[ \t\u00a0\u2007\u202f]*\r?$",
     re.IGNORECASE,
 )
 _INDIRECT_QUESTION = re.compile(
@@ -919,10 +924,16 @@ def _continues_on_the_next_line(text: str, offset: int) -> bool:
 
     Model replies wrap mid-sentence: a line that resumes in lowercase is the
     same instruction, while a capitalised line starts a new one. The
-    destination matcher already reads a wrap this way.
+    destination matcher already reads a wrap this way. The next character is
+    inspected where it lies - no copy of the rest of the reply is taken per
+    break.
     """
-    rest = text[offset:].lstrip(" \t\u00a0\u2007\u202f")
-    return bool(rest) and rest[0] not in _LINE_BREAKS and rest[0].islower()
+    position = offset
+    while position < len(text) and text[position] in _HORIZONTAL_SPACES:
+        position += 1
+    if position >= len(text) or text[position] in _LINE_BREAKS:
+        return False
+    return text[position].islower()
 
 
 def _clause_bounds(
@@ -951,6 +962,10 @@ def _clause_bounds(
     start = 0
     end = len(text)
     probe = text if cased is None else cased
+    # The cache keeps the per-break mapping one lookup; without it the
+    # folded starts are built here, so ``cased`` alone still works.
+    if cased is not None and starts is None:
+        starts = _folded_starts(cased)
     line_start = 0
     for match in _CLAUSE_END.finditer(text):
         if match.group() == "\r" and text.startswith("\n", match.end()):
@@ -1090,18 +1105,20 @@ _DESTINATION_PLURAL_SUFFIXES: Final[frozenset[str]] = frozenset({"s", "es"})
 
 # A written destination wraps: horizontal Unicode space (a nonbreaking space is
 # one) continues it on the same line, and a soft wrap continues it when the next
-# line resumes in lowercase. A capitalised line starts a new instruction, so it
+# line resumes in lowercase - one break only, since a blank line is a paragraph
+# break, not a wrap. A capitalised line starts a new instruction, so it
 # may not continue a destination the reply then hands back to the person. Every
 # line break ends the line - a carriage return and a Unicode line or paragraph
 # separator start a new instruction exactly as a newline does.
 _DESTINATION_CONTINUATION_GAP: Final[re.Pattern[str]] = re.compile(r"[^\S\n\r\u2028\u2029]+([A-Za-z]+)")
 _DESTINATION_CONTINUATION_WRAP: Final[re.Pattern[str]] = re.compile(
-    r"[^\S\n\r\u2028\u2029]*[\n\r\u2028\u2029][^\S]*([a-z]+)"
+    r"[^\S\n\r\u2028\u2029]*[\n\r\u2028\u2029][^\S\n\r\u2028\u2029]*([a-z]+)"
 )
 
 
 def _folded_starts(cased: str) -> list[int]:
-    """Return the casefolded offset at which each character of ``cased`` starts.
+    """Return the casefolded offset at which each character of ``cased`` starts,
+    with the reply's total folded length appended as a final sentinel.
 
     Casefolding is not length preserving - "ß" folds to "ss" - so an
     offset in the casefolded haystack has to be mapped back onto the cased
@@ -1113,12 +1130,18 @@ def _folded_starts(cased: str) -> list[int]:
     for character in cased:
         starts.append(folded)
         folded += len(character.casefold())
+    starts.append(folded)
     return starts
 
 
 def _cased_offset(starts: list[int], folded_offset: int) -> int:
-    """Map an offset in the casefolded text back onto the cased original."""
-    return bisect_left(starts, folded_offset)
+    """Map an offset in the casefolded text back onto the cased original.
+
+    An offset inside a multi-character fold maps onto the character
+    containing it, and an offset at or past the end of the reply maps
+    onto the reply's end.
+    """
+    return max(bisect_right(starts, folded_offset) - 1, 0)
 
 
 def _destination_continues(needle: str, haystack: str, cased: str, end: int, starts: list[int]) -> bool:
@@ -1132,8 +1155,10 @@ def _destination_continues(needle: str, haystack: str, cased: str, end: int, sta
         return False
     if end < len(haystack) and haystack[end].isalpha():
         continuation = re.match(r"[^\W\d_]+", haystack[end:])
-        if continuation and continuation.group(0) not in _DESTINATION_PLURAL_SUFFIXES:
-            return True
+        if continuation:
+            if continuation.group(0) not in _DESTINATION_PLURAL_SUFFIXES:
+                return True
+            end += len(continuation.group(0))
     same_line = _DESTINATION_CONTINUATION_GAP.match(haystack[end:])
     if same_line:
         return same_line.group(1).casefold() in _DESTINATION_CONTINUATION
