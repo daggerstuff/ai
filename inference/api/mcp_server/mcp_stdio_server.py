@@ -12,7 +12,14 @@ from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool
+from mcp.types import (
+    CallToolRequestParams,
+    CallToolResult,
+    ListToolsResult,
+    PaginatedRequestParams,
+    TextContent,
+    Tool,
+)
 
 from ai.inference.api.mcp_server.memory_scope import (
     build_scope_metadata,
@@ -58,7 +65,6 @@ def _scope_from_arguments(arguments: Any):
     )
 
 
-@app.list_tools()
 async def list_tools() -> list[Tool]:
     """List available memory tools."""
     return [
@@ -105,7 +111,6 @@ async def list_tools() -> list[Tool]:
     ]
 
 
-@app.call_tool()
 async def call_tool(name: str, arguments: Any) -> list[TextContent]:
     """Handle tool calls."""
     client = get_memory_client()
@@ -173,6 +178,25 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
     except Exception as e:
         logger.error(f"Error in {name}: {e}")
         return [TextContent(type="text", text="❌ An internal error occurred while processing the tool call.")]
+
+
+async def _handle_list_tools(
+    _ctx: Any,
+    _params: PaginatedRequestParams | None,
+) -> ListToolsResult:
+    return ListToolsResult(tools=await list_tools())
+
+
+async def _handle_call_tool(
+    _ctx: Any,
+    params: CallToolRequestParams,
+) -> CallToolResult:
+    content = await call_tool(params.name, params.arguments or {})
+    return CallToolResult(content=content)
+
+
+app.add_request_handler("tools/list", PaginatedRequestParams, _handle_list_tools)
+app.add_request_handler("tools/call", CallToolRequestParams, _handle_call_tool)
 
 
 async def main():
