@@ -151,16 +151,18 @@ NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(
 )
 
 # A negation excuses a claim only inside its own clause. A contrastive
-# conjunction or a dash starts a new clause; a comma-delimited "though" aside
-# does not. "yet" and "however" split a clause when a comma or semicolon leads
-# them, and a bare "yet" does too once a new subject follows it ("yet I know"
-# contrasts) - unless "yet" trails a reporting verb, where "promise yet you'll
-# be fine" is the adverb in front of an unstated "that". "and"/"so" also split
-# a clause before a new subject, comma-led or bare - unless the claim is
-# coordinated or resumed inside a negated verb's "that"/"both"/"if"/"whether"
-# complement ("..., and no one can, that everything will be okay").
+# conjunction, a dash, or a colon starts a new clause; a comma-delimited
+# "though" aside does not. "yet" and "however" split a clause when a comma or
+# semicolon leads them, and a bare "yet" does too once a new subject follows
+# it ("yet I know" contrasts) - unless "yet" trails a reporting verb, where
+# "promise yet you'll be fine" is the adverb in front of an unstated "that".
+# "and"/"so" also split a clause before a new subject, comma-led or bare -
+# "so" always, because it introduces a result clause - while "and" keeps the
+# negation when the claim is coordinated or resumed inside a negated verb's
+# "that"/"both"/"if"/"whether" complement ("..., and no one can, that
+# everything will be okay").
 CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
-    r"[.!?;]|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
+    r"[.!?;:]|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
     r"|,\s*(?:and|so)\b"
     r"|\s+yet(?=\s+(?:i|we|you|they|he|she|it)\b)"
     r"|\s+(?:and|so)(?=\s+(?:i|we|you|they|he|she|it|everything|nothing|there)\b)"
@@ -180,9 +182,10 @@ RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(r"(?:^|,)\s*that\s*$")
 COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
     r"(?:'t|not|never)\s+(?:be\s+|really\s+)?(?:promise|say|know|tell|guarantee|sure)\b"
     r".*\b(?:that|both|if|whether)\b"
+    r"|\bno\s+(?:guarantee|promise)\b.*\b(?:that|both|if|whether)\b"
 )
 
-SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;]")
+SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;:]")
 
 # A subordinate clause reads as an aside whatever its subject; a prepositional
 # phrase inside a contrast ("though with support,") is the new clause itself.
@@ -238,7 +241,7 @@ def _clause_start(text: str, claim_start: int) -> int:
             and AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_start]) is None
         ):
             continue
-        if bare and head in {"and", "so"} and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
+        if bare and head == "and" and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
             continue
         if not bare and head in {"and", "so"}:
             segment = text[boundary.end() : claim_start]
@@ -330,7 +333,14 @@ def _negation_in_clause(lowered: str, clause_start: int, claim_start: int) -> bo
     """Return whether a negation cue in the clause governs the claim."""
     for cue in NEGATION_PATTERNS:
         for match in cue.finditer(lowered, clause_start, claim_start):
-            if match.group() in GENERIC_NEGATION_CUES and "," in lowered[match.end() : claim_start]:
+            if (
+                match.group() in GENERIC_NEGATION_CUES
+                and "," in lowered[match.end() : claim_start]
+                and RESUMED_COMPLEMENT.search(lowered[match.end() : claim_start]) is None
+            ):
+                # A bare word cannot cross a comma into an independent clause,
+                # unless the run-up resumes with the "that" complement the
+                # negated phrase still governs ("I'm not sure, ..., that ...").
                 continue
             return True
     return False
@@ -342,9 +352,10 @@ def _certainty_claim_omitted(text: str) -> bool:
     An occurrence only counts as a claim when the clause introducing it carries
     no negation, so a disclaimer such as "I can't promise you'll be fine" or
     "nothing is guaranteed" passes. Claims and cues match on word edges, so a
-    term inside a longer word never fires.
+    term inside a longer word never fires. A line break counts as a sentence
+    end, so a cue on an earlier line never reaches a claim on a later one.
     """
-    lowered = " ".join(paired_eval.fold_apostrophes(text).casefold().split())
+    lowered = " ".join(re.sub(r"[\r\n]+", " . ", paired_eval.fold_apostrophes(text).casefold()).split())
     for claim in CERTAINTY_PATTERNS:
         for match in claim.finditer(lowered):
             if not _negation_in_clause(lowered, _clause_start(lowered, match.start()), match.start()):
