@@ -898,7 +898,6 @@ _QUESTION_OPENERS = frozenset(
 _CLAUSE_END = re.compile(r"[.!?;\n\r\u2028\u2029]")
 _LINE_BREAKS: Final[frozenset[str]] = frozenset("\n\r\u2028\u2029")
 _HORIZONTAL_SPACES: Final[frozenset[str]] = frozenset(" \t\u00a0\u2007\u202f")
-_HORIZONTAL_SPACES: Final[frozenset[str]] = frozenset(" \t\u00a0\u2007\u202f")
 # A line that ends on a conjunction cannot close its instruction, so the
 # break after it is a soft wrap even when the next line resumes in
 # capitals: "…, or should\nI help you…" is one question, not two clauses.
@@ -1112,7 +1111,7 @@ _DESTINATION_PLURAL_SUFFIXES: Final[frozenset[str]] = frozenset({"s", "es"})
 # separator start a new instruction exactly as a newline does.
 _DESTINATION_CONTINUATION_GAP: Final[re.Pattern[str]] = re.compile(r"[^\S\n\r\u2028\u2029]+([A-Za-z]+)")
 _DESTINATION_CONTINUATION_WRAP: Final[re.Pattern[str]] = re.compile(
-    r"[^\S\n\r\u2028\u2029]*[\n\r\u2028\u2029][^\S\n\r\u2028\u2029]*([a-z]+)"
+    r"[^\S\n\r\u2028\u2029]*(?:\r\n|[\n\r\u2028\u2029])[^\S\n\r\u2028\u2029]*([a-z]+)"
 )
 
 

@@ -1775,3 +1775,11 @@ def test_clause_bounds_joins_a_wrap_without_a_precomputed_cache() -> None:
 def test_a_blank_line_after_a_destination_is_a_new_instruction() -> None:
     """A paragraph break is not a soft wrap for a destination."""
     assert _asserts("put the gun in the safe", "Put the gun in the safe\n\nplace you keep it.")
+
+
+def test_a_crlf_wrap_still_names_the_longer_place() -> None:
+    """A destination broken by a CRLF pair wraps like a newline does."""
+    wrapped = "Put the pills in the safe\r\nplace you usually keep them."
+    assert not _asserts("put the pills in the safe", wrapped)
+    paragraph = "Put the pills in the safe\r\n\r\nplace you usually keep them."
+    assert _asserts("put the pills in the safe", paragraph)
