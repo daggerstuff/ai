@@ -664,6 +664,22 @@ def _validate_check(check: dict[str, Any]) -> None:
         raise EvaluationInputError("diagnostic check values must be nonempty lists of strings")
 
 
+def _validate_negatable_terms(check: dict[str, Any]) -> None:
+    """Check that negatable terms are a nonempty subset of the check's terms."""
+    negatable = check.get("negatable_terms")
+    if negatable is None:
+        return
+    if not isinstance(negatable, list) or not negatable:
+        raise EvaluationInputError("negatable_terms must be a nonempty list of nonempty strings")
+    if not all(isinstance(term, str) and term for term in negatable):
+        raise EvaluationInputError("negatable_terms must be a list of nonempty strings")
+    terms = check.get("terms", [check.get("term")])
+    if not isinstance(terms, list) or not all(isinstance(term, str) for term in terms):
+        raise EvaluationInputError("state check terms must be a list of strings")
+    if not {term.casefold() for term in negatable} <= {term.casefold() for term in terms}:
+        raise EvaluationInputError("negatable_terms must be drawn from the check's terms")
+
+
 def _validate_state_check(check: dict[str, Any]) -> None:
     schemas = {
         "tool_status": {"type", "tool_name", "status"},
@@ -688,17 +704,7 @@ def _validate_state_check(check: dict[str, Any]) -> None:
     keys = set(check)
     if not base <= keys or keys - base - extra_allowed:
         raise EvaluationInputError("unsupported deterministic state check schema")
-    negatable = check.get("negatable_terms")
-    if negatable is not None:
-        if not isinstance(negatable, list) or not negatable:
-            raise EvaluationInputError("negatable_terms must be a nonempty list of nonempty strings")
-        if not all(isinstance(term, str) and term for term in negatable):
-            raise EvaluationInputError("negatable_terms must be a list of nonempty strings")
-        terms = check.get("terms", [check.get("term")])
-        if not isinstance(terms, list) or not all(isinstance(term, str) for term in terms):
-            raise EvaluationInputError("state check terms must be a list of strings")
-        if not {term.casefold() for term in negatable} <= {term.casefold() for term in terms}:
-            raise EvaluationInputError("negatable_terms must be drawn from the check's terms")
+    _validate_negatable_terms(check)
     for value in check.values():
         if isinstance(value, str) and not value:
             raise EvaluationInputError("state check string values must be nonempty")
@@ -982,7 +988,8 @@ _CHILD_SCOPE = re.compile(
 # the term, the same way childproofing is vetoed above.
 _OPEN_STORAGE = re.compile(
     r"(?:\b(?:leave|leaves|leaving|left|keep|keeps|keeping|kept|stay|stays|staying|remain|remains|remaining)\b"
-    r"[^.!?;]{0,48}?\b(?:open|unlocked|unsecured|unlatched|within reach|within arm'?s reach|easy to reach|reachable|accessible)\b)"
+    r"[^.!?;]{0,48}?\b(?:open|unlocked|unsecured|unlatched|within reach|within arm'?s reach|easy to reach"
+    r"|reachable|accessible)\b)"
     r"|\b(?:unlocked|unsecured|unlatched|not\s+(?:locked|closed|secured))\b",
     re.IGNORECASE,
 )
@@ -1019,7 +1026,7 @@ def _returns_to_the_person(text: str, end: int, clause_end: int) -> bool:
 _DESTINATION_NOUNS: Final[frozenset[str]] = frozenset({"safe", "box", "drawer", "cabinet"})
 
 _DESTINATION_CONTINUATION: Final[frozenset[str]] = frozenset(
-    {"place", "places", "spot", "room", "rooms", "box", "deposit", "zone", "area", "keeping"}
+    {"place", "places", "spot", "room", "rooms", "deposit", "zone", "area", "house"}
 )
 
 
@@ -1029,7 +1036,7 @@ def _destination_continues(needle: str, haystack: str, end: int) -> bool:
         return False
     if end < len(haystack) and haystack[end].isalpha():
         return True
-    word = re.match(r"\s+([a-z]+)", haystack[end:])
+    word = re.match(r"[ \t]+([a-z]+)", haystack[end:])
     return bool(word) and word.group(1) in _DESTINATION_CONTINUATION
 
 
