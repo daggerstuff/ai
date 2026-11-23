@@ -1373,17 +1373,20 @@ def test_orphaned_process_rows_fail_at_startup(db_path):
         db_path,
         {"job_id": "ovh-1", "kind": "eval_paired", "source": "ovhai", "status": "running", "backend_id": "u1"},
     )
+    db.upsert_job(db_path, {"job_id": "ovh-nb", "kind": "eval_paired", "source": "ovhai", "status": "queued"})
     db.upsert_job(db_path, {"job_id": "loc-done", "kind": "curate_dataset", "source": "local", "status": "succeeded"})
     db.upsert_job(db_path, {"job_id": "loc-plan", "kind": "curate_dataset", "source": "local", "status": "planned"})
-    expected_orphans = 2
-    assert db.fail_orphaned_process_jobs(db_path) == expected_orphans
+    swept = db.fail_orphaned_process_jobs(db_path)
+    assert sorted(swept) == ["loc-1", "ovh-nb", "ws-1"]
     failed = db.get_job(db_path, "loc-1")
     assert failed["status"] == "failed"
     assert "orphaned" in (failed["error"] or "")
     assert failed["finished_at"] is not None
     assert db.get_job(db_path, "ws-1")["status"] == "failed"
-    # Remote-backed rows are the reconciler's business, not the sweep's, and
-    # rows that never launched or already finished are left alone.
+    assert db.get_job(db_path, "ovh-nb")["status"] == "failed"
+    # Rows that name remote work keep their backend_id and are the
+    # reconciler's business, not the sweep's; rows that never launched or
+    # already finished are left alone.
     assert db.get_job(db_path, "ovh-1")["status"] == "running"
     assert db.get_job(db_path, "loc-done")["status"] == "succeeded"
     assert db.get_job(db_path, "loc-plan")["status"] == "planned"
@@ -1401,3 +1404,45 @@ def test_recipe_inputs_must_be_single_tokens(db_path: Path):
         plan.plan_job(settings, "eval-crisis-v2", {"tag": 30}, {})
     good = plan.plan_job(settings, "eval-crisis-v2", {"tag": "v30-eval-v2"}, {})
     assert good["command"].endswith("--tag v30-eval-v2 --suite v2")
+
+
+def test_terminal_rows_survive_a_backend_import_refresh(db_path):
+    """Thread on db.py: a backend import must not resurrect a terminal row.
+
+    ``sync`` mirrors what OVH/W&B list back into the registry through
+    ``upsert_job``; the refresh side of the upsert is terminal-guarded, so a
+    late refresh cannot rewrite an outcome that was already written.
+    """
+    db.upsert_job(
+        db_path,
+        {"job_id": "ovh-x", "kind": "eval_paired", "source": "ovhai", "status": "cancelled", "backend_id": "u2"},
+    )
+    db.upsert_job(
+        db_path,
+        {"job_id": "ovh-x", "kind": "eval_paired", "source": "ovhai", "status": "running", "backend_id": "u2"},
+    )
+    assert db.get_job(db_path, "ovh-x")["status"] == "cancelled"
+    # The guard is on the refresh side only: a terminal row imports fine the
+    # first time.
+    db.upsert_job(db_path, {"job_id": "ovh-import", "kind": "eval_paired", "source": "ovhai", "status": "succeeded"})
+    assert db.get_job(db_path, "ovh-import")["status"] == "succeeded"
+
+
+def test_resolve_command_preserves_whitespace_inside_a_quoted_value():
+    """Thread on plan.py: normalization must be shell-aware after quoting.
+
+    A plain whitespace split collapses the repeated space inside a quoted
+    value (`a  b` became `a b`), silently changing what the recipe runs. The
+    resolved command is parsed and re-serialized instead, exactly the way the
+    runner builds the argv.
+    """
+    recipe = recipes.Recipe(
+        id="resolve-probe",
+        kind="other",
+        description="probe",
+        backend="local",
+        entrypoint="python -m training.probe --note <note>",
+        overrides={"note": {"type": "str"}},
+    )
+    assert plan._resolve_command(recipe, {}, {"note": "a  b"}) == "python -m training.probe --note 'a  b'"
+    assert plan._resolve_command(recipe, {}, {"note": "b"}) == "python -m training.probe --note b"

@@ -131,7 +131,16 @@ def _resolve_command(recipe: recipes.Recipe, inputs: dict[str, Any], overrides: 
         return shlex.quote(str(value))
 
     resolved = re.sub(r"<([A-Za-z0-9_\-]+)>", repl, cmd)
-    return " ".join(resolved.split())
+    try:
+        # Shell-aware normalization: whitespace between arguments collapses,
+        # but repeated whitespace inside a quoted value survives, and the
+        # quoting itself stays canonical — the same parse the runner performs
+        # when it builds the argv.
+        return shlex.join(shlex.split(resolved))
+    except ValueError:
+        # Unbalanced quotes cannot be parsed; fall back to plain whitespace
+        # normalization rather than failing the plan.
+        return " ".join(resolved.split())
 
 
 def plan_job(

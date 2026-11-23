@@ -145,12 +145,27 @@ def new_job_id(prefix: str) -> str:
     return f"{prefix}-{uuid.uuid4().hex[:12]}"
 
 
+#: Statuses that end a job's life. Nothing may overwrite a row in one of
+#: these states: the operator's cancellation, the monitor's process exit and
+#: the backend-import refresh all race, and whichever lands first is the
+#: outcome the job really had.
+TERMINAL_JOB_STATUSES = frozenset({"succeeded", "failed", "cancelled"})
+
+#: The terminal statuses as a SQL list, built from the constant so every
+#: terminal guard in this module shares one source of truth and cannot drift.
+_TERMINAL_STATUSES_SQL = ", ".join(f"'{status}'" for status in sorted(TERMINAL_JOB_STATUSES))
+
+
 def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
-    """Insert or refresh a job row. ``job_id`` is required."""
+    """Insert or refresh a job row. ``job_id`` is required.
+
+    The refresh is terminal-guarded: a backend import or reconcile sweep that
+    lands on a row whose outcome was already written must not resurrect it.
+    """
     now = _now()
     conn = _conn(db_path)
     conn.execute(
-        """
+        f"""
         INSERT INTO jobs (
             job_id, kind, source, name, status, stage, idempotency_key, backend_id,
             backend_state, backend_ids, spec_json, spec_hash, plan_hash,
@@ -178,6 +193,7 @@ def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
             error=excluded.error,
             updated_at=excluded.updated_at,
             finished_at=COALESCE(excluded.finished_at, jobs.finished_at)
+        WHERE jobs.status NOT IN ({_TERMINAL_STATUSES_SQL})
         """,
         (
             job["job_id"],
@@ -207,12 +223,6 @@ def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
     conn.commit()
 
 
-#: Statuses that end a job's life. Nothing may overwrite a row in one of
-#: these states: the operator's cancellation and the monitor's process exit
-#: race, and whichever lands first is the outcome the job really had.
-TERMINAL_JOB_STATUSES = frozenset({"succeeded", "failed", "cancelled"})
-
-
 def transition_job(
     db_path: Path,
     job_id: str,
@@ -238,7 +248,7 @@ def transition_job(
     """
     conn = _conn(db_path)
     cursor = conn.execute(
-        """
+        f"""
         UPDATE jobs SET
             status = ?,
             stage = COALESCE(?, stage),
@@ -246,7 +256,7 @@ def transition_job(
             finished_at = COALESCE(?, finished_at),
             artifacts_json = COALESCE(?, artifacts_json),
             updated_at = ?
-        WHERE job_id = ? AND status NOT IN ('succeeded', 'failed', 'cancelled')
+        WHERE job_id = ? AND status NOT IN ({_TERMINAL_STATUSES_SQL})
         """,
         (
             status,
@@ -274,14 +284,14 @@ def mark_job_terminal(db_path: Path, job_id: str, *, status: str, error: str) ->
     conn = _conn(db_path)
     now = _now()
     cursor = conn.execute(
-        """
+        f"""
         UPDATE jobs SET
             status = ?,
             stage = ?,
             error = ?,
             finished_at = ?,
             updated_at = ?
-        WHERE job_id = ? AND status NOT IN ('succeeded', 'failed', 'cancelled')
+        WHERE job_id = ? AND status NOT IN ({_TERMINAL_STATUSES_SQL})
         """,
         (status, status, error, now, now, job_id),
     )
@@ -289,15 +299,19 @@ def mark_job_terminal(db_path: Path, job_id: str, *, status: str, error: str) ->
     return cursor.rowcount > 0
 
 
-def fail_orphaned_process_jobs(db_path: Path) -> int:
-    """Fail process-backed jobs left active by a previous server process.
+def fail_orphaned_process_jobs(db_path: Path) -> list[str]:
+    """Fail runner-managed jobs left active by a previous server process.
 
-    ``local`` and ``wandb-serverless`` jobs are subprocesses of this server and
-    the runner's live-process registry is in memory, so any such row still
-    active when a new process starts belongs to a process that is gone. Left
-    alone it stays `running` forever and consumes the concurrency slot it no
-    longer holds. Remote-backed rows (ovhai) are left to
-    ``reconcile_lost_backends`` — their work survives a restart.
+    A job with no ``backend_id`` is a subprocess of this server — ``local``
+    and ``wandb-serverless`` recipes, and an ``ovhai`` recipe that has not
+    been registered remotely yet, all run as local processes — and the
+    runner's live registry is in memory, so any such row still active when a
+    new process starts belongs to a process that is gone. Left alone it stays
+    `running` forever and consumes the concurrency slot it no longer holds.
+    Rows carrying a ``backend_id`` name remote work that survives a restart
+    and are left to ``reconcile_lost_backends``.
+
+    Returns the ids it failed so the caller can record their terminal outcome.
     """
     conn = _conn(db_path)
     now = _now()
@@ -309,13 +323,14 @@ def fail_orphaned_process_jobs(db_path: Path) -> int:
             error = 'orphaned: server restarted while the job was active',
             finished_at = ?,
             updated_at = ?
-        WHERE source IN ('local', 'wandb-serverless')
-          AND status IN ('queued', 'submitted', 'running', 'collecting')
+        WHERE backend_id IS NULL AND status IN ('queued', 'submitted', 'running', 'collecting')
+        RETURNING job_id
         """,
         (now, now),
     )
+    orphaned = [row[0] for row in cursor.fetchall()]
     conn.commit()
-    return cursor.rowcount
+    return orphaned
 
 
 def get_job(db_path: Path, job_id: str) -> dict[str, Any] | None:

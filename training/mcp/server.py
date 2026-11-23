@@ -94,11 +94,13 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     # Expire plans left over from previous runs.
     with contextlib.suppress(Exception):
         db.prune_plans(s.db_path, max_age_seconds=s.plan_ttl_seconds)
-    # Fail process-backed jobs this process did not start: their subprocess died
-    # with the previous server, and a `running` row with no process blocks the
-    # slot it claims forever.
+    # Fail runner-managed jobs this process did not start: their subprocess
+    # died with the previous server, and a `running` row with no process
+    # blocks the slot it claims forever. Each one still owes the terminal
+    # Foresight memory the epic promises for every job.
     with contextlib.suppress(Exception):
-        db.fail_orphaned_process_jobs(s.db_path)
+        for job_id in db.fail_orphaned_process_jobs(s.db_path):
+            runner._record_terminal_outcome(s, job_id)
 
     # Periodic reconciler.
     async def _loop() -> None:
