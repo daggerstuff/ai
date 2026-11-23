@@ -17,6 +17,8 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Any
 
+MISSING_BATCH_NOTICE = "No data found for batch"
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -491,7 +493,7 @@ class ResultAggregator:
         aggregated = self.get_batch_summary(batch_id)
 
         if not aggregated:
-            return f"No data found for batch: {batch_id}"
+            return f"{MISSING_BATCH_NOTICE}: {batch_id}"
 
         # Generate report content
         report_lines = [
@@ -606,7 +608,10 @@ def main():
 
     elif args.command == "report":
         report_content = aggregator.generate_report(args.batch_id, args.output)
-        if not args.output:
+        if args.output:
+            if report_content.startswith(MISSING_BATCH_NOTICE):
+                sys.stderr.write(report_content + "\n")
+        else:
             sys.stdout.write(report_content + "\n")
 
     elif args.command == "list":

@@ -67,3 +67,15 @@ class TestReportCommand(unittest.TestCase):
     def test_report_for_missing_batch_prints_notice_to_stdout(self):
         stdout = self._run_cli("--db-path", self.db_path, "report", "missing-batch")
         assert "No data found for batch: missing-batch" in stdout
+
+    def test_report_with_output_and_missing_batch_keeps_notice_off_stdout(self):
+        output_file = self.temp_dir / "missing-batch.txt"
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with mock.patch("sys.argv", ["result_aggregator", "--db-path", self.db_path, "report", "missing-batch",
+                                     "--output", str(output_file)]), contextlib.redirect_stdout(stdout), \
+                contextlib.redirect_stderr(stderr):
+            main()
+        assert stdout.getvalue() == ""
+        assert "No data found for batch: missing-batch" in stderr.getvalue()
+        assert not output_file.exists()
+
