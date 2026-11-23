@@ -155,21 +155,31 @@ NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(
 # does not. "yet" and "however" split a clause when a comma or semicolon leads
 # them, and a bare "yet" does too once a new subject follows it ("yet I know"
 # contrasts) - unless "yet" trails a reporting verb, where "promise yet you'll
-# be fine" is the adverb in front of an unstated "that". Comma-led "and"/"so"
-# join two independent clauses, so a negation in the first cannot govern the
-# second - unless the claim itself resumes as the verb's "that" complement
-# after the conjunction ("..., and no one can, that everything will be okay").
+# be fine" is the adverb in front of an unstated "that". "and"/"so" also split
+# a clause before a new subject, comma-led or bare - unless the claim is
+# coordinated or resumed inside a reporting verb's "that" complement
+# ("..., and no one can, that everything will be okay").
 CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
     r"[.!?;]|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
     r"|,\s*(?:and|so)\b"
     r"|\s+yet(?=\s+(?:i|we|you|they|he|she|it)\b)"
+    r"|\s+(?:and|so)(?=\s+(?:i|we|you|they|he|she|it|everything|nothing|there)\b)"
 )
 
-# A "yet" directly after one of these verbs stays inside the clause ("can't
-# promise yet you'll be fine"); a "that" ending the run-up to a claim marks a
-# coordinated or resumed complement that the negation still governs.
-YET_AFTER_REPORTING_VERB: Final[re.Pattern[str]] = re.compile(r"\b(?:promise|say|know|tell|guarantee|sure)$")
+# One of these verbs ending the run-up marks a clause whose object or "that"
+# complement is still to come, so what follows stays under the negation; a
+# subject plus one of them ("I know", "I'm sure") instead governs the claim
+# affirmatively. A "that" ending the run-up to a claim marks a coordinated or
+# resumed complement that the negation still governs.
+REPORTING_VERB_TAIL: Final[re.Pattern[str]] = re.compile(r"\b(?:promise|say|know|tell|guarantee|sure)[\s,;]*$")
+AFFIRMATIVE_GOVERNER: Final[re.Pattern[str]] = re.compile(
+    r"\s*\b(?:i|we|you|they|he|she|it)\b\s+(?:do\s+|did\s+)?(?:know|think|believe|promise|guarantee)\b"
+    r"|\s*i'm\s+(?:sure|certain|confident)\b"
+)
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(r"(?:^|,)\s*that\s*$")
+COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:promise|say|know|tell|guarantee|sure)\b.*\b(?:that|both)\b"
+)
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;]")
 
@@ -194,9 +204,15 @@ def _is_aside(text: str, after: int, claim_start: int) -> bool:
         return False
     head = text[after:comma].strip()
     if not head:
-        # A bare ", though," keeps the negation scope only when what follows
-        # resumes the governed "that" complement; on its own it starts a clause.
-        return RESUMED_COMPLEMENT.search(text[comma + 1 : claim_start]) is not None
+        # A bare ", though," keeps the negation scope when what follows resumes
+        # the governed "that" complement, or when the reporting verb before it
+        # has not taken its object yet; an affirmative governer after the aside
+        # owns the claim instead.
+        continuation = text[comma + 1 : claim_start]
+        governed = RESUMED_COMPLEMENT.search(continuation) is not None or REPORTING_VERB_TAIL.search(
+            text[: after - len("though")]
+        )
+        return governed and AFFIRMATIVE_GOVERNER.match(continuation) is None
     return CLAUSE_LEAD_PREPOSITION.match(head) is None and CLAUSE_LEAD_CONDITIONAL.match(head) is None
 
 
@@ -211,16 +227,23 @@ def _clause_start(text: str, claim_start: int) -> int:
             break
         group = boundary.group()
         head = group.lstrip(" ,;")
+        bare = group[0] not in ",;"
         if head.startswith("though") and _is_aside(text, boundary.end(), claim_start):
             continue
         if (
-            group[0] not in ",;"
+            bare
             and head.startswith("yet")
-            and YET_AFTER_REPORTING_VERB.search(text[: boundary.start()])
+            and REPORTING_VERB_TAIL.search(text[: boundary.start()])
+            and AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_start]) is None
         ):
             continue
-        if head in {"and", "so"} and RESUMED_COMPLEMENT.search(text[boundary.end() : claim_start]):
+        if bare and head in {"and", "so"} and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
             continue
+        if not bare and head in {"and", "so"}:
+            segment = text[boundary.end() : claim_start]
+            resumed = RESUMED_COMPLEMENT.search(segment)
+            if resumed is not None and AFFIRMATIVE_GOVERNER.search(segment[: resumed.start()]) is None:
+                continue
         start = boundary.end()
     return start
 
