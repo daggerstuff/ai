@@ -23,7 +23,7 @@ import urllib.request
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Final, Protocol
 from urllib.parse import urlsplit
 
 _CONFIG_REQUIRED_KEYS = {"schema_version", "run_id", "decoding", "pricing", "arms"}
@@ -116,7 +116,7 @@ def _safe_provider_error(
     excerpt = None
     try:
         payload = json.loads(body)
-    except (json.JSONDecodeError, UnicodeDecodeError):
+    except json.JSONDecodeError, UnicodeDecodeError:
         text = body.decode("utf-8", errors="replace")
         title_match = re.search(r"(?is)<title\b[^>]*>(.*?)</title\s*>", text)
         excerpt = _sanitize_error_text(title_match.group(1) if title_match else text, arm)
@@ -585,7 +585,7 @@ class OpenAIChatCompletions:
                     excerpt,
                 )
             ) from None
-        except (urllib.error.URLError, TimeoutError):
+        except urllib.error.URLError, TimeoutError:
             # Re-raised untouched: the retry classifier keys on the transport
             # exception type, which a RuntimeError wrapper would hide.
             raise
@@ -633,7 +633,7 @@ def score_diagnostics(case: dict[str, Any], completion: dict[str, Any]) -> list[
                 value = json.loads(response)
                 passed = isinstance(value, dict) and set(check["required_keys"]).issubset(value)
                 details = "valid_json_keys_present" if passed else "missing_required_json_keys"
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 passed, details = False, "invalid_json"
             name = "json_required_keys"
         elif check["type"] == "tool_called":
@@ -782,7 +782,7 @@ def _check_tool_arguments(
 ) -> bool:
     try:
         arguments = [json.loads(item["arguments"]) for item in trace if item["name"] == check["tool_name"]]
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError, TypeError:
         return False
     return arguments == check["arguments"]
 
@@ -1014,6 +1014,25 @@ def _returns_to_the_person(text: str, end: int, clause_end: int) -> bool:
     return False
 
 
+# Words that turn a whole destination into a different one: "in the safe place"
+# is not "in the safe", and a reply naming the first has not named the second.
+_DESTINATION_NOUNS: Final[frozenset[str]] = frozenset({"safe", "box", "drawer", "cabinet"})
+
+_DESTINATION_CONTINUATION: Final[frozenset[str]] = frozenset(
+    {"place", "places", "spot", "room", "rooms", "box", "deposit", "zone", "area", "keeping"}
+)
+
+
+def _destination_continues(needle: str, haystack: str, end: int) -> bool:
+    """Whether the match names a longer destination than the term does."""
+    if needle.rsplit(" ", 1)[-1] not in _DESTINATION_NOUNS:
+        return False
+    if end < len(haystack) and haystack[end].isalpha():
+        return True
+    word = re.match(r"\s+([a-z]+)", haystack[end:])
+    return bool(word) and word.group(1) in _DESTINATION_CONTINUATION
+
+
 def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
     """Whether ``response`` states ``term`` instead of asking about or negating it.
 
@@ -1026,6 +1045,8 @@ def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
     needle = term.casefold().translate(_APOSTROPHE_FOLD)
     haystack = response.casefold().translate(_APOSTROPHE_FOLD)
     for match in re.finditer(r"(?<!\w)" + re.escape(needle), haystack):
+        if _destination_continues(needle, haystack, match.end()):
+            continue
         clause_start, clause_end = _clause_bounds(haystack, match.start())
         if not allow_negated and _negated_before(haystack, match.start(), clause_start):
             continue
