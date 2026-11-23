@@ -23,7 +23,7 @@ def _extract_text(result):
 
 def _load_fastmcp_app_module():
     module_name = "test_fastmcp_app_module"
-    module_path = Path(__file__).resolve().parents[1] / "api" / "mcp_server" / "fastmcp_app.py"
+    module_path = Path(__file__).resolve().parents[2] / "inference" / "api" / "mcp_server" / "fastmcp_app.py"
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     assert spec is not None
     assert spec.loader is not None
