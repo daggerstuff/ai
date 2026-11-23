@@ -238,6 +238,10 @@ NEGATIVE_INVERSION: Final[re.Pattern[str]] = re.compile(
 # A cue phrase consumes its own stance verb ("I can't promise you that ..."
 # leaves the run-up starting at the pronoun), so the prefix alternative needs
 # the same optional object pronoun the verb alternative already takes.
+# A cue can carry its complementizer itself ("don't know if"); the parenthetical
+# between the complementizer's comma and the claim is then the whole run-up.
+COMPLEMENT_ADVERBIAL: Final[re.Pattern[str]] = re.compile(r"^\s*,[^,.;!?\u2014\u2013]{1,200},\s*$")
+COMPLEMENT_TAIL: Final[re.Pattern[str]] = re.compile(r"\b(?:that|if|whether)\s*$")
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
     rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*(?:(?:{_RESUMED_OBJECTS})\s+)?|\b(?:{_RESUMED_VERBS})\s+(?:(?:{_RESUMED_OBJECTS})\s+)?)"
     r"(?:that|if|whether)\b"
@@ -565,6 +569,24 @@ def _merged_conjunction(text: str, start: int, span: tuple[int, int], claim_star
     return (override and emphatic) or AFFIRMATIVE_GOVERNER.match(text[after:claim_end]) is None
 
 
+def _pause_run_end(text: str, index: int, limit: int) -> int:
+    """Return the end of the dot run that follows ``index``, else ``index``.
+
+    A closing marker and the ellipsis printed after it are one pause: the
+    leftover dots of a long run, and the dots that follow a dash, are the same
+    pause, and reading them as a boundary of their own starts a new clause,
+    which drops a negation that governs the resumed complement.
+    """
+    probe = index
+    while probe < limit and text[probe] in " \t":
+        probe += 1
+    if probe < limit and text[probe] == ".":
+        return _ellipsis_run_end(text, probe, limit)
+    if probe < limit and text[probe] == "\u2026":
+        return probe + 1
+    return index
+
+
 def _clause_start(
     text: str, claim_start: int, claim_end: int | None = None, cased: str | None = None
 ) -> tuple[int, list[tuple[int, int]]]:
@@ -618,11 +640,7 @@ def _clause_start(
                 text, pause_end, limit
             )
             if closing is not None:
-                # The leftover dots of a four- or five-dot closing run belong to the
-                # same ellipsis: an aside that stops at the first three leaves a dot
-                # boundary behind, which would reset the clause and drop the negation.
-                closing_is_ellipsis = "..." in closing.group() or "\u2026" in closing.group()
-                aside_until = _ellipsis_run_end(text, closing.end(), limit) if closing_is_ellipsis else closing.end()
+                aside_until = _pause_run_end(text, closing.end(), limit)
                 asides.append((boundary.end(), closing.start()))
             continue
         if head.startswith("though"):
@@ -746,6 +764,11 @@ def _negation_in_clause(lowered: str, clause_start: int, claim_start: int, aside
                 # own ("I do not think, I know, that ..."). A bare word
                 # additionally needs a negated stance to govern.
                 resumed = _resumed_complement(run_up)
+                adverbial_resume = (
+                    resumed is None
+                    and COMPLEMENT_TAIL.search(match.group()) is not None
+                    and COMPLEMENT_ADVERBIAL.match(run_up) is not None
+                )
                 # A second assurance inside the resumed complement ("that, don't
                 # worry about it, everything will be fine") is its own statement:
                 # the negation reaches the complement, not past it.
@@ -753,7 +776,7 @@ def _negation_in_clause(lowered: str, clause_start: int, claim_start: int, aside
                     cue.search(run_up[resumed.start() :]) is not None for cue in CERTAINTY_PATTERNS
                 )
                 if (
-                    resumed is None
+                    (resumed is None and not adverbial_resume)
                     or reassurance
                     or CORRECTION_GOVERNER.search(run_up) is not None
                     or (match.group() in GENERIC_NEGATION_CUES and NEGATED_STANCE.match(run_up) is None)

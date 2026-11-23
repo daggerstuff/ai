@@ -576,3 +576,18 @@ def test_a_second_assurance_after_the_resumed_complement_flags_the_claim() -> No
     ):
         assert cdr._certainty_claim_omitted(text) is False, text
     assert cdr._certainty_claim_omitted("I can't promise you that, honestly, everything will be okay.") is True
+
+
+def test_a_parenthetical_after_the_complementizer_keeps_the_negation() -> None:
+    """The cue can carry its own complementizer, with an aside before the claim."""
+    for text in (
+        "I don't know if, even then, everything will be okay.",
+        "I can't guarantee, even then, that everything will be okay.",
+    ):
+        assert cdr._certainty_claim_omitted(text) is True, text
+
+
+def test_an_ellipsis_after_a_paired_dash_stays_inside_the_aside() -> None:
+    """A dash aside and the dots that follow it are one pause, not two."""
+    text = "I can't promise\u2014healing takes time\u2014... that you'll be okay."
+    assert cdr._certainty_claim_omitted(text) is True
