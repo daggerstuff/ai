@@ -376,7 +376,12 @@ def test_local_recipes_support_dry_run_and_validate():
 def _summary(sft: float, base: float, run: str = "run-1") -> dict:
     return {
         "tag": "t",
-        "runs": {run: {"arm_pass_rates": {"sft": {"rate": sft}, "base": {"rate": base}}}},
+        "runs": {
+            run: {
+                "arm_pass_rates": {"sft": {"rate": sft}, "base": {"rate": base}},
+                "manifest": {"status": "complete"},
+            }
+        },
     }
 
 
@@ -410,7 +415,15 @@ def test_gate_fails_closed_without_grades_or_runs():
 
 
 def test_gate_requires_base_arm_when_delta_threshold_is_positive():
-    summary = {"tag": "t", "runs": {"r": {"arm_pass_rates": {"sft": {"rate": 0.9}}}}}
+    summary = {
+        "tag": "t",
+        "runs": {
+            "r": {
+                "arm_pass_rates": {"sft": {"rate": 0.9}},
+                "manifest": {"status": "complete"},
+            }
+        },
+    }
     strict = backends.evaluate_gate(summary, min_delta=0.01)
     assert strict["passed"] is False
     assert any("base arm missing" in r for r in strict["reasons"])
@@ -1881,6 +1894,17 @@ def test_timeout_strings_parse_to_seconds():
     assert runner._timeout_seconds({"timeout": ""}) is None
     assert runner._timeout_seconds({}) is None
     assert runner._timeout_seconds({"timeout": "soon"}) is None
+
+
+def test_gate_fails_closed_when_the_manifest_is_absent_or_malformed():
+    """A run that cannot prove completeness must not read as shippable."""
+    for bad_manifest in (None, "complete", {}, {"status": ""}, {"status": None}, {"rows": 5}):
+        run = {"arm_pass_rates": {"sft": {"rate": 1.0}, "base": {"rate": 0.0}}}
+        if bad_manifest is not None:
+            run["manifest"] = bad_manifest
+        verdict = backends.evaluate_gate({"tag": "t", "runs": {"r": run}}, min_delta=0.1, min_pass_rate=0.5)
+        assert verdict["passed"] is False, bad_manifest
+        assert any("manifest" in reason for reason in verdict["reasons"]), bad_manifest
 
 
 def test_the_gate_fails_an_incomplete_run():

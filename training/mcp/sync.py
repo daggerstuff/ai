@@ -17,6 +17,7 @@ mistaken for "the job vanished".
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from training.mcp import backends, db
@@ -131,16 +132,28 @@ def import_manual_rows(settings: Settings, rows: list[dict[str, Any]]) -> dict[s
     accepted: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
     for index, row in enumerate(rows):
-        missing = [field for field in MANUAL_REQUIRED_FIELDS if not row.get(field)]
+        normalized = dict(row)
+        missing = [field for field in MANUAL_REQUIRED_FIELDS if not normalized.get(field)]
         if missing:
             rejected.append({"index": index, "missing": missing})
             continue
+        cost = normalized.get("cost_estimate")
+        if cost is not None:
+            try:
+                parsed = float(cost)
+            except (TypeError, ValueError):
+                rejected.append({"index": index, "invalid": "cost_estimate"})
+                continue
+            if not math.isfinite(parsed) or parsed < 0:
+                rejected.append({"index": index, "invalid": "cost_estimate"})
+                continue
+            normalized["cost_estimate"] = parsed
         accepted.append(
             {
-                **row,
-                "source": row.get("source") or "manual",
-                "stage": row.get("stage") or row["status"],
-                "requested_by": row.get("requested_by") or IMPORT_ACTOR,
+                **normalized,
+                "source": normalized.get("source") or "manual",
+                "stage": normalized.get("stage") or normalized["status"],
+                "requested_by": normalized.get("requested_by") or IMPORT_ACTOR,
             }
         )
     return {

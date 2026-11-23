@@ -73,19 +73,51 @@ class Recipe:
         }
 
 
+def _numeric_type(otype: Any) -> tuple[type | tuple[type, ...] | None, str]:
+    numeric = {"int": int, "float": (int, float)}.get(otype) if isinstance(otype, str) else None
+    kind = "int" if otype == "int" else "number"
+    return numeric, kind
+
+
+def _override_bounds_errors(name: str, spec: dict[str, Any]) -> list[str]:
+    """Validate ``min``/``max`` regardless of whether a default exists.
+
+    plan.py compares a candidate override against these bounds, so a bound
+    that is not a finite number of the declared type would raise TypeError
+    there instead of reporting a validation error. An inverted range is
+    rejected too.
+    """
+    numeric, kind = _numeric_type(spec.get("type"))
+    if numeric is None:
+        return []
+    bounds: dict[str, float] = {}
+    for bound in ("min", "max"):
+        if bound not in spec:
+            continue
+        limit = spec[bound]
+        if not isinstance(limit, numeric) or isinstance(limit, bool):
+            return [f"override {name!r} {bound} must be {kind}"]
+        if not math.isfinite(limit):
+            return [f"override {name!r} {bound} must be a finite number"]
+        bounds[bound] = limit
+    if "min" in bounds and "max" in bounds and bounds["min"] > bounds["max"]:
+        return [f"override {name!r} min {bounds['min']} exceeds max {bounds['max']}"]
+    return []
+
+
 def _override_default_errors(name: str, spec: dict[str, Any]) -> list[str]:
     """Reject a default that its own declared type and bounds disprove.
 
     plan_job records defaults into the spec without checking them, so a bad
     default would only fail at submit time - the registry refuses it instead.
-    The bounds are type-checked before they are compared, so a malformed
-    bound is reported instead of raising.
     """
+    bounds_errors = _override_bounds_errors(name, spec)
+    if bounds_errors:
+        return bounds_errors
     default = spec.get("default")
     otype = spec.get("type")
-    numeric: type | tuple[type, ...] | None = {"int": int, "float": (int, float)}.get(otype)
+    numeric, kind = _numeric_type(otype)
     if numeric is not None:
-        kind = "int" if otype == "int" else "number"
         if not isinstance(default, numeric) or isinstance(default, bool):
             return [f"override {name!r} default must be {kind}"]
         if otype == "float" and not math.isfinite(default):
@@ -94,8 +126,6 @@ def _override_default_errors(name: str, spec: dict[str, Any]) -> list[str]:
             if bound not in spec:
                 continue
             limit = spec[bound]
-            if not isinstance(limit, numeric) or isinstance(limit, bool):
-                return [f"override {name!r} {bound} must be {kind}"]
             outside = default < limit if bound == "min" else default > limit
             if outside:
                 side = "below" if bound == "min" else "above"
@@ -168,6 +198,8 @@ def validate_recipe_entry(entry: Any, known_ids: set[str] | None = None) -> list
                 errors.append(f"override {name!r} must declare a type unless locked")
             elif "default" in spec:
                 errors.extend(_override_default_errors(name, spec))
+            else:
+                errors.extend(_override_bounds_errors(name, spec))
     errors.extend(_multi_node_errors(entry))
     errors.extend(_launch_flag_errors(entry))
     return errors

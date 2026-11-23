@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 import shlex
 from typing import Any
@@ -48,6 +49,24 @@ def _validate_inputs(recipe: recipes.Recipe, inputs: dict[str, Any]) -> list[str
     return warnings
 
 
+def _check_bounds(spec: dict[str, Any], name: str, value: float) -> None:
+    """Enforce a recipe's min/max on an override, failing closed on a bad bound.
+
+    Recipe bounds are validated at load time, but a bound that is not a
+    finite number here must refuse the plan rather than crash the comparison.
+    """
+    for bound in ("min", "max"):
+        if bound not in spec:
+            continue
+        limit = spec[bound]
+        if isinstance(limit, bool) or not isinstance(limit, (int, float)) or not math.isfinite(limit):
+            raise PlanError(f"override '{name}' {bound} must be a finite number")
+        if bound == "min" and value < limit:
+            raise PlanError(f"override '{name}' below min {limit}")
+        if bound == "max" and value > limit:
+            raise PlanError(f"override '{name}' above max {limit}")
+
+
 def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
     for name, value in (overrides or {}).items():
@@ -67,13 +86,13 @@ def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> li
         if otype == "int":
             if not isinstance(value, int) or isinstance(value, bool):
                 raise PlanError(f"override '{name}' must be int")
-            if "min" in spec and value < spec["min"]:
-                raise PlanError(f"override '{name}' below min {spec['min']}")
-            if "max" in spec and value > spec["max"]:
-                raise PlanError(f"override '{name}' above max {spec['max']}")
+            _check_bounds(spec, name, value)
         elif otype == "float":
             if not isinstance(value, (int, float)) or isinstance(value, bool):
                 raise PlanError(f"override '{name}' must be number")
+            if not math.isfinite(value):
+                raise PlanError(f"override '{name}' must be a finite number")
+            _check_bounds(spec, name, value)
         elif otype == "str":
             if not isinstance(value, str):
                 raise PlanError(f"override '{name}' must be string")

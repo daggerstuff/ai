@@ -277,9 +277,23 @@ def _kill_tree(proc: subprocess.Popen[bytes]) -> None:
 
 
 def _terminate_proc(proc: subprocess.Popen[bytes]) -> None:
-    """Stop a job process: terminate, wait, then kill. Never raises."""
+    """Stop a job's process group: SIGTERM the group, wait, then SIGKILL it. Never raises.
+
+    Jobs start in their own session (``start_new_session=True``), so signalling
+    the group reaches the job's children too; signalling only the wrapper
+    would free the single-flight slot while the work kept running.
+    """
     try:
-        proc.terminate()
+        pid = getattr(proc, "pid", None)
+        signalled = False
+        if pid:
+            try:
+                os.killpg(pid, signal.SIGTERM)
+                signalled = True
+            except (ProcessLookupError, PermissionError, OSError):
+                signalled = False
+        if not signalled:
+            proc.terminate()
         try:
             proc.wait(timeout=10)
         except subprocess.TimeoutExpired:
@@ -332,7 +346,7 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
 
     def _run() -> None:
         # Wait for single-flight slot.
-        acquired = lock.acquire(timeout=300)
+        acquired = lock.acquire(timeout=settings.single_flight_wait_seconds)
         if not acquired:
             # The wait is over and no runner work will happen for this id, so
             # its cancellation marker must not outlive the thread.
@@ -469,10 +483,22 @@ def cancel(settings: Settings, job_id: str) -> bool:
     if not db.mark_job_terminal(settings.db_path, job_id, status="cancelled", error="cancelled by operator"):
         _forget_cancelled(job_id)
         return False
-    # Best-effort backend cancel for ovhai.
-    if job.get("source") == "ovhai" and job.get("backend_id"):
+    # Best-effort backend cancel for ovhai. _monitor only publishes the
+    # remote job name once the wrapper exits, so a cancel that lands while
+    # the job is still running would find no backend_id on the row; read the
+    # name the launcher logged instead so the remote job is stopped too.
+    backend_id = job.get("backend_id")
+    if job.get("source") == "ovhai" and not backend_id:
+        log_path = settings.db_path.parent / "logs" / f"{job_id}.log"
+        backend_id = _ovhai_job_name(str(log_path))
+        if backend_id:
+            # Persist the discovered name so provenance and any later cancel
+            # see it without re-parsing the log.
+            with contextlib.suppress(Exception):
+                db.upsert_job(settings.db_path, {**job, "backend_id": backend_id})
+    if job.get("source") == "ovhai" and backend_id:
         with contextlib.suppress(Exception):
-            subprocess.run(["ovhai", "job", "stop", job["backend_id"]], capture_output=True, timeout=30, check=False)
+            subprocess.run(["ovhai", "job", "stop", backend_id], capture_output=True, timeout=30, check=False)
     _record_terminal_outcome(settings, job_id)
     # The row is terminal; a job with no runner thread (an imported row)
     # would otherwise leave its marker in the process-global set forever.

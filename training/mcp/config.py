@@ -87,6 +87,16 @@ class Settings:
         return int(self.env.get("TRAINING_MCP_MAX_CONCURRENT_JOBS", "1"))
 
     @property
+    def single_flight_wait_seconds(self) -> int:
+        """How long a queued job waits for the single-flight slot.
+
+        Must stay compatible with ``max_concurrent_jobs``: raising the job
+        cap admits same-backend jobs concurrently, and the wait then needs to
+        tolerate more than one waiter ahead of the queue.
+        """
+        return int(self.env.get("TRAINING_MCP_SINGLE_FLIGHT_WAIT_SECONDS", "300"))
+
+    @property
     def daily_job_cap(self) -> int:
         return int(self.env.get("TRAINING_MCP_DAILY_JOB_CAP", "5"))
 

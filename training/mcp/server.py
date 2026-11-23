@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import math
 import time
 import uuid
 from collections.abc import AsyncIterator, Callable
@@ -31,6 +32,26 @@ from training.mcp.plan import PlanError
 _STATE: dict[str, Any] = {}
 _HEALTH_TTL_S = 60.0
 _RECONCILE_INTERVAL_S = 60.0
+
+
+def _finite_cost(value: object) -> float:
+    """Coerce a stored cost to a non-negative finite float.
+
+    Rows imported before cost validation existed may carry arbitrary values;
+    an unparseable or non-finite estimate must not crash the cap check or
+    poison the running total (nan comparisons are always False, so a nan sum
+    would silently disable the cap).
+    """
+    if isinstance(value, (int, float)):
+        parsed = float(value)
+    elif isinstance(value, str):
+        try:
+            parsed = float(value)
+        except ValueError:
+            return 0.0
+    else:
+        return 0.0
+    return parsed if math.isfinite(parsed) and parsed >= 0 else 0.0
 
 
 def settings() -> Settings:
@@ -559,7 +580,7 @@ def submit_job(
     # launched (or paid for) by this control plane.
     month_start = now_utc.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat(timespec="seconds")
     month_spend = sum(
-        float(j.get("cost_estimate") or 0)
+        _finite_cost(j.get("cost_estimate"))
         for j in db.cap_rows(s.db_path, since=month_start)
         if j.get("requested_by") not in sync.NON_REQUESTING_ACTORS
     )

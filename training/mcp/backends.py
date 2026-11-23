@@ -434,15 +434,21 @@ def evaluate_gate(
         # of a 12-case matrix clear the thresholds while the run is incomplete.
         # The manifest states completeness, and a complete run's arms carry
         # equal sample sizes, so either signal failing fails the run.
+        # No manifest (or a malformed one) cannot vouch for the run: the
+        # row counts alone cannot distinguish a truncated run from a
+        # complete one, so the gate fails closed.
         manifest = run.get("manifest")
         manifest_status = manifest.get("status") if isinstance(manifest, dict) else None
         sft_total = (rates.get("sft") or {}).get("total")
         base_total = (rates.get("base") or {}).get("total")
         run_ok = True
         run_reasons: list[str] = []
-        if manifest_status is not None and manifest_status != "complete":
+        if manifest_status != "complete":
             run_ok = False
-            run_reasons.append(f"run manifest status is {manifest_status!r}, not complete")
+            if manifest_status is None:
+                run_reasons.append("run manifest missing or invalid; cannot verify completeness")
+            else:
+                run_reasons.append(f"run manifest status is {manifest_status!r}, not complete")
         if sft_total is not None and base_total is not None and sft_total != base_total:
             run_ok = False
             run_reasons.append(f"arm sample sizes differ (sft={sft_total}, base={base_total}); run is incomplete")
