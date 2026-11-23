@@ -189,7 +189,10 @@ def stage(destination: Path = DEFAULT_STAGE_DIR, *, export_dir: Path = DEFAULT_E
 
 
 def staged_files(stage_dir: Path) -> list[str]:
-    return sorted(path.relative_to(stage_dir).as_posix() for path in stage_dir.rglob("*") if path.is_file())
+    """The files the bundle contract names, and only those that are present."""
+    expected = [f"code/{name}" for name in (*CODE_FILES, "launch.sh")]
+    expected += [f"data/{name}" for name in EXPORT_FILES]
+    return [relative for relative in expected if (stage_dir / relative).is_file()]
 
 
 def _digest(path: Path) -> str:
@@ -277,70 +280,73 @@ def submit(
         # this upload and the digest, signing bytes that were never uploaded.
         # A per-call directory keeps the upload and the digest on one tree.
         stage_dir = Path(tempfile.mkdtemp(prefix="ovh-v23-submit-"))
-    staged = stage(stage_dir, export_dir=export_dir) if restage else staged_files(stage_dir)
-    # Each tag owns its input prefix: presigned GETs sign a key, not an object
-    # version, so a shared prefix lets a later submission swap a queued job's
-    # bytes. Override only when the caller owns that key space. The prefix is
-    # normalised the way ``upload_dir`` normalises it, so the signed GETs name
-    # the same keys the upload wrote.
-    prefix = (inputs_prefix or f"inputs/v23/{tag}").strip("/")
-    if not prefix:
-        raise ValueError("inputs_prefix must contain a non-slash character")
+    try:
+        # Each tag owns its input prefix: presigned GETs sign a key, not an object
+        # version, so a shared prefix lets a later submission swap a queued job's
+        # bytes. Override only when the caller owns that key space. The prefix is
+        # normalised the way ``upload_dir`` normalises it, so the signed GETs name
+        # the same keys the upload wrote, and it is settled before the export is
+        # staged: a prefix the submission rejects must not pay for the copy.
+        prefix = (inputs_prefix or f"inputs/v23/{tag}").strip("/")
+        if not prefix:
+            raise ValueError("inputs_prefix must contain a non-slash character")
+        staged = stage(stage_dir, export_dir=export_dir) if restage else staged_files(stage_dir)
 
-    s3 = r2_sync.client()
-    bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
-    # No skip_unchanged: equal size is not equal content, and re-sending a few
-    # code and export files is cheaper than training on stale bytes.
-    uploaded = r2_sync.upload_dir(stage_dir, bucket=bucket, prefix=prefix, s3_client=s3)
+        s3 = r2_sync.client()
+        bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
+        # No skip_unchanged: equal size is not equal content, and re-sending a few
+        # code and export files is cheaper than training on stale bytes.
+        uploaded = r2_sync.upload_dir(stage_dir, bucket=bucket, prefix=prefix, s3_client=s3)
 
-    download_urls = r2_sync.presign(
-        [f"{prefix}/{relative}" for relative in staged], bucket=bucket, method="get", s3_client=s3
-    )
-    download = {relative: download_urls[f"{prefix}/{relative}"] for relative in staged}
-    sizes = {relative: (stage_dir / relative).stat().st_size for relative in staged}
-    digests = {relative: _digest(stage_dir / relative) for relative in staged}
+        download_urls = r2_sync.presign(
+            [f"{prefix}/{relative}" for relative in staged], bucket=bucket, method="get", s3_client=s3
+        )
+        download = {relative: download_urls[f"{prefix}/{relative}"] for relative in staged}
+        sizes = {relative: (stage_dir / relative).stat().st_size for relative in staged}
+        digests = {relative: _digest(stage_dir / relative) for relative in staged}
 
-    keys = result_keys(tag)
-    upload = {
-        relative: r2_sync.presign([key], bucket=bucket, method="put", s3_client=s3)[key]
-        for relative, key in keys.items()
-    }
+        keys = result_keys(tag)
+        upload = {
+            relative: r2_sync.presign([key], bucket=bucket, method="put", s3_client=s3)[key]
+            for relative, key in keys.items()
+        }
 
-    job_name = name or f"v23-train-{tag}"
-    plan: dict[str, object] = {
-        "tag": tag,
-        "bucket": bucket,
-        "download": download,
-        "sizes": sizes,
-        "sha256": digests,
-        "upload": upload,
-    }
-    env = build_job_env(plan=plan, run_name=run_name, flavor=flavor, overrides=overrides)
-    argv = build_command(image=image, name=job_name, flavor=flavor, gpu=gpu, timeout=timeout, env=env)
-    encoded_map = next(entry.removeprefix("R2_MAP_B64=") for entry in env if entry.startswith("R2_MAP_B64="))
+        job_name = name or f"v23-train-{tag}"
+        plan: dict[str, object] = {
+            "tag": tag,
+            "bucket": bucket,
+            "download": download,
+            "sizes": sizes,
+            "sha256": digests,
+            "upload": upload,
+        }
+        env = build_job_env(plan=plan, run_name=run_name, flavor=flavor, overrides=overrides)
+        argv = build_command(image=image, name=job_name, flavor=flavor, gpu=gpu, timeout=timeout, env=env)
+        encoded_map = next(entry.removeprefix("R2_MAP_B64=") for entry in env if entry.startswith("R2_MAP_B64="))
 
-    result: dict[str, object] = {
-        "tag": tag,
-        "job_name": job_name,
-        "bucket": bucket,
-        "inputs_prefix": prefix,
-        "staged": len(staged),
-        "uploaded_inputs": len(uploaded),
-        "download_objects": len(download),
-        "upload_objects": len(upload),
-        "map_bytes": len(encoded_map),
-        "command": redact_command(argv),
-        "executed": False,
-    }
-    if private_stage:
-        shutil.rmtree(stage_dir, ignore_errors=True)
-    if execute:
-        completed = subprocess.run(argv, check=False, capture_output=True, text=True)
-        result["executed"] = True
-        result["returncode"] = completed.returncode
-        result["stdout"] = completed.stdout.replace(encoded_map, REDACTED_MAP).strip()
-        result["stderr"] = completed.stderr.replace(encoded_map, REDACTED_MAP).strip()
-    return result
+        result: dict[str, object] = {
+            "tag": tag,
+            "job_name": job_name,
+            "bucket": bucket,
+            "inputs_prefix": prefix,
+            "staged": len(staged),
+            "uploaded_inputs": len(uploaded),
+            "download_objects": len(download),
+            "upload_objects": len(upload),
+            "map_bytes": len(encoded_map),
+            "command": redact_command(argv),
+            "executed": False,
+        }
+        if execute:
+            completed = subprocess.run(argv, check=False, capture_output=True, text=True)
+            result["executed"] = True
+            result["returncode"] = completed.returncode
+            result["stdout"] = completed.stdout.replace(encoded_map, REDACTED_MAP).strip()
+            result["stderr"] = completed.stderr.replace(encoded_map, REDACTED_MAP).strip()
+        return result
+    finally:
+        if private_stage:
+            shutil.rmtree(stage_dir, ignore_errors=True)
 
 
 def collect(*, tag: str, destination: Path | None = None) -> list[Path]:

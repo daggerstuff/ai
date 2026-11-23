@@ -259,7 +259,7 @@ def test_a_config_without_a_loader_block_still_validates(tmp_path: Path) -> None
 
 
 def test_a_loader_block_is_validated_when_present(tmp_path: Path) -> None:
-    cases_path, config_path = write_inputs(tmp_path)
+    _cases_path, config_path = write_inputs(tmp_path)
     config = json.loads(config_path.read_text(encoding="utf-8"))
     config["loader"] = {
         "load_in_4bit": True,
@@ -279,6 +279,17 @@ def test_a_loader_block_is_validated_when_present(tmp_path: Path) -> None:
     config_path.write_text(json.dumps(config), encoding="utf-8")
     with pytest.raises(EvaluationInputError, match="loader keys must be within"):
         paired_eval.load_config(config_path)
+
+    config["loader"] = {"load_in_4bit": 1, "dtype": "float16"}
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    with pytest.raises(EvaluationInputError, match=r"loader\.load_in_4bit must be a boolean"):
+        paired_eval.load_config(config_path)
+
+    for dtype in (3, "   "):
+        config["loader"] = {"load_in_4bit": False, "dtype": dtype}
+        config_path.write_text(json.dumps(config), encoding="utf-8")
+        with pytest.raises(EvaluationInputError, match=r"loader\.dtype must be a nonempty string"):
+            paired_eval.load_config(config_path)
 
 
 def test_resume_rejects_a_run_under_another_base_revision(tmp_path: Path) -> None:

@@ -171,16 +171,20 @@ def paraphrases() -> dict[str, tuple[str, ...]]:
     return surface
 
 
-def prior_replies() -> set[str]:
-    """The pre-v23 families, plus the v23 replies this release replaces.
+def replaced_replies() -> set[str]:
+    """The v23 means_access replies this release rewrites.
 
     v24 retrains v23's other nine surfaces verbatim, so those replies are the
     inheritance, not a duplication. The means_access surface is the one v24
     rewrites, so a new means reply that byte-equals a v23 means reply is a
     defect the duplicate guard has to be able to see.
     """
-    replaced = {shape.format(action=action) for action in v23.ACTIONS["means_access"] for shape in DIRECT_SHAPES}
-    return v23.prior_replies() | replaced
+    return {shape.format(action=action) for action in v23.ACTIONS["means_access"] for shape in DIRECT_SHAPES}
+
+
+def prior_replies() -> set[str]:
+    """Every reply the inheritance already carries, v23's means surface included."""
+    return v23.prior_replies() | replaced_replies()
 
 
 def v9_disclosures() -> set[str]:
@@ -274,6 +278,10 @@ def validate_register(item: dict[str, Any]) -> None:
 
 def validate_surface_row(item: dict[str, Any], actions: tuple[str, ...], anchors: tuple[str, ...]) -> None:
     v23.validate_surface_row(item, actions, anchors)
+    # v23's validator only knows its own prior families, so the v23 means
+    # replies this release rewrites have to be checked here.
+    if item["messages"][1]["content"] in replaced_replies():
+        raise ValueError(f"{item['id']}: reply duplicates a v23 means_access reply")
 
 
 def validate_against_gate(item: dict[str, Any]) -> None:

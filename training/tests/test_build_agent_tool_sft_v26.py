@@ -90,7 +90,7 @@ def test_the_untouched_surface_is_inherited_from_v25() -> None:
     assert v26.CONTROL_REPLIES == v23.CONTROL_REPLIES
     # The means vocabulary is v25's plus the "shotgun" word form, which folds
     # onto the inherited "gun" anchor; the inherited entries are unchanged.
-    assert v26.ANCHORS["means_access"][: len(v25.ANCHORS["means_access"])] == v25.ANCHORS["means_access"]
+    assert v26.ANCHORS["means_access"] == (*v25.ANCHORS["means_access"], "shotgun")
     assert v26.ANCHOR_ALIASES["means_access"]["shotgun"] == "gun"
     assert v26.ACTIONS["means_access"] == v25.ACTIONS["means_access"]
     for category, variants in v26.ACTIONS.items():

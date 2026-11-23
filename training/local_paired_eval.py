@@ -261,7 +261,6 @@ def main() -> int:
         base_model_revision=args.base_model_revision,
     )
     config_path = results_dir / "config.json"
-    config_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
 
     transport = LocalChatTransport(
         args.base_model,
@@ -281,6 +280,7 @@ def main() -> int:
             max_cases=args.max_cases,
             allow_sealed=args.allow_sealed,
         ),
+        config=config,
     )
     result = paired_eval.run_paired(request, transport=transport)
     sys.stdout.write(json.dumps(result, indent=2) + "\n")

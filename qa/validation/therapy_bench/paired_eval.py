@@ -217,6 +217,14 @@ class RunRequest:
     config_path: Path
     results_dir: Path
     options: RunnerOptions = RunnerOptions()
+    config: dict[str, Any] | None = None
+
+
+def request_config(request: RunRequest) -> dict[str, Any]:
+    """The run's config, whether the caller supplied it or wrote it to disk."""
+    if request.config is not None:
+        return request.config
+    return load_config(request.config_path)
 
 
 def sha256_bytes(payload: bytes) -> str:
@@ -1487,7 +1495,7 @@ def run_paired(
     token_counter: PromptTokenCounter | None = None,
 ) -> dict[str, Any]:
     """Run selected arms, persisting each completion before continuing."""
-    config = load_config(request.config_path)
+    config = request_config(request)
     cases = load_cases(request.cases_path)
     options = request.options
     if not 0 <= options.max_tool_rounds <= _MAX_TOOL_ROUNDS:
@@ -1509,6 +1517,10 @@ def run_paired(
     manifest_path = results_dir / "manifest.json"
     manifest = _make_manifest(ManifestContext(config, cases, selected, cases_digest, config_digest, options, counts))
     _check_resume(manifest_path, manifest)
+    if request.config is not None:
+        # Only an accepted resume gets to write, so a rejected one leaves the
+        # config an existing run was measured with exactly as it found it.
+        _atomic_json(request.config_path, request.config)
     results_path = results_dir / "results.jsonl"
     completed = _read_completed(results_path)
     if any(record.get("fatal") for record in completed.values()):
@@ -1553,7 +1565,7 @@ def run_paired(
 
 def build_dry_run_report(request: RunRequest, token_counter: PromptTokenCounter | None = None) -> dict[str, Any]:
     """Validate identities, split policy, preflight, and budget without creating files or connecting."""
-    config = load_config(request.config_path)
+    config = request_config(request)
     cases = load_cases(request.cases_path)
     options = request.options
     if not 0 <= options.max_tool_rounds <= _MAX_TOOL_ROUNDS:

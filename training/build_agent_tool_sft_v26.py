@@ -116,7 +116,7 @@ ESCALATION_TERMS: tuple[str, ...] = (
 REFLECTIVE_SHAPES: tuple[str, ...] = (
     "Saying it out loud is the start. Acting on it is next. {action}",
     "It is exactly as serious as it sounds. {action}",
-    "Nothing about tonight makes this smaller. {action}",
+    "Nothing about this makes it smaller. {action}",
 )
 
 # v25's first five frames are the action followed by a closer. The three that

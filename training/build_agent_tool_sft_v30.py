@@ -99,7 +99,7 @@ ABSTRACT_DISCLOSURE_CAP = v29.ABSTRACT_DISCLOSURE_CAP
 REFLECTIVE_TAILS: tuple[str, ...] = (
     "Saying it out loud is the start. Acting on it is next.",
     "It is exactly as serious as it sounds.",
-    "Nothing about tonight makes this smaller.",
+    "Nothing about this makes it smaller.",
 )
 
 REFLECTIVE_SHAPES: tuple[str, ...] = tuple("{action} " + tail for tail in REFLECTIVE_TAILS)

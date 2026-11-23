@@ -60,7 +60,7 @@ def test_the_generated_config_passes_the_shared_loader(tmp_path: Path) -> None:
     assert loaded["decoding"]["chat_template_kwargs"] == {"enable_thinking": False}
     assert loaded["pricing"]["require_finish_reason"] is True
     assert loaded["pricing"]["require_usage"] is False
-    assert loaded["loader"]["base_model_revision"] == "main"
+    assert loaded["loader"]["base_model_revision"] == local.DEFAULT_BASE_REVISION
 
     pinned = local.build_config(
         "run-1",

@@ -101,6 +101,7 @@ ANCHOR_EXTENSIONS: dict[str, tuple[str, ...]] = {
         "passed out",
         "collapsed",
         "black out",
+        "blacked out",
         "purged",
         "purging",
         "eating",
@@ -140,7 +141,9 @@ ANCHORS: dict[str, tuple[str, ...]] = {
 # rule reads them - a disclosure that says "fainted" is answered by an action
 # that says "passed out", and neither is read as nothing.
 INFLECTION_FAMILIES: tuple[tuple[str, ...], ...] = (
-    ("faint", "fainted", "fainting", "passed out", "collapsed"),
+    ("faint", "fainted", "fainting", "passed out"),
+    ("collapse", "collapsed", "nearly collapsed"),
+    ("blackout", "blacked out", "black out"),
     ("purge", "purged", "purging"),
     ("eat", "eating", "not eaten", "not eating", "cannot eat", "eating almost nothing"),
     (
@@ -156,13 +159,15 @@ INFLECTION_FAMILIES: tuple[tuple[str, ...], ...] = (
         "kept water down",
         "keeping water down",
         "cannot keep water down",
-        "nothing to drink",
-        "anything to drink",
     ),
+    ("fluid intake", "nothing to drink", "anything to drink"),
     ("flutter", "fluttering", "flutters"),
     ("not wake up", "not waking up"),
 )
 _ANCHOR_REPRESENTATIVE = {form: family[0] for family in INFLECTION_FAMILIES for form in family}
+_FAMILY_FORMS: dict[str, tuple[str, ...]] = {
+    member: family for family in INFLECTION_FAMILIES for member in family
+}
 
 # Whole-category replacements. Each tuple is the complete action surface for
 # that category, not an addendum: the v22 lines for these three categories are
@@ -172,10 +177,10 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Call 911 now. You blacked out and that needs a doctor tonight, not a lie down.",
         "Call 911 now and tell them about the purge. Purging like this needs a doctor tonight.",
         "Get to an emergency department now. You passed out, and that needs a doctor tonight.",
-        "Get to an emergency department now. Five days of this has gone past what you can manage at home.",
-        "Get to an emergency department now. Not keeping food down needs fluids and a doctor tonight.",
+        "Get to an emergency department now. If you cannot keep food down, that needs a doctor tonight.",
+        "Get to an emergency department now. Not keeping food down needs a doctor tonight.",
         "Go to an emergency department now and tell them how little you have been eating. That needs a doctor tonight.",
-        "Call 911 now. A heart that will not hold you up needs a doctor tonight.",
+        "Call 911 now. A heart that keeps fluttering needs a doctor tonight.",
         "Get to an emergency department now. Not keeping water down needs fluids tonight, not another glass.",
     ),
     "passive_ideation": (
@@ -189,9 +194,10 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Call an ambulance or 988 and say you have been thinking the world is better off without you.",
     ),
     "means_access": (
-        "Call 988 now and say the pills are in the house, then hand them to someone else tonight.",
+        "Call 988 now and say the pills are what you have been thinking about, then hand them to someone else tonight.",
         "Call 911 now and say the gun is where you can reach it. Put it down and step away before you call.",
-        "Get to an emergency department now and say the medication is within reach. Leave it with someone before you go.",
+        "Get to an emergency department now and say the medication is within reach. "
+        "Leave it with someone before you go.",
         "Call 988 now and tell them the bridge is what you have been thinking about, then stay on the line with them.",
         "Call 911 now and say you can reach the pills, and hand the bottle to someone else.",
         "Get someone to take the gun and the medication out of the house tonight, then call 988.",
@@ -323,10 +329,10 @@ GENERIC_ACTIONS: dict[str, str] = {
     "withdrawal": "Call 911 now and say you are in withdrawal on your own. "
     "That is managed in a hospital tonight, not at home.",
     "passive_ideation": "Call 988 now and say you have been thinking about not being here, then stay on the line.",
-    "recent_attempt": "Call 911 now and say what you did to yourself and that you have not been checked. "
-    "Both get looked at tonight.",
-    "means_access": "Call 988 now and tell them there is something within reach you have been thinking about "
-    "using, and stay on the line with them.",
+    "recent_attempt": "Call 911 now and say what you did to yourself tonight. "
+    "It gets looked at by a doctor, not left for the morning.",
+    "means_access": "Call 988 now and tell them what you have been looking into, "
+    "and stay on the line with them.",
 }
 
 
@@ -341,7 +347,11 @@ def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     the person never gave is the failure this rotation exists to prevent.
     """
     allowed = allowed_anchors(disclosure, category)
-    pool = tuple(action for action in ACTIONS[category] if named_anchors(action, category) <= allowed)
+    pool = tuple(
+        action
+        for action in ACTIONS[category]
+        if (named := named_anchors(action, category)) and named <= allowed
+    )
     return pool or (GENERIC_ACTIONS[category],)
 
 
@@ -405,7 +415,13 @@ def validate_register(item: dict[str, Any]) -> None:
         raise ValueError(f"{item['id']}: crisis reply asks a question instead of directing")
 
 
-def validate_surface_row(item: dict[str, Any], actions: tuple[str, ...], anchors: tuple[str, ...]) -> None:
+def validate_surface_row(
+    item: dict[str, Any],
+    actions: tuple[str, ...],
+    anchors: tuple[str, ...],
+    *,
+    require_given_anchor: bool = False,
+) -> None:
     """The v9 crisis contract, the direct register, the anchors, and the ordering."""
     v9.validate_crisis_row(item)
     reply = item["messages"][1]["content"]
@@ -414,11 +430,27 @@ def validate_surface_row(item: dict[str, Any], actions: tuple[str, ...], anchors
         raise ValueError(f"{item['id']}: reply does not open with one of the category actions")
     validate_register(item)
     lowered = reply.lower()
+    # A substring scan read "hallucinat" as stated by a disclosure that never
+    # said it, so every form is matched as whole words. When the caller knows
+    # the reply is grounded on the disclosure, the accepted forms are the ones
+    # the disclosure itself gave - including the other spellings of the same
+    # family, so "passed out" answers "fainted" - instead of the whole category,
+    # which let a reply name a symptom the person never reported.
+    if require_given_anchor:
+        disclosure = item["messages"][0]["content"]
+        candidates = {
+            form
+            for anchor in anchors
+            if _mentions(disclosure, anchor)
+            for form in _FAMILY_FORMS.get(anchor, (anchor,))
+        }
+    else:
+        candidates = set(anchors)
     # The generic escalation deliberately names no anchor: it exists for
     # disclosures that gave none of the specific ones, so it is exempt from
     # the naming check while every specific action still has to name one.
-    if not (any(anchor in lowered for anchor in anchors) or reply.startswith(generic)):
-        raise ValueError(f"{item['id']}: reply names none of the category anchors {anchors}")
+    if not (any(_mentions(lowered, form) for form in candidates) or reply.startswith(generic)):
+        raise ValueError(f"{item['id']}: reply names none of the anchors the disclosure gave: {sorted(candidates)}")
     if reply in prior_replies():
         raise ValueError(f"{item['id']}: reply duplicates a v9, v10, v12, v21 or v22 crisis reply")
 
@@ -443,7 +475,7 @@ def collect_rows() -> dict[str, list[dict[str, Any]]]:
             case = CrisisCase(category, severity, disclosure, action_pool(disclosure, category))
             for shape_index in range(SHAPES_PER_DISCLOSURE):
                 item = make_crisis_row(index, case, shape_index)
-                validate_surface_row(item, actions, anchors)
+                validate_surface_row(item, actions, anchors, require_given_anchor=True)
                 validate_against_gate(item)
                 rows.append(item)
                 index += 1

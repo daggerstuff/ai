@@ -443,6 +443,8 @@ def stamp_release_identity(
 class _Release(v17._Release):
     """v17's build, with the arc risk turns rewritten in place."""
 
+    shuffle_seed = SHUFFLE_SEED
+
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)
         self.overlay: dict[str, dict[int, str]] = {}

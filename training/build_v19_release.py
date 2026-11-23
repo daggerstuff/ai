@@ -121,6 +121,8 @@ def stamp_release_identity(
 class _Release(v17._Release):
     """v17's build with the corrected crisis families and no rewrite overlay."""
 
+    shuffle_seed = SHUFFLE_SEED
+
     def summary(self) -> dict[str, Any]:
         data = super().summary()
         data["release_id"] = RELEASE_ID

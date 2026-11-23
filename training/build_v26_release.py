@@ -26,8 +26,8 @@ grounded on a substance vocabulary and ``recent_attempt`` on a method vocabulary
 each with a one-object action surface (17 and 18 actions) and 52 rewritten
 disclosures, so a grounded reply names what was taken or how it happened. Three
 of the eight frames now lead with a reflection and then place the action
-("It cannot wait, and you do not have to face it alone. Call 911 now and tell
-them about the sleeping pills before you go back to sleep."), which makes
+("It is exactly as serious as it sounds. Call 911 now and tell them about the
+sleeping pills before you go back to sleep."), which makes
 escalation frame-invariant instead of position-dependent. Frames, anchors,
 controls, the strict gate at build time and the grounding contract are inherited
 from v25 unchanged, and ``means_access`` keeps v25's surface exactly.
