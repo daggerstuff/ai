@@ -289,6 +289,14 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
             "I can't promise that, with the right support and enough time to recover, you will be fine.",
             True,
         ),
+        (
+            "I can't promise that, even with steady professional support and regular check-ins, "
+            "everything will be okay.",
+            True,
+        ),
+        # An aside with its own finite clause resumes a reporting verb that has
+        # not taken its object, so the comma stays with the aside.
+        ("I can't promise, though I wish I could, everything will be okay.", True),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:
