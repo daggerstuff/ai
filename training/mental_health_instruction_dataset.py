@@ -381,9 +381,7 @@ def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
-def build_default_dataset(
-    output_dir: str | Path = _DEFAULT_OUTPUT_DIR, min_examples: int = 10000
-) -> tuple[Path, Path]:
+def build_default_dataset(output_dir: str | Path = _DEFAULT_OUTPUT_DIR, min_examples: int = 10000) -> tuple[Path, Path]:
     """Build a default mental health IFT dataset, augmenting seed data to reach min_examples."""
     builder = MentalHealthInstructionDatasetBuilder()
     builder.build_from_seed_vignettes(augment_per_vignette=max(1, min_examples // (len(SEED_VIGNETTES) * 5)))

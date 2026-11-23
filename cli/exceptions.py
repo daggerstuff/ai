@@ -16,6 +16,10 @@ class CLIBaseError(Exception):
         return self.message
 
 
+class CLIAuthError(CLIBaseError):
+    """Alias for authentication errors."""
+
+
 class CLIConfigError(CLIBaseError):
     """Raised when CLI configuration is invalid or cannot be loaded."""
 

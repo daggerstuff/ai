@@ -2,8 +2,6 @@ from datetime import datetime
 
 import pytest
 
-
-
 #!/usr/bin/env python3
 """
 Comprehensive Unit Tests for Processing Components
@@ -24,11 +22,12 @@ import sys
 import tempfile
 import unittest
 import warnings
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import numpy as np
 import pandas as pd
-from pathlib import Path
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 warnings.simplefilter("default")
@@ -196,7 +195,7 @@ class TestDataProcessingFunctions(unittest.TestCase):
                                 text_parts.append(f"{role}: {content}")
                     return "\n".join(text_parts)
                 return str(conversations)
-            except:
+            except Exception:
                 return json_str
 
         # Test valid JSON
@@ -424,7 +423,7 @@ class TestUtilityFunctions(unittest.TestCase):
         def parse_datetime(date_string):
             try:
                 return datetime.fromisoformat(date_string.replace("Z", "+00:00"))
-            except:
+            except Exception:
                 return None
 
         # Test valid datetime

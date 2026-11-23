@@ -57,16 +57,12 @@ class TestInquiryTypeClassification(unittest.TestCase):
         self.assertGreater(result.confidence, 0.0)
 
     def test_classifier_detects_guided(self):
-        result = self.clf.classify_utterance(
-            "When you feel anxious, what thoughts come up for you?"
-        )
+        result = self.clf.classify_utterance("When you feel anxious, what thoughts come up for you?")
         self.assertEqual(result.inquiry_type, InquiryType.GUIDED)
         self.assertGreater(result.confidence, 0.0)
 
     def test_classifier_detects_reflective(self):
-        result = self.clf.classify_utterance(
-            "How does that pattern show up elsewhere in your life?"
-        )
+        result = self.clf.classify_utterance("How does that pattern show up elsewhere in your life?")
         self.assertEqual(result.inquiry_type, InquiryType.REFLECTIVE)
         self.assertGreater(result.confidence, 0.0)
 
@@ -139,9 +135,9 @@ class TestInquiryTypeClassification(unittest.TestCase):
         conv = Conversation(
             conversation_id="sess-2",
             messages=[
-                Message(role="assistant", content="Tell me about that."),     # OPEN
+                Message(role="assistant", content="Tell me about that."),  # OPEN
                 Message(role="assistant", content="The patient appeared sad."),  # UNKNOWN
-                Message(role="assistant", content="Do you feel anxious?"),    # CLOSED
+                Message(role="assistant", content="Do you feel anxious?"),  # CLOSED
             ],
         )
         sess = self.clf.classify_session(conv)
@@ -263,11 +259,11 @@ class TestInquiryTypeClassification(unittest.TestCase):
         conv = Conversation(
             conversation_id="mixed",
             messages=[
-                Message(role="assistant", content="Tell me what's on your mind."),       # OPEN
-                Message(role="assistant", content="Do you feel anxious at work?"),         # CLOSED
-                Message(role="assistant", content="When you feel that, what happens?"),    # GUIDED
+                Message(role="assistant", content="Tell me what's on your mind."),  # OPEN
+                Message(role="assistant", content="Do you feel anxious at work?"),  # CLOSED
+                Message(role="assistant", content="When you feel that, what happens?"),  # GUIDED
                 Message(role="assistant", content="How does that pattern show up elsewhere?"),  # REFLECTIVE
-                Message(role="assistant", content="Have you noticed any triggers?"),         # CLOSED
+                Message(role="assistant", content="Have you noticed any triggers?"),  # CLOSED
             ],
         )
         sess = self.clf.classify_session(conv)
@@ -280,9 +276,7 @@ class TestInquiryTypeClassification(unittest.TestCase):
 
     def test_utterance_classification_carries_original_text(self):
         result = self.clf.classify_utterance("Tell me about that.")
-        uc = UtteranceClassification(
-            role="assistant", content="Tell me about that.", result=result
-        )
+        uc = UtteranceClassification(role="assistant", content="Tell me about that.", result=result)
         self.assertEqual(uc.content, "Tell me about that.")
         self.assertEqual(uc.result.inquiry_type, InquiryType.OPEN_ENDED)
 
@@ -454,15 +448,9 @@ class TestHallucinationReport(unittest.TestCase):
         report = HallucinationReport(
             response="test",
             findings=[
-                HallucinationFinding(
-                    detection_type="a", severity=HallucinationSeverity.LOW, description="low"
-                ),
-                HallucinationFinding(
-                    detection_type="b", severity=HallucinationSeverity.HIGH, description="high"
-                ),
-                HallucinationFinding(
-                    detection_type="c", severity=HallucinationSeverity.MEDIUM, description="medium"
-                ),
+                HallucinationFinding(detection_type="a", severity=HallucinationSeverity.LOW, description="low"),
+                HallucinationFinding(detection_type="b", severity=HallucinationSeverity.HIGH, description="high"),
+                HallucinationFinding(detection_type="c", severity=HallucinationSeverity.MEDIUM, description="medium"),
             ],
         )
         self.assertEqual(report.overall_severity, HallucinationSeverity.HIGH)
@@ -496,9 +484,7 @@ class TestHallucinationDetectorDetect(unittest.TestCase):
     def test_detect_clean_response(self) -> None:
         """A response consistent with the case data should not be flagged."""
         detector = HallucinationDetector(MDD_CASE)
-        report = detector.detect(
-            "I have been feeling very sad and worthless. I don't have much energy."
-        )
+        report = detector.detect("I have been feeling very sad and worthless. I don't have much energy.")
         self.assertFalse(
             report.is_hallucinated,
             f"Clean response was incorrectly flagged: {report.findings}",
@@ -517,13 +503,9 @@ class TestHallucinationDetectorDetect(unittest.TestCase):
     def test_detect_response_with_new_symptoms(self) -> None:
         """A response mentioning symptoms not in the case data should be flagged."""
         detector = HallucinationDetector(MDD_CASE)
-        report = detector.detect(
-            "I have been having flashbacks and panic attacks constantly."
-        )
+        report = detector.detect("I have been having flashbacks and panic attacks constantly.")
         self.assertTrue(report.is_hallucinated)
-        scope_findings = [
-            f for f in report.findings if f.detection_type == "scope_compliance"
-        ]
+        scope_findings = [f for f in report.findings if f.detection_type == "scope_compliance"]
         self.assertGreater(len(scope_findings), 0)
 
     def test_detect_response_with_new_diagnosis(self) -> None:
@@ -532,9 +514,7 @@ class TestHallucinationDetectorDetect(unittest.TestCase):
         report = detector.detect("I think I have schizophrenia.")
         self.assertTrue(report.is_hallucinated)
         diag_findings = [
-            f for f in report.findings
-            if f.detection_type == "scope_compliance"
-            and "schizophrenia" in f.description
+            f for f in report.findings if f.detection_type == "scope_compliance" and "schizophrenia" in f.description
         ]
         self.assertGreater(len(diag_findings), 0)
 
@@ -550,9 +530,7 @@ class TestHallucinationDetectorDetect(unittest.TestCase):
         detector = HallucinationDetector()
         report = detector.detect("I feel sad.")
         self.assertTrue(report.is_hallucinated)
-        self.assertEqual(
-            report.overall_severity, HallucinationSeverity.CRITICAL
-        )
+        self.assertEqual(report.overall_severity, HallucinationSeverity.CRITICAL)
 
 
 class TestFactualConsistency(unittest.TestCase):
@@ -560,38 +538,32 @@ class TestFactualConsistency(unittest.TestCase):
 
     def test_no_findings_for_consistent_response(self) -> None:
         detector = HallucinationDetector(MDD_CASE)
-        findings = detector.check_factual_consistency(
-            "I feel worthless and the world feels empty."
-        )
+        findings = detector.check_factual_consistency("I feel worthless and the world feels empty.")
         self.assertEqual(findings, [])
 
     def test_detects_negated_profile_fact(self) -> None:
         """Negating a fact from the profile should be flagged."""
         detector = HallucinationDetector(MDD_CASE)
-        findings = detector.check_factual_consistency(
-            "I am not worthless at all."
-        )
+        findings = detector.check_factual_consistency("I am not worthless at all.")
         neg_findings = [
-            f for f in findings
-            if f.detection_type == "factual_consistency"
-            and f.severity == HallucinationSeverity.HIGH
+            f
+            for f in findings
+            if f.detection_type == "factual_consistency" and f.severity == HallucinationSeverity.HIGH
         ]
         self.assertGreater(
-            len(neg_findings), 0,
+            len(neg_findings),
+            0,
             f"Expected negation finding, got: {findings}",
         )
 
     def test_detects_novel_symptom(self) -> None:
         """A response mentioning a symptom not in the profile should be flagged."""
         detector = HallucinationDetector(MDD_CASE)
-        findings = detector.check_factual_consistency(
-            "I've been having flashbacks and obsessing over things."
-        )
-        symptom_findings = [
-            f for f in findings if "symptom" in f.description.lower()
-        ]
+        findings = detector.check_factual_consistency("I've been having flashbacks and obsessing over things.")
+        symptom_findings = [f for f in findings if "symptom" in f.description.lower()]
         self.assertGreater(
-            len(symptom_findings), 0,
+            len(symptom_findings),
+            0,
             f"Expected symptom finding, got: {findings}",
         )
 
@@ -602,9 +574,7 @@ class TestTemporalConsistency(unittest.TestCase):
     def test_no_history_no_check(self) -> None:
         """Without session history, temporal check returns no findings."""
         detector = HallucinationDetector(MDD_CASE)
-        findings = detector.check_temporal_consistency(
-            "As I said before, I feel sad.", session_history=[]
-        )
+        findings = detector.check_temporal_consistency("As I said before, I feel sad.", session_history=[])
         self.assertEqual(findings, [])
 
     def test_contradicts_history(self) -> None:
@@ -616,12 +586,13 @@ class TestTemporalConsistency(unittest.TestCase):
             session_history=history,
         )
         contradiction_findings = [
-            f for f in findings
-            if f.detection_type == "temporal_consistency"
-            and f.severity == HallucinationSeverity.HIGH
+            f
+            for f in findings
+            if f.detection_type == "temporal_consistency" and f.severity == HallucinationSeverity.HIGH
         ]
         self.assertGreater(
-            len(contradiction_findings), 0,
+            len(contradiction_findings),
+            0,
             f"Expected contradiction finding, got: {findings}",
         )
 
@@ -633,10 +604,7 @@ class TestTemporalConsistency(unittest.TestCase):
             "Yes, I do feel very sad today.",
             session_history=history,
         )
-        contradiction_findings = [
-            f for f in findings
-            if f.severity == HallucinationSeverity.HIGH
-        ]
+        contradiction_findings = [f for f in findings if f.severity == HallucinationSeverity.HIGH]
         self.assertEqual(contradiction_findings, [])
 
 
@@ -652,14 +620,11 @@ class TestNumericalAccuracy(unittest.TestCase):
     def test_detects_inconsistent_conviction(self) -> None:
         """A conviction value contradicting the profile should be flagged."""
         detector = HallucinationDetector(MDD_CASE)
-        findings = detector.check_numerical_accuracy(
-            "My conviction is 0.1 for being worthless."
-        )
-        num_findings = [
-            f for f in findings if f.detection_type == "numerical_accuracy"
-        ]
+        findings = detector.check_numerical_accuracy("My conviction is 0.1 for being worthless.")
+        num_findings = [f for f in findings if f.detection_type == "numerical_accuracy"]
         self.assertGreater(
-            len(num_findings), 0,
+            len(num_findings),
+            0,
             f"Expected numerical finding, got: {findings}",
         )
 
@@ -668,9 +633,7 @@ class TestNumericalAccuracy(unittest.TestCase):
         detector = HallucinationDetector(MDD_CASE)
         findings = detector.check_numerical_accuracy("I'm 90% better now.")
         pct_findings = [
-            f for f in findings
-            if f.detection_type == "numerical_accuracy"
-            and f.severity == HallucinationSeverity.LOW
+            f for f in findings if f.detection_type == "numerical_accuracy" and f.severity == HallucinationSeverity.LOW
         ]
         self.assertGreater(len(pct_findings), 0)
 
@@ -688,19 +651,16 @@ class TestScopeCompliance(unittest.TestCase):
     def test_in_scope_response_no_findings(self) -> None:
         """A response using profile vocabulary should not be flagged."""
         detector = HallucinationDetector(MDD_CASE)
-        findings = detector.check_scope_compliance(
-            "I feel sad and worthless. I have no energy."
-        )
+        findings = detector.check_scope_compliance("I feel sad and worthless. I have no energy.")
         self.assertEqual(findings, [])
 
     def test_out_of_scope_symptom(self) -> None:
         """A response introducing a new symptom should be flagged."""
         detector = HallucinationDetector(MDD_CASE)
-        findings = detector.check_scope_compliance(
-            "I've been having flashbacks of my trauma."
-        )
+        findings = detector.check_scope_compliance("I've been having flashbacks of my trauma.")
         symptom_findings = [
-            f for f in findings
+            f
+            for f in findings
             if f.detection_type == "scope_compliance"
             and "symptom" in f.description.lower()
             and f.severity == HallucinationSeverity.HIGH
@@ -712,9 +672,7 @@ class TestScopeCompliance(unittest.TestCase):
         detector = HallucinationDetector(MDD_CASE)
         findings = detector.check_scope_compliance("I think I have PTSD.")
         diag_findings = [
-            f for f in findings
-            if f.detection_type == "scope_compliance"
-            and "ptsd" in f.description.lower()
+            f for f in findings if f.detection_type == "scope_compliance" and "ptsd" in f.description.lower()
         ]
         self.assertGreater(len(diag_findings), 0)
 
@@ -725,9 +683,7 @@ class TestScopeCompliance(unittest.TestCase):
             "I feel so guilty all the time."  # guilt not in emotional_responses
         )
         emotion_findings = [
-            f for f in findings
-            if f.detection_type == "scope_compliance"
-            and "emotional" in f.description.lower()
+            f for f in findings if f.detection_type == "scope_compliance" and "emotional" in f.description.lower()
         ]
         self.assertGreater(len(emotion_findings), 0)
 
@@ -819,9 +775,7 @@ class TestIntegrationWithPatientPsi(unittest.TestCase):
             ],
         }
         detector = HallucinationDetector(mdd_profile)
-        report = detector.detect(
-            "I feel sad and hopeless. I've been withdrawing from my friends."
-        )
+        report = detector.detect("I feel sad and hopeless. I've been withdrawing from my friends.")
         self.assertFalse(
             report.is_hallucinated,
             f"Clean MDD response was flagged: {report.findings}",
@@ -851,9 +805,7 @@ class TestIntegrationWithPatientPsi(unittest.TestCase):
         }
         detector = HallucinationDetector(gad_profile)
         # Clean response using profile vocabulary + synonyms
-        report = detector.detect(
-            "I feel anxious and worried all the time. I can't concentrate."
-        )
+        report = detector.detect("I feel anxious and worried all the time. I can't concentrate.")
         self.assertFalse(
             report.is_hallucinated,
             f"Clean GAD response was flagged: {report.findings}",

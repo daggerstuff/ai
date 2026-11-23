@@ -7,8 +7,6 @@ Generated test structure for production readiness validation.
 import unittest
 from unittest.mock import patch
 
-import pytest
-
 # Import the module being tested
 try:
     from ai.tools.utilities.pipelines.analytics_dashboard import AnalyticsDashboard

@@ -53,10 +53,10 @@ class PluginType(str, Enum):
 def _get_module_and_object_names(fully_qualified_object: str) -> tuple[str, str]:
     try:
         module_name, object_name = fully_qualified_object.rsplit(".", 1)
-    except ValueError:
+    except ValueError as exc:
         # If fully_qualified_object does not have any periods, the rsplit call will return
         # a list of length 1 and the variable assignment above will raise ValueError
-        raise PluginLoadError("Expected a fully-qualified object name, e.g. 'my_plugin.config.MyConfig'")
+        raise PluginLoadError("Expected a fully-qualified object name, e.g. 'my_plugin.config.MyConfig'") from exc
 
     return module_name, object_name
 
@@ -65,8 +65,8 @@ def _check_class_exists_in_file(filepath: str, class_name: str) -> None:
     try:
         with open(filepath, "r") as file:
             source = file.read()
-    except FileNotFoundError:
-        raise PluginLoadError(f"Could not read source code at {filepath!r}")
+    except FileNotFoundError as exc:
+        raise PluginLoadError(f"Could not read source code at {filepath!r}") from exc
 
     tree = ast.parse(source)
     for node in ast.walk(tree):
@@ -127,8 +127,8 @@ class Plugin(BaseModel):
         module_name, object_name = _get_module_and_object_names(value)
         try:
             spec = importlib.util.find_spec(module_name)
-        except:
-            raise PluginLoadError(f"Could not find module {module_name!r}")
+        except Exception as exc:
+            raise PluginLoadError(f"Could not find module {module_name!r}") from exc
 
         if spec is None or spec.origin is None:
             raise PluginLoadError(f"Error finding source for module {module_name!r}")
@@ -171,5 +171,5 @@ class Plugin(BaseModel):
         module = importlib.import_module(module_name)
         try:
             return getattr(module, object_name)
-        except AttributeError:
-            raise PluginLoadError(f"Could not find class {object_name!r} in module {module_name!r}")
+        except AttributeError as exc:
+            raise PluginLoadError(f"Could not find class {object_name!r} in module {module_name!r}") from exc

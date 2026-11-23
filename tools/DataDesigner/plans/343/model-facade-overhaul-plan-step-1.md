@@ -431,6 +431,7 @@ class ImageGenerationClient(Protocol):
 
 class ModelClient(ChatCompletionClient, EmbeddingClient, ImageGenerationClient, Protocol):
     provider_name: str
+
     def supports_chat_completion(self) -> bool: ...
     def supports_embeddings(self) -> bool: ...
     def supports_image_generation(self) -> bool: ...
@@ -832,8 +833,7 @@ class OpenAICompatibleClient(HTTPAdapterBase, ModelClient):
         )
         return parse_openai_chat_response(response_json)
 
-    async def acompletion(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
-        ...
+    async def acompletion(self, request: ChatCompletionRequest) -> ChatCompletionResponse: ...
 
     def embeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:
         payload = {"model": request.model, "input": request.inputs}
@@ -845,8 +845,7 @@ class OpenAICompatibleClient(HTTPAdapterBase, ModelClient):
         )
         return parse_openai_embedding_response(response_json)
 
-    async def aembeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:
-        ...
+    async def aembeddings(self, request: EmbeddingRequest) -> EmbeddingResponse: ...
 
     def generate_image(self, request: ImageGenerationRequest) -> ImageGenerationResponse:
         # Autoregressive image models may use chat route; diffusion-style models use image route.
@@ -871,8 +870,7 @@ class OpenAICompatibleClient(HTTPAdapterBase, ModelClient):
         )
         return parse_openai_image_response(response_json)
 
-    async def agenerate_image(self, request: ImageGenerationRequest) -> ImageGenerationResponse:
-        ...
+    async def agenerate_image(self, request: ImageGenerationRequest) -> ImageGenerationResponse: ...
 ```
 
 ### Anthropic adapter skeleton
@@ -909,8 +907,7 @@ class AnthropicClient(HTTPAdapterBase, ModelClient):
         )
         return parse_anthropic_chat_response(response_json)
 
-    async def acompletion(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
-        ...
+    async def acompletion(self, request: ChatCompletionRequest) -> ChatCompletionResponse: ...
 
     def embeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:
         raise ProviderError.unsupported_capability(provider_name=self.provider_name, operation="embeddings")

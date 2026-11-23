@@ -17,7 +17,7 @@ import training.build_agent_tool_sft_v9 as v9
 import training.build_agent_tool_sft_v20 as v20
 import training.build_agent_tool_sft_v21 as v21
 import training.build_agent_tool_sft_v22 as v22
-from ai.qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
+from qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
 
 MESSAGES_PER_ROW = 2
 EXPECTED_SHAPES = 8

@@ -6,9 +6,7 @@ from typing import Any, cast
 import torch
 import transformers
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("PairGeneration")
 
 
@@ -27,9 +25,7 @@ class AuthenticityValidator:
     def __init__(self, device: int = 0 if torch.cuda.is_available() else -1):
         logger.info(f"Loading authenticity classification model on device {device}...")
         pipeline_func = cast(Any, transformers.pipeline)
-        self.classifier = pipeline_func(
-            "zero-shot-classification", model="facebook/bart-large-mnli", device=device
-        )
+        self.classifier = pipeline_func("zero-shot-classification", model="facebook/bart-large-mnli", device=device)
 
     def is_authentic(self, text: str, threshold: float = 0.5) -> bool:
         if not text.strip():
@@ -125,9 +121,7 @@ class TherapeuticPairGenerator:
                     for pair in valid_pairs:
                         f.write(json.dumps(pair) + "\n")
 
-                logger.info(
-                    f"Saved {len(valid_pairs)} high-quality therapeutic pairs to {out_file}"
-                )
+                logger.info(f"Saved {len(valid_pairs)} high-quality therapeutic pairs to {out_file}")
 
             except Exception as e:
                 logger.error(f"Failed to process {file_path}: {e}")

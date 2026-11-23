@@ -18,6 +18,7 @@ import sqlite3
 import traceback
 import warnings
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -28,7 +29,6 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 from textstat import flesch_reading_ease
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
@@ -140,7 +140,7 @@ class DatasetPerformanceImpactAnalyzer:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
             return str(conversations)
-        except:
+        except Exception:
             return json_str
 
     def _calculate_quality_score(self, row: pd.Series) -> float:
@@ -154,7 +154,7 @@ class DatasetPerformanceImpactAnalyzer:
         # Quality components
         try:
             readability = max(0, min(100, flesch_reading_ease(text))) / 100
-        except:
+        except Exception:
             readability = 0.5
 
         # Engagement indicators

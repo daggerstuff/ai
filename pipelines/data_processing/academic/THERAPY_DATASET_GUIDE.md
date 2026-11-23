@@ -26,10 +26,7 @@ HuggingFace Hub) with specific criteria:
 from ai.pipelines.data_processing.academic import find_therapy_datasets
 
 # Find datasets with 20+ turn conversations
-datasets = find_therapy_datasets(
-    min_turns=20,
-    min_quality=0.5
-)
+datasets = find_therapy_datasets(min_turns=20, min_quality=0.5)
 
 # Results are automatically saved to:
 # ai/training/ready_packages/datasets/sourced/therapy_datasets.json
@@ -44,11 +41,7 @@ from ai.pipelines.data_processing.academic import TherapyDatasetSourcing
 sourcing = TherapyDatasetSourcing()
 
 # Search HuggingFace Hub
-datasets = sourcing.search_huggingface(
-    query="therapy conversation mental health",
-    min_turns=20,
-    limit=50
-)
+datasets = sourcing.search_huggingface(query="therapy conversation mental health", min_turns=20, limit=50)
 
 # Apply filters
 datasets = sourcing.filter_by_quality(datasets, min_quality=0.6)
@@ -74,25 +67,25 @@ Each dataset includes comprehensive metadata:
 ```python
 @dataclass
 class DatasetMetadata:
-    name: str                          # Dataset ID (e.g., "user/dataset-name")
-    source: str                        # Source type ("huggingface", "github", etc.)
-    url: str                           # Direct URL to dataset
-    description: str                   # Dataset description
-    tags: List[str]                    # Tags/keywords
-    downloads: int                     # Number of downloads
-    likes: int                         # Number of likes/stars
-    size_bytes: Optional[int]          # Dataset size in bytes
-    num_conversations: Optional[int]   # Number of conversations
-    avg_turns: Optional[float]         # Average turns per conversation
-    min_turns: Optional[int]           # Minimum turns
-    max_turns: Optional[int]           # Maximum turns
-    conversation_format: Optional[str] # "multi_turn", "medium_turn", etc.
-    languages: List[str]               # Supported languages
-    license: Optional[str]             # Dataset license
-    created_at: Optional[str]          # Creation date
-    updated_at: Optional[str]          # Last update date
-    quality_score: float               # Quality score (0.0-1.0)
-    therapeutic_relevance: float       # Therapeutic relevance (0.0-1.0)
+    name: str  # Dataset ID (e.g., "user/dataset-name")
+    source: str  # Source type ("huggingface", "github", etc.)
+    url: str  # Direct URL to dataset
+    description: str  # Dataset description
+    tags: List[str]  # Tags/keywords
+    downloads: int  # Number of downloads
+    likes: int  # Number of likes/stars
+    size_bytes: Optional[int]  # Dataset size in bytes
+    num_conversations: Optional[int]  # Number of conversations
+    avg_turns: Optional[float]  # Average turns per conversation
+    min_turns: Optional[int]  # Minimum turns
+    max_turns: Optional[int]  # Maximum turns
+    conversation_format: Optional[str]  # "multi_turn", "medium_turn", etc.
+    languages: List[str]  # Supported languages
+    license: Optional[str]  # Dataset license
+    created_at: Optional[str]  # Creation date
+    updated_at: Optional[str]  # Last update date
+    quality_score: float  # Quality score (0.0-1.0)
+    therapeutic_relevance: float  # Therapeutic relevance (0.0-1.0)
 ```
 
 ---
@@ -105,7 +98,7 @@ class DatasetMetadata:
 datasets = sourcing.search_huggingface(
     query="therapy counseling dialogue",
     min_turns=15,  # Minimum conversation turns
-    limit=30       # Maximum results
+    limit=30,  # Maximum results
 )
 ```
 
@@ -122,15 +115,11 @@ datasets = sourcing.search_huggingface(
 long_conversations = sourcing.filter_by_conversation_length(
     datasets,
     min_turns=20,
-    max_turns=None  # No maximum
+    max_turns=None,  # No maximum
 )
 
 # Medium-length conversations (10-19 turns)
-medium_conversations = sourcing.filter_by_conversation_length(
-    datasets,
-    min_turns=10,
-    max_turns=19
-)
+medium_conversations = sourcing.filter_by_conversation_length(datasets, min_turns=10, max_turns=19)
 ```
 
 ### 3. Filter by Quality
@@ -139,7 +128,7 @@ medium_conversations = sourcing.filter_by_conversation_length(
 # High-quality datasets only
 high_quality = sourcing.filter_by_quality(
     datasets,
-    min_quality=0.7  # 0.0-1.0 scale
+    min_quality=0.7,  # 0.0-1.0 scale
 )
 ```
 
@@ -157,7 +146,7 @@ high_quality = sourcing.filter_by_quality(
 # Highly relevant to therapy/mental health
 relevant = sourcing.filter_by_therapeutic_relevance(
     datasets,
-    min_relevance=0.6  # 0.0-1.0 scale
+    min_relevance=0.6,  # 0.0-1.0 scale
 )
 ```
 
@@ -192,8 +181,8 @@ ranked = sourcing.rank_datasets(datasets)
 custom_weights = {
     "quality": 0.2,
     "relevance": 0.2,
-    "turns": 0.5,      # 50% weight on conversation length
-    "popularity": 0.1
+    "turns": 0.5,  # 50% weight on conversation length
+    "popularity": 0.1,
 }
 
 ranked = sourcing.rank_datasets(datasets, weights=custom_weights)
@@ -213,10 +202,7 @@ ranked = sourcing.rank_datasets(datasets, weights=custom_weights)
 
 ```python
 # Export filtered/ranked datasets
-output_path = sourcing.export_results(
-    datasets,
-    filename="therapy_datasets_20plus_turns.json"
-)
+output_path = sourcing.export_results(datasets, filename="therapy_datasets_20plus_turns.json")
 
 print(f"Saved to: {output_path}")
 ```
@@ -260,10 +246,7 @@ print(report)
 
 ```python
 # Find datasets with 20+ turn conversations
-datasets = find_therapy_datasets(
-    min_turns=20,
-    min_quality=0.5
-)
+datasets = find_therapy_datasets(min_turns=20, min_quality=0.5)
 ```
 
 ### 2. Find High-Quality CBT Datasets
@@ -272,11 +255,7 @@ datasets = find_therapy_datasets(
 sourcing = TherapyDatasetSourcing()
 
 # Search for CBT-specific datasets
-datasets = sourcing.search_huggingface(
-    query="cognitive behavioral therapy CBT dialogue",
-    min_turns=15,
-    limit=30
-)
+datasets = sourcing.search_huggingface(query="cognitive behavioral therapy CBT dialogue", min_turns=15, limit=30)
 
 # Filter for high quality
 datasets = sourcing.filter_by_quality(datasets, min_quality=0.7)
@@ -287,12 +266,7 @@ datasets = sourcing.rank_datasets(datasets)
 
 ```python
 # Search multiple queries
-queries = [
-    "therapy conversation",
-    "counseling dialogue",
-    "mental health session",
-    "psychotherapy transcript"
-]
+queries = ["therapy conversation", "counseling dialogue", "mental health session", "psychotherapy transcript"]
 
 all_datasets = []
 for query in queries:
@@ -312,11 +286,13 @@ datasets = sourcing.search_huggingface("therapy", limit=50)
 
 # Custom filtering
 filtered = [
-    d for d in datasets
-    if d.avg_turns and d.avg_turns >= 25  # Very long conversations
-    and d.downloads >= 1000                # Popular
-    and d.license                          # Has license
-    and "2024" in (d.updated_at or "")     # Recently updated
+    d
+    for d in datasets
+    if d.avg_turns
+    and d.avg_turns >= 25  # Very long conversations
+    and d.downloads >= 1000  # Popular
+    and d.license  # Has license
+    and "2024" in (d.updated_at or "")  # Recently updated
 ]
 
 # Rank by conversation length

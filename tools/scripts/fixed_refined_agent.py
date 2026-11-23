@@ -8,6 +8,8 @@ import sys
 
 sys.path.append("/root/pixelated/ai/scripts")
 
+from typing import Dict
+
 from refined_intelligent_agent import RefinedIntelligentAgent
 
 

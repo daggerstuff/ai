@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from ai.tools.utilities.torch_proxy import torch
 from ai.training.defense_mechanisms import (
     DEFENSE_LABELS,
     DEFENSE_MATURITY,
@@ -29,7 +30,6 @@ from ai.training.defense_mechanisms.model import (
     FocalLoss,
     compute_r_drop_loss,
 )
-from ai.tools.utilities.torch_proxy import torch
 
 # -- Fixtures --
 

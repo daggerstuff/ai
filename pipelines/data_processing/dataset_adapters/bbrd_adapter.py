@@ -98,9 +98,7 @@ class BBRDAdapter(BaseDatasetAdapter):
         records: list[dict[str, Any]] = []
 
         for row in raw_data:
-            post_text = (
-                row.get("post_text") or row.get("text") or row.get("content") or row.get("body") or ""
-            ).strip()
+            post_text = (row.get("post_text") or row.get("text") or row.get("content") or row.get("body") or "").strip()
             if not post_text:
                 continue
 
@@ -128,7 +126,7 @@ class BBRDAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": diagnostic,
                 "demographic_tags": demographic_tags,
                 "linguistic_style": "informal",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "user_id": row.get("user_id") or row.get("user") or row.get("username", ""),
                 "label": label,
                 "timestamp": row.get("timestamp") or row.get("date_time") or row.get("date", ""),

@@ -17,8 +17,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from ai.pipelines.data_processing.sourcing.processors.pii_stripper import PIIStripReport, PIIStripResult, strip_pii_from_record
-from ai.pipelines.data_processing.sourcing.processors.toxicity_filter import ToxicityReport, ToxicityResult, score_record
+from ai.pipelines.data_processing.sourcing.processors.pii_stripper import (
+    PIIStripReport,
+    PIIStripResult,
+    strip_pii_from_record,
+)
+from ai.pipelines.data_processing.sourcing.processors.toxicity_filter import (
+    ToxicityReport,
+    ToxicityResult,
+    score_record,
+)
 
 
 @dataclass

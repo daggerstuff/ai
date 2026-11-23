@@ -19,12 +19,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
+    from ai.pipelines.model_training.safety.safety.guards import InputGuard
     from ai.research.gates import GateDecision, GateResult, GatingReport
     from ai.research.gates.consent_gate import ConsentGateChecker
     from ai.research.gates.crisis_detector import CrisisDetector
     from ai.research.gates.pii_redactor import PiiRedactor
     from ai.research.gates.trauma_filter import TraumaFilter
-    from ai.pipelines.model_training.safety.safety.guards import InputGuard
 
 _repo_root = Path(__file__).resolve().parent.parent.parent
 if str(_repo_root) not in sys.path:

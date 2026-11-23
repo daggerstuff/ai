@@ -58,7 +58,7 @@ def load_config_file(file_path: Path) -> dict:
         return content
 
     except yaml.YAMLError as e:
-        raise InvalidFileFormatError(f"Invalid YAML format in {file_path}: {e}")
+        raise InvalidFileFormatError(f"Invalid YAML format in {file_path}: {e}") from e
 
 
 def save_config_file(file_path: Path, config: dict) -> None:

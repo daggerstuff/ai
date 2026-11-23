@@ -16,16 +16,12 @@ from pathlib import Path
 from training.forge.client import CoreWeaveForgeClient
 from training.forge.config import ForgeConfig
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("train_sft_serverless")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Launch and manage CoreWeave Forge Serverless SFT jobs"
-    )
+    parser = argparse.ArgumentParser(description="Launch and manage CoreWeave Forge Serverless SFT jobs")
     parser.add_argument(
         "--manifest",
         type=Path,

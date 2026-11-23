@@ -299,7 +299,7 @@ class DOAJClient:
             if start_date:
                 return datetime.fromisoformat(start_date.replace("Z", "+00:00"))
 
-        except (ValueError, TypeError, AttributeError):
+        except ValueError, TypeError, AttributeError:
             pass
 
         return datetime.now(UTC)

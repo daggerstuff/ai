@@ -12,9 +12,9 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
+from ai.configs.jit_scenario_injector import JITScenarioInjector, TriggerDecision
 from ai.data.raw.receipt import Ledger, ReceiptEnvelope
 from ai.qa.validation.enhanced_safety_filter import EnhancedSafetyFilter, SafetyLevel
-from ai.configs.jit_scenario_injector import JITScenarioInjector, TriggerDecision
 
 
 def _make_receipt(prev_hash: str, model: str = "test-model-v1") -> ReceiptEnvelope:

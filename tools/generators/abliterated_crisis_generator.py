@@ -418,7 +418,11 @@ class AbliteratedCrisisGenerator:
                     # Generate counselor response
                     counselor_prompt = self._create_counselor_prompt(scenario, client_response)
                     if counselor_response := self._call_model(
-                        [*context_messages, {"role": "user", "content": f"Client said: {client_response}"}, {"role": "user", "content": counselor_prompt}]
+                        [
+                            *context_messages,
+                            {"role": "user", "content": f"Client said: {client_response}"},
+                            {"role": "user", "content": counselor_prompt},
+                        ]
                     ):
                         conversation["conversation"].append(
                             {

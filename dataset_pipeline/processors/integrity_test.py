@@ -46,6 +46,7 @@ REQUIRED_V7_FIELDS = {"source", "task_type"}
 
 # --- Data classes ---
 
+
 @dataclass
 class IntegrityViolation:
     """A single integrity violation found in a record."""
@@ -97,6 +98,7 @@ class IntegrityReport:
 
 # --- Integrity checks ---
 
+
 def _estimate_tokens(text: str) -> int:
     """Rough token estimate: chars / 4, minimum 1."""
     return max(1, len(text) // _CHARS_PER_TOKEN)
@@ -127,10 +129,7 @@ def _check_role_validity(messages: list[dict]) -> str | None:
     if len(conversation_msgs) >= 2:
         for i in range(len(conversation_msgs) - 1):
             if conversation_msgs[i]["role"] == conversation_msgs[i + 1]["role"]:
-                return (
-                    f"Consecutive same-role '{conversation_msgs[i]['role']}' "
-                    f"at conversation position {i}-{i + 1}"
-                )
+                return f"Consecutive same-role '{conversation_msgs[i]['role']}' at conversation position {i}-{i + 1}"
 
     # Ensure at least one user and one assistant
     roles = {m.get("role") for m in messages}
@@ -156,25 +155,16 @@ def _check_token_limits(
             continue
 
         if len(content) > max_message_chars:
-            return (
-                f"Message {i} exceeds {max_message_chars} chars "
-                f"(got {len(content)})"
-            )
+            return f"Message {i} exceeds {max_message_chars} chars (got {len(content)})"
 
         tokens = _estimate_tokens(content)
         total_tokens += tokens
 
         if tokens > max_tokens_per_message:
-            return (
-                f"Message {i} exceeds {max_tokens_per_message} tokens "
-                f"(estimated {tokens})"
-            )
+            return f"Message {i} exceeds {max_tokens_per_message} tokens (estimated {tokens})"
 
     if total_tokens > max_tokens_per_conversation:
-        return (
-            f"Conversation exceeds {max_tokens_per_conversation} tokens "
-            f"(estimated {total_tokens})"
-        )
+        return f"Conversation exceeds {max_tokens_per_conversation} tokens (estimated {total_tokens})"
 
     return None
 
@@ -222,14 +212,16 @@ def check_record(
     violations: list[IntegrityViolation] = []
 
     def _add(severity: str, check: str, message: str, field_path: str | None = None) -> None:
-        violations.append(IntegrityViolation(
-            severity=severity,
-            check=check,
-            message=message,
-            record_index=index,
-            shard_file=shard_file,
-            field_path=field_path,
-        ))
+        violations.append(
+            IntegrityViolation(
+                severity=severity,
+                check=check,
+                message=message,
+                record_index=index,
+                shard_file=shard_file,
+                field_path=field_path,
+            )
+        )
 
     # 1. ChatML structure
     struct_err = _check_chatml_structure(record)
@@ -300,19 +292,22 @@ def run_integrity_test(
     elif path.is_dir():
         files = sorted(path.rglob("*.jsonl"))
         # Exclude report/log files
-        files = [
-            f for f in files
-            if not f.name.endswith(("report.jsonl", "rejection_log.jsonl", "stats.json"))
-        ]
+        files = [f for f in files if not f.name.endswith(("report.jsonl", "rejection_log.jsonl", "stats.json"))]
     else:
         report.add_violation(
-            "error", "file_access", f"Path not found or not a JSONL: {path}", -1,
+            "error",
+            "file_access",
+            f"Path not found or not a JSONL: {path}",
+            -1,
         )
         return report
 
     if not files:
         report.add_violation(
-            "error", "file_access", f"No JSONL files found in {path}", -1,
+            "error",
+            "file_access",
+            f"No JSONL files found in {path}",
+            -1,
         )
         return report
 
@@ -330,17 +325,21 @@ def run_integrity_test(
                     record = json.loads(line)
                 except json.JSONDecodeError as e:
                     report.add_violation(
-                        "error", "json_parse",
+                        "error",
+                        "json_parse",
                         f"Invalid JSON at line {line_num + 1}: {e}",
-                        record_index, str(jsonl_file),
+                        record_index,
+                        str(jsonl_file),
                     )
                     continue
 
                 if not isinstance(record, dict):
                     report.add_violation(
-                        "error", "json_parse",
+                        "error",
+                        "json_parse",
                         f"Record is not a JSON object at line {line_num + 1}",
-                        record_index, str(jsonl_file),
+                        record_index,
+                        str(jsonl_file),
                     )
                     continue
 
@@ -383,8 +382,7 @@ def format_report(report: IntegrityReport) -> str:
             location = f"[{v.shard_file}]" if v.shard_file else ""
             field_loc = f" ({v.field_path})" if v.field_path else ""
             lines.append(
-                f"  [{v.severity.upper()}] {v.check}: {v.message} "
-                f"(record #{v.record_index}){location}{field_loc}"
+                f"  [{v.severity.upper()}] {v.check}: {v.message} (record #{v.record_index}){location}{field_loc}"
             )
 
     return "\n".join(lines)

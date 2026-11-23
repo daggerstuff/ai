@@ -131,7 +131,33 @@ class QualityAssuranceWorkflow:
         self.register_workflow("standard_qa", "Standard Quality Assurance", standard_qa_steps)
 
         # Comprehensive Quality Assurance Workflow
-        comprehensive_qa_steps = [*standard_qa_steps, WorkflowStep(step_id="linguistic_analysis", name="Linguistic Analysis", description="Perform detailed linguistic and semantic analysis", function=self._perform_linguistic_analysis), WorkflowStep(step_id="therapeutic_effectiveness", name="Therapeutic Effectiveness", description="Assess therapeutic effectiveness and outcomes", function=self._assess_therapeutic_effectiveness), WorkflowStep(step_id="cultural_sensitivity", name="Cultural Sensitivity Check", description="Validate cultural sensitivity and inclusivity", function=self._check_cultural_sensitivity), WorkflowStep(step_id="ethical_compliance", name="Ethical Compliance Review", description="Review ethical compliance and professional standards", function=self._review_ethical_compliance)]
+        comprehensive_qa_steps = [
+            *standard_qa_steps,
+            WorkflowStep(
+                step_id="linguistic_analysis",
+                name="Linguistic Analysis",
+                description="Perform detailed linguistic and semantic analysis",
+                function=self._perform_linguistic_analysis,
+            ),
+            WorkflowStep(
+                step_id="therapeutic_effectiveness",
+                name="Therapeutic Effectiveness",
+                description="Assess therapeutic effectiveness and outcomes",
+                function=self._assess_therapeutic_effectiveness,
+            ),
+            WorkflowStep(
+                step_id="cultural_sensitivity",
+                name="Cultural Sensitivity Check",
+                description="Validate cultural sensitivity and inclusivity",
+                function=self._check_cultural_sensitivity,
+            ),
+            WorkflowStep(
+                step_id="ethical_compliance",
+                name="Ethical Compliance Review",
+                description="Review ethical compliance and professional standards",
+                function=self._review_ethical_compliance,
+            ),
+        ]
 
         self.register_workflow(
             "comprehensive_qa",

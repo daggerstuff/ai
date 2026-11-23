@@ -140,7 +140,9 @@ class ProductionDatabaseSetup:
             logger.info("Starting conversation data migration...")
 
             # Run the migration script
-            migration_script = Path(__file__).parent.parent.parent / "pipelines" / "data_processing" / "migrate_conversations_to_db.py"
+            migration_script = (
+                Path(__file__).parent.parent.parent / "pipelines" / "data_processing" / "migrate_conversations_to_db.py"
+            )
 
             result = subprocess.run(
                 [sys.executable, str(migration_script)], capture_output=True, text=True, check=False

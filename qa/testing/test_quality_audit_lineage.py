@@ -212,9 +212,7 @@ class TestQualityAuditSystemIntegration:
                     "en",
                 )
             )
-        conn.executemany(
-            "INSERT INTO conversations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rows
-        )
+        conn.executemany("INSERT INTO conversations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rows)
         conn.commit()
         conn.close()
         return db_path
@@ -227,9 +225,7 @@ class TestQualityAuditSystemIntegration:
         assert Path(__file__).resolve().parents[3] == _PROJECT_ROOT
         assert (_PROJECT_ROOT / "ai").is_dir()
 
-    def test_audit_data_stamps_lineage_for_every_conversation(
-        self, audit_system: QualityAuditSystem
-    ) -> None:
+    def test_audit_data_stamps_lineage_for_every_conversation(self, audit_system: QualityAuditSystem) -> None:
         quality_data = audit_system._get_quality_audit_data()
         assert quality_data["total_conversations"] == AUDITED_CONVERSATION_COUNT
         stats = quality_data["lineage_stats"]
@@ -243,27 +239,21 @@ class TestQualityAuditSystemIntegration:
             assert DOWNSTREAM_AUDITOR in lineage.downstream_consumers
             assert f"dataset:{lineage.source}" in lineage.parent_artifact_ids
 
-    def test_dataset_nodes_registered_with_ingestion_step(
-        self, audit_system: QualityAuditSystem
-    ) -> None:
+    def test_dataset_nodes_registered_with_ingestion_step(self, audit_system: QualityAuditSystem) -> None:
         audit_system._get_quality_audit_data()
         dataset = audit_system.lineage_tracker.get_lineage_for_artifact("dataset:mental_health")
         assert dataset is not None
         assert dataset.artifact_type == "dataset"
         assert dataset.transformation_steps == ["ingestion"]
 
-    def test_get_lineage_for_artifact_returns_conversation(
-        self, audit_system: QualityAuditSystem
-    ) -> None:
+    def test_get_lineage_for_artifact_returns_conversation(self, audit_system: QualityAuditSystem) -> None:
         audit_system._get_quality_audit_data()
         lineage = audit_system.lineage_tracker.get_lineage_for_artifact("conversation:conv-1")
         assert lineage is not None
         upstream = audit_system.lineage_tracker.get_upstream("conversation:conv-1")
         assert [r.artifact_id for r in upstream] == [f"dataset:{lineage.source}"]
 
-    def test_governance_audit_reflects_measured_coverage(
-        self, audit_system: QualityAuditSystem
-    ) -> None:
+    def test_governance_audit_reflects_measured_coverage(self, audit_system: QualityAuditSystem) -> None:
         audit_system._get_quality_audit_data()
         governance = audit_system._audit_data_governance()
         lineage_records = [r for r in governance if r.component == "data_governance.lineage"]
@@ -274,9 +264,7 @@ class TestQualityAuditSystemIntegration:
         assert record.evidence["lineage_coverage"] == FULL_COVERAGE
         assert record.evidence["tracked_artifacts"] >= TOTAL_LINEAGE_NODES
 
-    def test_governance_audit_fails_with_empty_tracker(
-        self, tmp_path: Path, audit_db: Path
-    ) -> None:
+    def test_governance_audit_fails_with_empty_tracker(self, tmp_path: Path, audit_db: Path) -> None:
         # Fresh tracker with nothing registered — coverage 0.0 → fail path
         system = QualityAuditSystem(db_path=str(audit_db))
         empty_tracker = DataLineageTracker(db_path=str(tmp_path / "empty.db"))

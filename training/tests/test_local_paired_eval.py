@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 from qa.validation.therapy_bench import paired_eval
 from training import local_paired_eval as local
@@ -35,8 +38,18 @@ class EchoTransport:
         }
 
 
+def test_a_four_bit_request_is_rejected_before_any_weights_load() -> None:
+    local.validate_4bit_request(device="cuda:0", dtype="float16", load_in_4bit=True)
+    local.validate_4bit_request(device="cuda:0", dtype="bfloat16", load_in_4bit=False)
+    local.validate_4bit_request(device="cpu", dtype="bfloat16", load_in_4bit=False)
+    with pytest.raises(ValueError, match="--load-in-4bit needs a CUDA device"):
+        local.validate_4bit_request(device="cpu", dtype="float16", load_in_4bit=True)
+    with pytest.raises(ValueError, match="training dtype"):
+        local.validate_4bit_request(device="cuda:0", dtype="bfloat16", load_in_4bit=True)
+
+
 def test_the_generated_config_passes_the_shared_loader(tmp_path: Path) -> None:
-    config = local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False)
+    config = local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False, False, "bfloat16")
     path = tmp_path / "config.json"
     path.write_text(json.dumps(config), encoding="utf-8")
 
@@ -47,11 +60,24 @@ def test_the_generated_config_passes_the_shared_loader(tmp_path: Path) -> None:
     assert loaded["decoding"]["chat_template_kwargs"] == {"enable_thinking": False}
     assert loaded["pricing"]["require_finish_reason"] is True
     assert loaded["pricing"]["require_usage"] is False
+    assert loaded["loader"]["base_model_revision"] == local.DEFAULT_BASE_REVISION
+
+    pinned = local.build_config(
+        "run-1",
+        "Qwen/Qwen3-8B",
+        "/adapters/final",
+        512,
+        False,
+        False,
+        "bfloat16",
+        base_model_revision="v22-adapter-v6",
+    )
+    assert pinned["loader"]["base_model_revision"] == "v22-adapter-v6"
 
 
 def test_the_two_arms_share_the_base_model_and_differ_only_by_the_adapter() -> None:
-    with_adapter = local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False)
-    without_adapter = local.build_config("run-1", "Qwen/Qwen3-8B", None, 512, False)
+    with_adapter = local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False, False, "bfloat16")
+    without_adapter = local.build_config("run-1", "Qwen/Qwen3-8B", None, 512, False, False, "bfloat16")
 
     assert [arm["id"] for arm in with_adapter["arms"]] == ["base", "sft"]
     assert [arm["model"] for arm in with_adapter["arms"]] == ["Qwen/Qwen3-8B", "/adapters/final"]
@@ -65,10 +91,88 @@ def test_strip_stops_cuts_at_the_first_marker_and_trims() -> None:
     assert local.strip_stops("a reply", ["<|im_end|>"]) == "a reply"
 
 
+def test_the_cli_can_score_an_adapter_on_the_base_it_was_trained_on(tmp_path: Path, monkeypatch: Any) -> None:
+    seen: list[bool] = []
+
+    class Recorder(EchoTransport):
+        def __init__(self, *args: Any, load_in_4bit: bool = False, base_model_revision: str | None = None) -> None:
+            assert base_model_revision is None or isinstance(base_model_revision, str)
+            seen.append(load_in_4bit)
+            super().__init__()
+
+    monkeypatch.setattr(local, "LocalChatTransport", Recorder)
+
+    def run(extra: list[str]) -> int:
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "local_paired_eval",
+                "--base-model",
+                "Qwen/Qwen3-8B",
+                "--adapter",
+                "/adapters/nf4",
+                "--cases",
+                str(DEV_CASES),
+                "--results-dir",
+                str(tmp_path / f"results-{len(seen)}"),
+                "--arm",
+                "base",
+                *extra,
+            ],
+        )
+        return local.main()
+
+    assert run([]) == 0
+    assert run(["--load-in-4bit"]) == 0
+
+    # The NF4 adapter was fitted against a 4-bit base, so the flag has to reach
+    # the loader instead of being accepted and dropped on the floor.
+    assert seen == [False, True]
+
+
+def test_an_out_of_range_token_limit_is_rejected_before_the_model_loads(tmp_path: Path, monkeypatch: Any) -> None:
+    """The shared loader caps output at 4096, so the CLI has to fail in seconds.
+
+    The config is built in memory and handed to the runner, which used to skip
+    the loader's checks entirely: an 8192-token request reached generation and
+    was written out as a run no other reader accepts.
+    """
+    loaded: list[bool] = []
+
+    class Recorder(EchoTransport):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            loaded.append(True)
+            super().__init__()
+
+    monkeypatch.setattr(local, "LocalChatTransport", Recorder)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "local_paired_eval",
+            "--base-model",
+            "Qwen/Qwen3-8B",
+            "--cases",
+            str(DEV_CASES),
+            "--results-dir",
+            str(tmp_path / "results"),
+            "--max-new-tokens",
+            "8192",
+        ],
+    )
+
+    with pytest.raises(paired_eval.EvaluationInputError, match="max_tokens"):
+        local.main()
+
+    assert loaded == []
+    assert not (tmp_path / "results" / "config.json").exists()
+
+
 def test_a_transport_scores_the_real_dev_split_end_to_end(tmp_path: Path) -> None:
     config_path = tmp_path / "config.json"
     config_path.write_text(
-        json.dumps(local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False)),
+        json.dumps(local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False, False, "bfloat16")),
         encoding="utf-8",
     )
     transport = EchoTransport()
@@ -81,10 +185,8 @@ def test_a_transport_scores_the_real_dev_split_end_to_end(tmp_path: Path) -> Non
 
     result = paired_eval.run_paired(request, transport=transport)
 
-    cases = paired_eval.load_cases(DEV_CASES)
-
     assert result["status"] == "complete"
-    assert result["success_count"] == len(cases) * 2  # every dev case scored on both arms
+    assert result["success_count"] == 24  # 12 dev cases scored on both arms
     assert {arm for arm, _ in transport.calls} == {"base", "sft"}
     records = [json.loads(line) for line in (tmp_path / "results" / "results.jsonl").read_text().splitlines()]
     crisis = [record for record in records if record["scenario"] == "crisis"]

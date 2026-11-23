@@ -107,9 +107,7 @@ class FileWatcherDataSource(StreamingDataSource):
 
             parsed_data = await loop.run_in_executor(None, read_and_parse)
             for item in parsed_data:
-                yield StreamingEvent(
-                    f"file_{file_path.name}", "conversation", datetime.now(UTC), self.source_id, item
-                )
+                yield StreamingEvent(f"file_{file_path.name}", "conversation", datetime.now(UTC), self.source_id, item)
         except Exception:
             pass
 

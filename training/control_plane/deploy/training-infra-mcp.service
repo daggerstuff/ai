@@ -1,0 +1,19 @@
+[Unit]
+Description=Pixelated training-infra MCP (PIX-5000)
+After=network-online.target
+# A crash loop must not restart forever: the MCP holds single-flight locks, and
+# an unbounded restart cycle makes failures hard to observe.
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=/home/vivi/pixelated/ai
+Environment=PATH=/home/vivi/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=TRAINING_MCP_ENV_FILE=/home/vivi/pixelated/ai/training/control_plane/.env
+ExecStart=/home/vivi/pixelated/ai/.venv/bin/python -m training.control_plane
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -207,7 +207,7 @@ class PluginCatalogController:
             plan = self.install_service.build_install_plan(entry, catalog, **plan_kwargs)
         except ValueError as e:
             print_error(f"Failed to build plugin install plan: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         print_header("Install Data Designer Plugin Package")
         self._display_package_install_metadata(entry, package_entries, catalog, compatibility, plan)
@@ -238,7 +238,7 @@ class PluginCatalogController:
             self.install_service.install(plan)
         except RuntimeError as e:
             print_error(str(e))
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         if self.install_service.verify_entry_points(package_entries):
             print_success(f"Plugin package {entry.package.name!r} installed and runtime entry points loaded")
@@ -273,7 +273,7 @@ class PluginCatalogController:
             plan = self.install_service.build_uninstall_plan(entry, catalog, manager=manager)
         except ValueError as e:
             print_error(f"Failed to build plugin uninstall plan: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         print_header("Uninstall Data Designer Plugin Package")
         console.print(f"  Package: [bold]{_escape_markup(entry.package.name)}[/bold]")
@@ -301,7 +301,7 @@ class PluginCatalogController:
             self.install_service.uninstall(plan)
         except RuntimeError as e:
             print_error(str(e))
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         if self.install_service.verify_entry_points_removed(package_entries):
             print_success(f"Plugin package {entry.package.name!r} uninstalled and runtime entry points removed")
@@ -327,7 +327,7 @@ class PluginCatalogController:
             catalogs = self.catalog_service.list_catalogs()
         except (PluginCatalogError, OSError) as e:
             print_error(f"Failed to list plugin catalogs: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         table = Table(title="Plugin Catalogs", border_style=NordColor.NORD8.value)
         table.add_column("Alias", style=NordColor.NORD14.value, no_wrap=True)
@@ -357,10 +357,10 @@ class PluginCatalogController:
                 print_error(f"Invalid catalog alias {alias!r}: must match `{PLUGIN_CATALOG_ALIAS_PATTERN}`")
             else:
                 print_error(f"Invalid plugin catalog configuration: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
         except (PluginCatalogError, OSError, ValueError) as e:
             print_error(f"Failed to add plugin catalog: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         print_success(f"Plugin catalog {catalog.alias!r} added")
         _print_catalog_detail(catalog)
@@ -371,7 +371,7 @@ class PluginCatalogController:
             self.catalog_service.remove_catalog(alias)
         except (PluginCatalogError, OSError, ValueError) as e:
             print_error(f"Failed to remove plugin catalog: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
         print_success(f"Plugin catalog {alias!r} removed")
 
     def _get_catalog_or_exit(self, catalog_alias: str | None) -> PluginCatalogConfig:
@@ -379,7 +379,7 @@ class PluginCatalogController:
             return self.catalog_service.get_catalog(catalog_alias or DEFAULT_PLUGIN_CATALOG_ALIAS)
         except (PluginCatalogError, OSError, ValueError) as e:
             print_error(str(e))
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     def _list_entries_or_exit(
         self,
@@ -396,7 +396,7 @@ class PluginCatalogController:
             )
         except (PluginCatalogError, OSError, ValueError) as e:
             print_error(f"Failed to load plugin catalog: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     def _search_entries_or_exit(
         self,
@@ -415,7 +415,7 @@ class PluginCatalogController:
             )
         except (PluginCatalogError, OSError, ValueError) as e:
             print_error(f"Failed to search plugin catalog: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     def _get_package_entries_or_exit(
         self,
@@ -436,7 +436,7 @@ class PluginCatalogController:
             )
         except (PluginCatalogError, OSError, ValueError) as e:
             print_error(f"Failed to load plugin package metadata: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
         if not package_entries:
             print_error(f"Plugin package or alias {package_name!r} was not found in catalog {catalog_alias!r}")
             self._display_runtime_plugin_recovery_hint(
@@ -742,7 +742,7 @@ def _parse_install_request_or_exit(package_name: str, *, version: str | None) ->
         return parse_plugin_package_install_request(package_name, version=version)
     except ValueError as e:
         print_error(str(e))
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 def _versioned_install_compatibility_warning() -> str:

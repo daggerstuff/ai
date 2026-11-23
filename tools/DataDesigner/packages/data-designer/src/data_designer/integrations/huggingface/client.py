@@ -489,7 +489,7 @@ class HuggingFaceHubClient:
             with open(metadata_path) as f:
                 json.load(f)
         except json.JSONDecodeError as e:
-            raise HuggingFaceHubClientUploadError(f"Invalid JSON in {METADATA_FILENAME}: {e}")
+            raise HuggingFaceHubClientUploadError(f"Invalid JSON in {METADATA_FILENAME}: {e}") from e
 
         builder_config_path = base_dataset_path / SDG_CONFIG_FILENAME
         if builder_config_path.exists():
@@ -499,4 +499,4 @@ class HuggingFaceHubClient:
                 with open(builder_config_path) as f:
                     json.load(f)
             except json.JSONDecodeError as e:
-                raise HuggingFaceHubClientUploadError(f"Invalid JSON in {SDG_CONFIG_FILENAME}: {e}")
+                raise HuggingFaceHubClientUploadError(f"Invalid JSON in {SDG_CONFIG_FILENAME}: {e}") from e

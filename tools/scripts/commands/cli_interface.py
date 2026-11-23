@@ -12,9 +12,9 @@ from typing import Any
 
 import click
 
-from .auth import AuthManager
-from .config import get_config
-from .utils import format_file_size, get_logger, setup_logging
+from tools.scripts.auth import AuthManager
+from tools.scripts.config import get_config
+from tools.scripts.utils import format_file_size, get_logger, setup_logging
 
 logger = get_logger(__name__)
 

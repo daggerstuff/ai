@@ -1,7 +1,7 @@
 {
   "version": "3.0",
   "last_updated": "2026-06-23T02:46:09.920909+00:00",
-  "description": "Pixelated Empathy unified dataset registry — consolidated R2 archive (r2:pixel-archive) + legacy gdrive mirrors",
+  "description": "Pixelated Empathy unified dataset registry \u2014 consolidated R2 archive (r2:pixel-archive) + legacy gdrive mirrors",
   "sources": {
     "r2": {
       "remote": "r2:pixel-archive",
@@ -20,8 +20,8 @@
   },
   "statistics": {
     "total_datasets": 289,
-    "total_files": 14381,
-    "total_size_gb": 66.214,
+    "total_files": 14571,
+    "total_size_gb": 66.262,
     "categories": {
       "archive": 21,
       "backups": 1,
@@ -52,7 +52,7 @@
       "rclone_path": "HetznerS3:pixeldata/acquired",
       "category": "raw_acquired",
       "file_count": 4,
-      "size_gb": 0.01,
+      "size_gb": 0.02,
       "format": "json",
       "is_gdrive_backup": false,
       "status": "available",
@@ -450,16 +450,17 @@
     },
     "s3__datasets__youtube_transcripts__tim_fletcher": {
       "name": "datasets/youtube_transcripts/tim_fletcher",
-      "source": "s3",
+      "source": "r2",
       "s3_uri": "s3://pixel-archive/pixel-data/datasets/youtube_transcripts/tim_fletcher",
-      "rclone_path": "HetznerS3:pixeldata/datasets/youtube_transcripts/tim_fletcher",
+      "rclone_path": "r2:pixel-archive/pixel-data/datasets/youtube_transcripts/tim_fletcher",
       "category": "youtube_transcripts",
-      "file_count": 1,
-      "size_gb": 0.001,
+      "file_count": 191,
+      "size_gb": 0.039,
       "format": "jsonl",
-      "is_gdrive_backup": false,
+      "is_gdrive_backup": true,
       "status": "available",
-      "registered_at": "2026-06-23T01:04:55.162525+00:00"
+      "registered_at": "2026-06-23T01:04:55.162525+00:00",
+      "notes": "FINAL 2026-11-18: queue fully pulled via ScrapeCreators (Composio, no Tailscale) \u2014 910 pulled / 141 no_transcript of 1,051. corpus-v3/ (34 files: 5,277 chunks, 1,033 transcripts / 3,283,836 words in manifest, 1,941 extractive QA, 263 persona, GAP_ANALYSIS+fixes, validate_corpus.py) + raw_transcripts/ (121) + legacy transcripts.jsonl (42) = 191 objects/39.0MiB, rclone check 0 diffs. Raw gap .txt (910) local only in docs/research/tim-fletcher-complex-trauma/raw_gap_transcripts/. Local: docs/research/tim-fletcher-complex-trauma/"
     },
     "s3__datasets__consolidated__configs": {
       "name": "datasets/consolidated/configs",
@@ -3228,10 +3229,10 @@
       "status": "available",
       "registered_at": "2026-06-23T01:15:46.563827+00:00"
     },
-    "gdrive__youtube_transcriptions__transcripts__Kaltblütig": {
-      "name": "youtube_transcriptions/transcripts/Kaltblütig",
+    "gdrive__youtube_transcriptions__transcripts__Kaltbl\u00fctig": {
+      "name": "youtube_transcriptions/transcripts/Kaltbl\u00fctig",
       "source": "gdrive",
-      "gdrive_remote": "gdrive:youtube_transcriptions/transcripts/Kaltblütig",
+      "gdrive_remote": "gdrive:youtube_transcriptions/transcripts/Kaltbl\u00fctig",
       "category": "youtube_transcripts",
       "file_count": 1,
       "size_gb": 0.0,
@@ -3528,10 +3529,10 @@
       "status": "available",
       "registered_at": "2026-06-23T01:17:06.880812+00:00"
     },
-    "gdrive__youtube_transcriptions__transcripts__RTS - Radio Télévision Suisse": {
-      "name": "youtube_transcriptions/transcripts/RTS - Radio Télévision Suisse",
+    "gdrive__youtube_transcriptions__transcripts__RTS - Radio T\u00e9l\u00e9vision Suisse": {
+      "name": "youtube_transcriptions/transcripts/RTS - Radio T\u00e9l\u00e9vision Suisse",
       "source": "gdrive",
-      "gdrive_remote": "gdrive:youtube_transcriptions/transcripts/RTS - Radio Télévision Suisse",
+      "gdrive_remote": "gdrive:youtube_transcriptions/transcripts/RTS - Radio T\u00e9l\u00e9vision Suisse",
       "category": "youtube_transcripts",
       "file_count": 1,
       "size_gb": 0.0,
@@ -3792,10 +3793,10 @@
       "status": "available",
       "registered_at": "2026-06-23T01:18:19.508130+00:00"
     },
-    "gdrive__youtube_transcriptions__transcripts__Unfilteredd： Narcissistic Families": {
-      "name": "youtube_transcriptions/transcripts/Unfilteredd： Narcissistic Families",
+    "gdrive__youtube_transcriptions__transcripts__Unfilteredd\uff1a Narcissistic Families": {
+      "name": "youtube_transcriptions/transcripts/Unfilteredd\uff1a Narcissistic Families",
       "source": "gdrive",
-      "gdrive_remote": "gdrive:youtube_transcriptions/transcripts/Unfilteredd： Narcissistic Families",
+      "gdrive_remote": "gdrive:youtube_transcriptions/transcripts/Unfilteredd\uff1a Narcissistic Families",
       "category": "youtube_transcripts",
       "file_count": 1,
       "size_gb": 0.0,

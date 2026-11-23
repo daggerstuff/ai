@@ -36,7 +36,10 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "clinical_certification.log")), logging.StreamHandler()],
+    handlers=[
+        logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "clinical_certification.log")),
+        logging.StreamHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -135,7 +138,7 @@ class ClinicalSafetyCertifier:
     """Main clinical safety certification system"""
 
     def __init__(self):
-        self.cert_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/clinical_certification")
+        self.cert_path = _PROJECT_ROOT / "ai" / "inference/deployment/qa/clinical_certification"
         self.cert_path.mkdir(parents=True, exist_ok=True)
 
         self.reviewers: list[ClinicalReviewer] = []

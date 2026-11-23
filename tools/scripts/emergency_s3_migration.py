@@ -1,11 +1,9 @@
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 
 import boto3
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
-
+from path_utils import WORKSPACE_ROOT
 
 # --- Configuration ---
 BUCKET_NAME = "pixel-data"

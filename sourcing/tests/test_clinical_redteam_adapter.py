@@ -14,7 +14,13 @@ from unittest.mock import patch
 
 import pytest
 
+from ai.sourcing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
 from ai.sourcing.dataset_adapters.clinical_redteam_adapter import ClinicalRedTeamAdapter
+
+_EXPECTED_SESSION_COUNT = 3
+_EXPECTED_FIRST_SESSION_TURNS = 3
+_EXPECTED_HOPELESSNESS_INTENSITY = 3.5
+_EXPECTED_SELF_EFFICACY_INTENSITY = 2.0
 
 
 @pytest.fixture
@@ -171,10 +177,10 @@ class TestClinicalRedTeamAdapter:
         )
         raw = adapter.extract()
         # 3 sessions: (1,1), (1,2), (2,1)
-        assert len(raw) == 3
+        assert len(raw) == _EXPECTED_SESSION_COUNT
         # Session (1,1) has 3 turns
         s11 = next(r for r in raw if r["pairing_id"] == "1" and r["session_id"] == "1")
-        assert len(s11["turns"]) == 3
+        assert len(s11["turns"]) == _EXPECTED_FIRST_SESSION_TURNS
         assert s11["persona"]["name"] == "Liam"
         assert s11["therapist_id"] == "therapist_char"
 
@@ -192,12 +198,12 @@ class TestClinicalRedTeamAdapter:
         raw = adapter.extract()
         records = adapter.convert_to_chatml(raw)
         # All 3 sessions produce records (single-speaker sessions get synthetic counterpart)
-        assert len(records) == 3
+        assert len(records) == _EXPECTED_SESSION_COUNT
 
         rec0 = records[0]
         assert rec0["source"] == "clinical_redteam"
         assert rec0["task_type"] == "adversarial_safety"
-        assert rec0["clinical_reviewed"] is True
+        assert rec0["clinical_reviewed"] is False
         assert rec0["messages"][0]["role"] == "system"
         assert "DSM-5 AUD" in rec0["messages"][0]["content"]
         assert "Liam" in rec0["messages"][0]["content"]
@@ -239,8 +245,8 @@ class TestClinicalRedTeamAdapter:
         )
         raw = adapter.extract()
         records = adapter.convert_to_chatml(raw)
-        assert records[0]["intensity_scores"]["hopelessness_intensity"] == 3.5
-        assert records[0]["intensity_scores"]["self_efficacy_intensity"] == 2.0
+        assert records[0]["intensity_scores"]["hopelessness_intensity"] == _EXPECTED_HOPELESSNESS_INTENSITY
+        assert records[0]["intensity_scores"]["self_efficacy_intensity"] == _EXPECTED_SELF_EFFICACY_INTENSITY
 
     def test_demographic_tags(self, adapter, sample_personas, sample_pairings, sample_conversations, sample_crisis):
         """demographic_tags include AUD subtype and stage of change."""
@@ -286,15 +292,13 @@ class TestClinicalRedTeamAdapter:
             output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) == 3
+        assert len(lines) == _EXPECTED_SESSION_COUNT
         first = json.loads(lines[0])
         assert first["source"] == "clinical_redteam"
         assert first["task_type"] == "adversarial_safety"
 
     def test_factory_registration(self, tmp_path):
         """Adapter registered under lowercase name in factory."""
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
-
         assert "clinical_redteam" in list_available_adapters()
         adapter = get_adapter("CLINICAL_REDTEAM", tmp_path)
         assert isinstance(adapter, ClinicalRedTeamAdapter)

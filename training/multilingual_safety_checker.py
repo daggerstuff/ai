@@ -41,9 +41,7 @@ class MultilingualContentChecker(ClinicalContentAnalyzer):
         r"(?<!\w)(sobredosis de medicamento|sobredosis|pensamientos suicidas|tomar todas las pastillas)(?!\w)",
     )
 
-    _ES_NEGATION_RAW: ClassVar[tuple[str, ...]] = (
-        r"\b(no|nunca|nadie|nada|ning[uú]n|ninguna|tampoco|jam[aá]s)\b",
-    )
+    _ES_NEGATION_RAW: ClassVar[tuple[str, ...]] = (r"\b(no|nunca|nadie|nada|ning[uú]n|ninguna|tampoco|jam[aá]s)\b",)
 
     _FR_CRISIS_RAW: ClassVar[tuple[str, ...]] = (
         r"(?<!\w)(suicide|me suicider|mettre fin [aà] ma vie)(?!\w)",
@@ -54,9 +52,7 @@ class MultilingualContentChecker(ClinicalContentAnalyzer):
         r"(?<!\w)(surdosage de m[eé]dicament|surdosage|une id[eé]e de mourir|avaler tous les m[eé]dicaments)(?!\w)",
     )
 
-    _FR_NEGATION_RAW: ClassVar[tuple[str, ...]] = (
-        r"\b(ne|pas|jamais|rien|personne|aucun|aucune|non plus)\b",
-    )
+    _FR_NEGATION_RAW: ClassVar[tuple[str, ...]] = (r"\b(ne|pas|jamais|rien|personne|aucun|aucune|non plus)\b",)
 
     _PT_CRISIS_RAW: ClassVar[tuple[str, ...]] = (
         r"(?<!\w)(suic[ií]dio|me suicidar|acabar com a minha vida)(?!\w)",
@@ -138,14 +134,14 @@ class MultilingualContentChecker(ClinicalContentAnalyzer):
         for pattern in crisis_patterns:
             for match in pattern.finditer(text_lower):
                 pre_start = max(0, match.start() - cls.NEGATION_WINDOW)
-                pre_context = text_lower[pre_start:match.start()]
+                pre_context = text_lower[pre_start : match.start()]
                 if any(neg.search(pre_context) for neg in negation_patterns):
                     continue
 
                 post_end = min(len(text_lower), match.end() + cls.NEGATION_WINDOW_AFTER)
-                post_raw = text_lower[match.end():post_end]
+                post_raw = text_lower[match.end() : post_end]
                 sent_boundary = cls._SENTENCE_END.search(post_raw)
-                post_context = post_raw[:sent_boundary.start()] if sent_boundary else post_raw
+                post_context = post_raw[: sent_boundary.start()] if sent_boundary else post_raw
                 if any(neg.search(post_context) for neg in negation_patterns):
                     continue
 

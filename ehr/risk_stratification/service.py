@@ -62,9 +62,7 @@ class RiskStratificationService:
         """True if NIM URL and API key are both set."""
         return bool(self._settings.nim_url and self._settings.nim_api_key)
 
-    async def stratify_risk(
-        self, request: RiskStratificationRequest
-    ) -> RiskStratificationResponse:
+    async def stratify_risk(self, request: RiskStratificationRequest) -> RiskStratificationResponse:
         """Run risk stratification: deterministic scoring + optional NIM augmentation.
 
         Args:
@@ -88,9 +86,7 @@ class RiskStratificationService:
 
         if self.is_nim_configured:
             try:
-                nim_result = await self._call_nim(
-                    request, phq9_result, gad7_result, cssrs_result
-                )
+                nim_result = await self._call_nim(request, phq9_result, gad7_result, cssrs_result)
                 nim_level = nim_result["risk_level"]
                 confidence = nim_result["confidence"]
                 model_source = "nim-hetzner"
@@ -101,9 +97,7 @@ class RiskStratificationService:
                 )
                 warnings.append(f"NIM call failed: {sanitize_for_logging(str(exc))}")
         else:
-            warnings.append(
-                "[Mock] NIM not configured — using deterministic scoring only"
-            )
+            warnings.append("[Mock] NIM not configured — using deterministic scoring only")
 
         # Step 3: Final risk level — NIM can only escalate, never de-escalate
         final_level = deterministic_level
@@ -156,9 +150,7 @@ class RiskStratificationService:
 
         return response
 
-    async def stratify_risk_mock(
-        self, request: RiskStratificationRequest
-    ) -> RiskStratificationResponse:
+    async def stratify_risk_mock(self, request: RiskStratificationRequest) -> RiskStratificationResponse:
         """Generate a mock response for testing without NIM.
 
         Args:
@@ -221,9 +213,7 @@ class RiskStratificationService:
         Raises:
             httpx.HTTPError: On persistent network/API failures.
         """
-        prompt = _build_prompt(
-            request, phq9_result, gad7_result, cssrs_result
-        )
+        prompt = _build_prompt(request, phq9_result, gad7_result, cssrs_result)
 
         url = f"{self._settings.nim_url}/v1/chat/completions"
         headers = {
@@ -254,9 +244,7 @@ class RiskStratificationService:
         last_exc: Exception | None = None
         for attempt in range(self._settings.nim_max_retries):
             try:
-                async with httpx.AsyncClient(
-                    timeout=self._settings.nim_timeout_seconds
-                ) as client:
+                async with httpx.AsyncClient(timeout=self._settings.nim_timeout_seconds) as client:
                     resp = await client.post(url, headers=headers, json=payload)
 
                 # 4xx errors should not be retried — raise immediately

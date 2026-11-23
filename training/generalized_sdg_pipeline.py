@@ -13,6 +13,7 @@ MODEL = "ornith:9b"
 # Local-model chat completions are slow; give them a generous but bounded window.
 OLLAMA_TIMEOUT = 120
 
+
 def generate_patient_profile(topic):
     print(f"Generating Patient Profile for topic: {topic}...")
     prompt = (
@@ -22,6 +23,7 @@ def generate_patient_profile(topic):
     payload = {"model": MODEL, "messages": [{"role": "user", "content": prompt}], "temperature": 0.7}
     resp = requests.post(OLLAMA_URL, json=payload, headers={"Authorization": "Bearer dummy"}, timeout=OLLAMA_TIMEOUT)
     return resp.json()["choices"][0]["message"]["content"]
+
 
 def simulate_session(profile, session_number, previous_summaries="None"):
     prompt = (
@@ -47,10 +49,13 @@ def simulate_session(profile, session_number, previous_summaries="None"):
 
     messages = []
     for line in transcript.split("\n"):
-        if line.startswith("Patient:"): messages.append({"role": "user", "content": line.replace("Patient:", "").strip()})
-        elif line.startswith("Therapist:"): messages.append({"role": "assistant", "content": line.replace("Therapist:", "").strip()})
+        if line.startswith("Patient:"):
+            messages.append({"role": "user", "content": line.replace("Patient:", "").strip()})
+        elif line.startswith("Therapist:"):
+            messages.append({"role": "assistant", "content": line.replace("Therapist:", "").strip()})
 
     return messages, summary
+
 
 def get_judge_prompt():
     return (
@@ -60,6 +65,7 @@ def get_judge_prompt():
         "If there are boundary violations, dangerous advice, or biased assumptions, score it 1 to 3.\n\n"
         "Output ONLY the integer score.\n\nSession:\n{raw_content}"
     )
+
 
 def main():
     topics = ["Career Anxiety", "Grief and Loss", "Social Phobia", "Relationship Transitions", "Mild OCD"]
@@ -88,12 +94,9 @@ def main():
             previous_summaries += f"\nSession {session_num} Summary: {summary}\n"
             flat_content += "\n".join([f"{m['role']}: {m['content']}" for m in messages])
 
-        sessions.append({
-            "id": str(uuid.uuid4()),
-            "topic": topic,
-            "raw_content": flat_content,
-            "timeline": patient_timeline
-        })
+        sessions.append(
+            {"id": str(uuid.uuid4()), "topic": topic, "raw_content": flat_content, "timeline": patient_timeline}
+        )
 
     df = pd.DataFrame(sessions)
     prep_file = "./sdg_cache/sdg_step0.jsonl"
@@ -102,15 +105,20 @@ def main():
     print("\n[Gate 1] Launching DataFlow Quality & Bias Judge...")
     os.environ["DF_API_KEY"] = "dummy"
 
-    storage = FileStorage(first_entry_file_name=prep_file, cache_path="./sdg_cache", file_name_prefix="sdg_eval", cache_type="jsonl")
+    storage = FileStorage(
+        first_entry_file_name=prep_file, cache_path="./sdg_cache", file_name_prefix="sdg_eval", cache_type="jsonl"
+    )
     llm_serving = APILLMServing_request(api_url=OLLAMA_URL, model_name=MODEL, api_key="ollama", max_workers=5)
     scorer = PromptedGenerator(llm_serving=llm_serving, system_prompt=get_judge_prompt())
-    gate = GeneralFilter([lambda d: pd.to_numeric(d['score'].astype(str).str.extract(r'(\d)')[0], errors='coerce') >= 4])
+    gate = GeneralFilter(
+        [lambda d: pd.to_numeric(d["score"].astype(str).str.extract(r"(\d)")[0], errors="coerce") >= 4]
+    )
 
     scorer.run(storage=storage.step(), input_key="raw_content", output_key="score")
     gate.run(storage=storage.step())
 
     import glob
+
     final_file = sorted(glob.glob("./sdg_cache/sdg_eval_step*.jsonl"))[-1]
     final_df = pd.read_json(final_file, lines=True)
 
@@ -119,7 +127,10 @@ def main():
         for _, row in final_df.iterrows():
             f.write(json.dumps({"topic": row.get("topic"), "timeline": row.get("timeline")}) + "\n")
 
-    print(f"\nSUCCESS! {len(final_df)} generalized multi-session timelines passed the Quality & Bias gate and were exported to {out_path}!")
+    print(
+        f"\nSUCCESS! {len(final_df)} generalized multi-session timelines passed the Quality & Bias gate and were exported to {out_path}!"
+    )
+
 
 if __name__ == "__main__":
     main()

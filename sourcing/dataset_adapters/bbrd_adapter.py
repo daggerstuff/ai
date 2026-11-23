@@ -108,7 +108,7 @@ class BBRDAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": diagnostic,
                 "demographic_tags": [],
                 "linguistic_style": "informal",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "user_id": row.get("user_id", row.get("username", "")),
                 "label": label,
                 "timestamp": row.get("timestamp", ""),
@@ -124,15 +124,15 @@ class BBRDAdapter(BaseDatasetAdapter):
 
     @staticmethod
     def _map_label(label: str) -> str:
-        l = label.lower()
-        if "suicid" in l:
+        norm = label.lower()
+        if "suicid" in norm:
             return "suicidal_ideation"
-        if "self_harm" in l or "self-harm" in l or "selfharm" in l:
+        if "self_harm" in norm or "self-harm" in norm or "selfharm" in norm:
             return "self_harm"
-        if "substance" in l or "drug" in l or "alcohol" in l:
+        if "substance" in norm or "drug" in norm or "alcohol" in norm:
             return "substance_use"
-        if "therapy" in l or "treatment" in l:
+        if "therapy" in norm or "treatment" in norm:
             return "therapy_behavior"
-        if "recovery" in l:
+        if "recovery" in norm:
             return "recovery_trajectory"
         return "borderline_personality_disorder"

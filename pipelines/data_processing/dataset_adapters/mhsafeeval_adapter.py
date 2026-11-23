@@ -78,7 +78,7 @@ class MHSafeEvalAdapter(BaseDatasetAdapter):
                 try:
                     with open(patient_file, encoding="utf-8") as f:
                         profile = json.load(f)
-                except (json.JSONDecodeError, OSError):
+                except json.JSONDecodeError, OSError:
                     continue
                 profile["_disorder"] = disorder
                 profile["_source_file"] = str(patient_file.relative_to(repo_dir))
@@ -149,7 +149,7 @@ class MHSafeEvalAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": disorder,
                 "demographic_tags": [],
                 "linguistic_style": "formal",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "disorder": disorder,
                 "core_beliefs": core_beliefs,
                 "core_belief_description": core_belief_desc,

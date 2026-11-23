@@ -42,10 +42,7 @@ from training.build_edge_and_nightmare_dataset import (  # noqa: E402
 from training.cliche_gate import is_sycophantic  # noqa: E402
 from training.generation_backend import resolve_backend  # noqa: E402
 
-HEADER = (
-    "You are generating a realistic therapy session dialogue. "
-    "Each turn must be a single utterance by one speaker."
-)
+HEADER = "You are generating a realistic therapy session dialogue. Each turn must be a single utterance by one speaker."
 
 # Boulesis recommended inference settings (Thinking mode)
 SAMPLING = {
@@ -143,10 +140,7 @@ def _extract_response(raw: str) -> str:
 
 
 def _therapist_system_prompt(context: str) -> str:
-    stage = (
-        "SESSION PHASE: Opening & Risk Assessment.\n"
-        "Engage directly with the presenting tension or dilemma."
-    )
+    stage = "SESSION PHASE: Opening & Risk Assessment.\nEngage directly with the presenting tension or dilemma."
     return (
         f"{HEADER}\n\n"
         f"SCENARIO CONTEXT:\n{context}\n\n"
@@ -167,9 +161,7 @@ def _therapist_user_prompt(client_line: str) -> str:
     )
 
 
-async def generate_turn(
-    session: aiohttp.ClientSession, backend, sys_prompt: str, user_prompt: str
-) -> tuple[str, dict]:
+async def generate_turn(session: aiohttp.ClientSession, backend, sys_prompt: str, user_prompt: str) -> tuple[str, dict]:
     payload = {
         "model": backend.model,
         "messages": [
@@ -210,7 +202,7 @@ async def main() -> int:
         for sc in SCENARIOS:
             print(f"\n{'─' * 80}")
             print(f"SCENARIO: {sc['name']}")
-            print(f"Client:   \"{sc['client_line']}\"")
+            print(f'Client:   "{sc["client_line"]}"')
 
             sys_prompt = _therapist_system_prompt(sc["context"])
             user_prompt = _therapist_user_prompt(sc["client_line"])
@@ -230,9 +222,14 @@ async def main() -> int:
             print(f"\n  GATE: {'PASS' if not hit else f'REJECTED: {reason}'}")
 
             results.append(
-                {"name": sc["name"], "passed": not hit, "response": extracted,
-                 "latency": meta["latency_s"], "tokens": meta["completion_tokens"],
-                 "gate_reason": reason if hit else ""}
+                {
+                    "name": sc["name"],
+                    "passed": not hit,
+                    "response": extracted,
+                    "latency": meta["latency_s"],
+                    "tokens": meta["completion_tokens"],
+                    "gate_reason": reason if hit else "",
+                }
             )
 
     print(f"\n{'=' * 80}")

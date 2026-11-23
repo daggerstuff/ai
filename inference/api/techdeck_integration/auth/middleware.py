@@ -411,6 +411,10 @@ def require_auth(roles: Any | None = None):
     if callable(roles):
         func = roles
         actual_roles = None
+    elif isinstance(roles, str):
+        # A bare role name is one requirement, not a string to search: with the
+        # scalar, `g.user_role not in "admin"` let "ad" and "in" through.
+        actual_roles = (roles,)
     else:
         actual_roles = roles
 

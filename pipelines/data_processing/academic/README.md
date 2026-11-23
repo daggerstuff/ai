@@ -134,11 +134,7 @@ all_results = engine.search_literature("PTSD therapy", limit=50)
 from ai.pipelines.data_processing.academic import SourceType
 
 # Search specific publisher
-oxford_books = engine.fetch_from_publisher(
-    SourceType.OXFORD,
-    "trauma therapy",
-    limit=15
-)
+oxford_books = engine.fetch_from_publisher(SourceType.OXFORD, "trauma therapy", limit=15)
 
 # Search specific API
 pubmed_papers = engine.fetch_pubmed("DBT therapy", limit=20)
@@ -150,10 +146,7 @@ pubmed_papers = engine.fetch_pubmed("DBT therapy", limit=20)
 from ai.pipelines.data_processing.academic import find_therapy_datasets
 
 # Find datasets with 20+ turn conversations
-datasets = find_therapy_datasets(
-    min_turns=20,
-    min_quality=0.6
-)
+datasets = find_therapy_datasets(min_turns=20, min_quality=0.6)
 
 # Results saved to: ai/training/ready_packages/datasets/sourced/therapy_datasets.json
 ```

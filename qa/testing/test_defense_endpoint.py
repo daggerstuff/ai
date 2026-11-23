@@ -1,5 +1,5 @@
-from pathlib import Path
 import asyncio
+from pathlib import Path
 
 from inference.api.defense_service import (
     DefenseAnalysisRequest,

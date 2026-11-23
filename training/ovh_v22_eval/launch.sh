@@ -27,19 +27,19 @@ OUT_ROOT="${OUT_ROOT:-/tmp/out}"
 OUT_PREFIX="${OUT_PREFIX:-}"
 mkdir -p "$OUT_ROOT"
 
-# r2_sync imports boto3 eagerly; pyproject.toml already declares its floor, so
-# this entry is unpinned on purpose.
+# r2_sync imports boto3 lazily inside client(): the urllib-only put-file path
+# needs no SDK, so this image stays lean. bitsandbytes backs the nf4 arm.
 pip install --no-cache-dir --quiet --break-system-packages \
   "transformers==5.22.2" \
   "peft==0.21.3" \
   "accelerate==1.15.0" \
-  "boto3"
+  "bitsandbytes>=0.45"
 
 python - <<'PY'
-import torch, transformers, peft, accelerate
+import torch, transformers, peft, accelerate, bitsandbytes
 
 print(f"torch {torch.__version__} transformers {transformers.__version__} peft {peft.__version__}", flush=True)
-print(f"cuda available {torch.cuda.is_available()}", flush=True)
+print(f"bitsandbytes {bitsandbytes.__version__} cuda available {torch.cuda.is_available()}", flush=True)
 PY
 
 cd "$ROOT/code"
@@ -69,9 +69,9 @@ run_split() {
   python -m training.local_paired_eval \
     --base-model Qwen/Qwen3-8B \
     --adapter "$adapter" \
-    --cases "$ROOT/data/scenario-crisis-${split}-v1.jsonl" \
+    --cases "$ROOT/data/scenario-crisis-${split}-${CRISIS_SUITE_VERSION:-v2}.jsonl" \
     --results-dir "$OUT_ROOT/${OUT_PREFIX}eval-${label}-${split}" \
-    --run-id "ovh-v22-${label}-${split}" \
+    --run-id "${RUN_LABEL}-${label}-${split}" \
     --device cuda \
     --dtype bfloat16 \
     --max-new-tokens 512 \
@@ -139,18 +139,29 @@ PY
 # that summarize() already printed are a complete copy of every reply.
 push_results() {
   local run_dir="$1"
-  if python -m training.launch.r2_sync upload-run --run-dir "$run_dir"; then
+  if python -m training.launch.r2_sync upload-run --run-dir "$run_dir" --run-root "$OUT_ROOT"; then
     return 0
   fi
   echo "WARN R2 upload failed for $run_dir; the stdout RECORD lines are the only copy" >&2
   return 0
 }
 
-for label in bf16 nf4; do
-  run_split "$ROOT/adapters/${label}" "$label" dev
+# The nf4 adapter was fitted against a 4-bit base, so it is scored on one:
+# serving it on bf16 measures transfer, not the model that was trained. LABELS
+# lets a submission score a different adapter set without editing this file.
+LABELS="${LABELS:-bf16 nf4}"
+RUN_LABEL="${RUN_LABEL:-ovh-v22}"
+for label in $LABELS; do
+  quant=""
+  if [ "$label" = nf4 ]; then
+    # The 4-bit loader only serves the base in its training dtype; the later
+    # --dtype overrides the fixed bfloat16 in run_split for this label alone.
+    quant="--load-in-4bit --dtype float16"
+  fi
+  run_split "$ROOT/adapters/${label}" "$label" dev "$quant"
   summarize "$OUT_ROOT/${OUT_PREFIX}eval-${label}-dev"
   push_results "$OUT_ROOT/${OUT_PREFIX}eval-${label}-dev"
-  run_split "$ROOT/adapters/${label}" "$label" sealed --allow-sealed
+  run_split "$ROOT/adapters/${label}" "$label" sealed "$quant --allow-sealed"
   summarize "$OUT_ROOT/${OUT_PREFIX}eval-${label}-sealed"
   push_results "$OUT_ROOT/${OUT_PREFIX}eval-${label}-sealed"
 done

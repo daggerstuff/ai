@@ -26,7 +26,7 @@ class LocalCallableValidator(BaseValidator):
             result_as_df = self.validation_function(df)
         except Exception as e:
             logger.error(f"Callback validator failed: {e}")
-            raise LocalCallableValidationError(str(e))
+            raise LocalCallableValidationError(str(e)) from e
 
         records = result_as_df.to_dict(orient="records")
         result = ValidationResult(data=[ValidationOutput.model_validate(record) for record in records])

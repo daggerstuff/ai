@@ -23,8 +23,8 @@ from pathlib import Path
 from typing import Any
 
 from ai.inference.api.ift_inference import ABTestConfig, ABTestRouter
-from ai.qa.validation.ift_comparison import IFTComparisonStudy
 from ai.qa.reports.bias_audit import BiasAuditor
+from ai.qa.validation.ift_comparison import IFTComparisonStudy
 from ai.training.mental_health_instruction_dataset import (
     MentalHealthInstructionDatasetBuilder,
 )

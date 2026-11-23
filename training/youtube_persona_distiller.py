@@ -16,7 +16,7 @@ import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import UTC, datetime
+from http import HTTPStatus
 from pathlib import Path
 from typing import Any
 
@@ -57,7 +57,8 @@ PERSONA_PROFILES: dict[str, dict[str, str]] = {
         "name": "Patrick Teahan, LICSW",
         "domain": "childhood_trauma_recovery",
         "style": (
-            "Licensed clinical social worker specializing in childhood trauma, inner child work, and dysfunctional family systems. "
+            "Licensed clinical social worker specializing in childhood trauma, inner "
+            "child work, and dysfunctional family systems. "
             "Identifies family roles (scapegoat, lost child, parentified), breaks toxic loyalty bonds, "
             "and uses direct, experiential inner child dialoguing."
         ),
@@ -94,7 +95,8 @@ PERSONA_PROFILES: dict[str, dict[str, str]] = {
         "domain": "trauma_and_addiction",
         "style": (
             "Integrative cognitive-behavioral and neurobiological approach to trauma, codependency, and addiction. "
-            "Explains autonomic nervous system triggers, HPA axis dysregulation, and concrete distress tolerance skills."
+            "Explains autonomic nervous system triggers, HPA axis dysregulation, and "
+            "concrete distress tolerance skills."
         ),
     },
     "Irene Lyon": {
@@ -133,8 +135,7 @@ _RATE_LIMIT_STATE = {"last_api_call": 0.0}
 _NONCANONICAL_KEYS = [key for key in PERSONA_PROFILES if key != key.strip()]
 if _NONCANONICAL_KEYS:
     raise ValueError(
-        "Non-canonical PERSONA_PROFILES keys detected "
-        f"(leading/trailing whitespace): {_NONCANONICAL_KEYS!r}"
+        f"Non-canonical PERSONA_PROFILES keys detected (leading/trailing whitespace): {_NONCANONICAL_KEYS!r}"
     )
 
 
@@ -178,7 +179,7 @@ def _call_cloudflare(system_prompt: str, user_content: str, model_id: str = DEFA
         "max_tokens": 2048,
     }
     response = requests.post(url, headers=headers, json=payload, timeout=90)
-    if response.status_code == 200:
+    if response.status_code == HTTPStatus.OK:
         data = response.json()
         res = data.get("result", {})
         if isinstance(res, dict):
@@ -205,7 +206,8 @@ _SPEAKER_PATTERNS = [
 def _strip_speaker_labels(text: str) -> str:
     """Remove speaker-label prefixes from the start of each line."""
     cleaned: list[str] = []
-    for line in text.splitlines():
+    for raw_line in text.splitlines():
+        line = raw_line
         for pattern in _SPEAKER_PATTERNS:
             match = pattern.match(line.strip())
             if match:
@@ -236,21 +238,33 @@ def _chunk_transcript(text: str, chunk_size: int = 4000) -> list[str]:
     return chunks
 
 
-def distill_persona_chunk(
-    chunk: str, channel_name: str, persona_info: dict[str, str]
-) -> list[dict[str, Any]]:
+def distill_persona_chunk(chunk: str, channel_name: str, persona_info: dict[str, str]) -> list[dict[str, Any]]:
     system_prompt = (
-        f"You are an expert clinical training data generator specializing in distilling expert clinical transcripts into realistic in-session therapy dialogues.\n\n"
-        f"PRACTITIONER PERSONA: {persona_info.get('name', channel_name)} (Specialty: {persona_info.get('domain', 'clinical psychology')})\n"
+        "You are an expert clinical training data generator specializing in distilling expert clinical transcripts "
+        "into realistic in-session therapy dialogues.\n\n"
+        f"PRACTITIONER PERSONA: {persona_info.get('name', channel_name)} "
+        f"(Specialty: {persona_info.get('domain', 'clinical psychology')})\n"
         f"CLINICAL STYLE: {persona_info.get('style', 'Empathetic, grounded, evidence-based.')}\n\n"
         "CRITICAL CLINICAL RULES:\n"
-        "1. CLIENT VOICE: Raw, distressed, colloquial, messy, fragmented, or defensive. Real clients do NOT speak in clean psychological definitions. They describe their lived suffering, doubts, self-blame, or physiological panic.\n"
-        "2. THERAPIST VOICE: Embody the practitioner persona's specific clinical instincts and phrasing. Conversational, direct, authentic human speech (1-3 sentences). NEVER sound like a YouTube video, lecture, or podcast. NEVER mention 'in this video', 'subscribers', channel names, book titles, or author names.\n"
-        "3. NO GENERIC CLICHES: Never say 'It sounds like', 'I hear that', 'That must be hard', 'Thank you for sharing', 'Let's unpack that'.\n"
-        "4. PACING: When a client is in confusion, shock, or self-blame, meet the immediate reality first. Do not prematurely interrogate them with analytical 'why' questions.\n"
-        "5. CRISIS PROTOCOL: If immediate physical harm is present, address safety first. When past/survived impulses are disclosed, DO NOT use defensive liability questionnaires; hold the vulnerability directly.\n\n"
+        "1. CLIENT VOICE: Raw, distressed, colloquial, messy, fragmented, or "
+        "defensive. Real clients do NOT speak in clean psychological definitions. "
+        "They describe their lived suffering, doubts, self-blame, or physiological "
+        "panic.\n"
+        "2. THERAPIST VOICE: Embody the practitioner persona's specific clinical "
+        "instincts and phrasing. Conversational, direct, authentic human speech (1-3 "
+        "sentences). NEVER sound like a YouTube video, lecture, or podcast. NEVER "
+        "mention 'in this video', 'subscribers', channel names, book titles, or "
+        "author names.\n"
+        "3. NO GENERIC CLICHES: Never say 'It sounds like', 'I hear that', 'That must"
+        " be hard', 'Thank you for sharing', 'Let's unpack that'.\n"
+        "4. PACING: When a client is in confusion, shock, or self-blame, meet the "
+        "immediate reality first. Do not prematurely interrogate them with analytical"
+        " 'why' questions.\n"
+        "5. CRISIS PROTOCOL: If immediate physical harm is present, address safety "
+        "first. When past/survived impulses are disclosed, DO NOT use defensive "
+        "liability questionnaires; hold the vulnerability directly.\n\n"
         "Generate 2-4 distinct in-session client-therapist exchanges rooted in the clinical dynamics of this excerpt.\n"
-        "Output strictly JSON lines: {\"instruction\": \"<client words>\", \"output\": \"<therapist words>\"}\n"
+        'Output strictly JSON lines: {"instruction": "<client words>", "output": "<therapist words>"}\n'
         "Output ONLY valid JSON lines. No markdown codeblocks, no surrounding text."
     )
 
@@ -263,8 +277,8 @@ def distill_persona_chunk(
         return []
 
     pairs: list[dict[str, Any]] = []
-    for line in raw_response.strip().splitlines():
-        line = line.strip()
+    for raw_line in raw_response.strip().splitlines():
+        line = raw_line.strip()
         if not line or line.startswith("```"):
             continue
         try:
@@ -317,7 +331,9 @@ def process_channel(
                         {
                             "role": "system",
                             "content": (
-                                f"You are a licensed clinical psychologist embodying the clinical modality and insights of {persona_info.get('name', channel_name)}. "
+                                "You are a licensed clinical psychologist embodying the clinical modality "
+                                "and insights of "
+                                f"{persona_info.get('name', channel_name)}. "
                                 "Provide grounded, attuned, non-sycophantic therapeutic dialogue."
                             ),
                         },
@@ -326,16 +342,17 @@ def process_channel(
                     ],
                     "source": f"youtube_persona_{channel_name.strip()[:30]}",
                     "task_type": "practitioner_persona",
-                    "tier": "T1_GOLD",
+                    "tier": "T3_BRONZE",
                     "diagnostic_tag": persona_info.get("domain", "general_mental_health"),
                     "demographic_tags": [],
                     "linguistic_style": "spoken_clinical_practitioner",
-                    "clinical_reviewed": True,
-                    "mi_quality": "high",
+                    "clinical_reviewed": False,
+                    "mi_quality": "unassessed",
                     "provenance": {
                         "practitioner": persona_info.get("name", channel_name),
                         "channel": channel_name.strip(),
                         "source_type": "practitioner_transcript_distillation",
+                        "review_status": "unreviewed_synthetic",
                     },
                 }
                 all_records.append(record)
@@ -344,7 +361,7 @@ def process_channel(
         for r in all_records:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
-    logger.info("Completed %s: %d gold persona pairs written to %s", channel_name, len(all_records), out_file.name)
+    logger.info("Completed %s: %d synthetic persona pairs written to %s", channel_name, len(all_records), out_file.name)
     return len(all_records)
 
 
@@ -353,7 +370,9 @@ def main() -> None:
     _training_dir = Path(__file__).resolve().parent
     _ai_dir = _training_dir.parent
     parser.add_argument("--transcripts_dir", type=str, default=str(_training_dir / "youtube_transcripts"))
-    parser.add_argument("--output_dir", type=str, default=str(_ai_dir / "data" / "curated" / "youtube_distilled_personas"))
+    parser.add_argument(
+        "--output_dir", type=str, default=str(_ai_dir / "data" / "curated" / "youtube_distilled_personas")
+    )
     parser.add_argument("--channel", type=str, default="", help="Specific channel to distill")
     parser.add_argument("--workers", type=int, default=2)
     args = parser.parse_args()

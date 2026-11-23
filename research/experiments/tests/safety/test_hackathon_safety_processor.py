@@ -17,6 +17,10 @@ from pathlib import Path
 
 import pytest
 
+from ai.tools.utilities.pipelines.processing.pii_scrubber import (
+    PiiScrubber,
+    PiiScrubberConfig,
+)
 from pipelines.data_processing.processors.safety_processors import (
     HackathonSafetyProcessor,
     SafetyProcessResult,
@@ -24,10 +28,6 @@ from pipelines.data_processing.processors.safety_processors import (
 )
 from pipelines.data_processing.processors.toxicity_detector import (
     HeuristicToxicityDetector,
-)
-from ai.tools.utilities.pipelines.processing.pii_scrubber import (
-    PiiScrubber,
-    PiiScrubberConfig,
 )
 
 # ---------------------------------------------------------------------------

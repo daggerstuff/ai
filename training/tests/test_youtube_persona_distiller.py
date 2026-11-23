@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
+from training import youtube_persona_distiller as distiller
 from training.youtube_persona_distiller import (
     DEFAULT_MODEL,
     PERSONA_PROFILES,
@@ -11,6 +15,28 @@ from training.youtube_persona_distiller import (
     _strip_speaker_labels,
     get_persona_profile,
 )
+
+
+def test_generated_persona_records_require_clinical_review(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    channel = tmp_path / "channel"
+    channel.mkdir()
+    (channel / "transcript.txt").write_text("Synthetic training excerpt.")
+    output = tmp_path / "out"
+    output.mkdir()
+    monkeypatch.setattr(
+        distiller,
+        "distill_persona_chunk",
+        lambda *_args: [{"instruction": "A synthetic question.", "output": "A reply."}],
+    )
+
+    count = distiller.process_channel(channel, output, {"name": "Synthetic practitioner"}, max_workers=1)
+
+    assert count == 1
+    record = json.loads((output / "channel_distilled_persona.jsonl").read_text())
+    assert record["clinical_reviewed"] is False
+    assert record["mi_quality"] == "unassessed"
+    assert record["tier"] == "T3_BRONZE"
+    assert record["provenance"]["review_status"] == "unreviewed_synthetic"
 
 
 class TestPersonaKeyNormalization:
@@ -61,9 +87,7 @@ class TestSpeakerLabelStripping:
         assert _strip_speaker_labels(prose) == prose
 
     def test_chunking_strips_labels_before_splitting(self):
-        chunks = _chunk_transcript(
-            "Therapist: hello world\n\nClient: I am hurting", chunk_size=100
-        )
+        chunks = _chunk_transcript("Therapist: hello world\n\nClient: I am hurting", chunk_size=100)
         assert chunks
         for chunk in chunks:
             assert "Therapist:" not in chunk

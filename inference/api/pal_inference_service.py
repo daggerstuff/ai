@@ -80,12 +80,8 @@ class PalGenerationResponse(BaseModel):
 
 
 class PalGenerateRequest(BaseModel):
-    persona_string: str = Field(
-        ..., min_length=1, description="The persona string to use for response generation."
-    )
-    dialogue_history: str = Field(
-        ..., description="The dialogue history up to this point."
-    )
+    persona_string: str = Field(..., min_length=1, description="The persona string to use for response generation.")
+    dialogue_history: str = Field(..., description="The dialogue history up to this point.")
 
 
 class PalInferResponse(BaseModel):
@@ -97,9 +93,7 @@ class PalInferResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str = Field(..., description="Service health status.")
-    wrapper_initialized: bool = Field(
-        ..., description="Whether the PAL inference wrapper is ready."
-    )
+    wrapper_initialized: bool = Field(..., description="Whether the PAL inference wrapper is ready.")
     n_candidate_personas: int = Field(..., description="Number of loaded candidate personas.")
     latency_budget_seconds: float = Field(..., description="Current latency budget.")
     version: str = "1.0.0"
@@ -121,10 +115,7 @@ class _StubGenerator:
     """Returns a canned persona-aligned response."""
 
     def __call__(self, _messages: list[dict[str, str]]) -> str:
-        return (
-            "I have been feeling this way for a while now. "
-            "Thank you for explaining things clearly, doctor."
-        )
+        return "I have been feeling this way for a while now. Thank you for explaining things clearly, doctor."
 
 
 # ---------------------------------------------------------------------------
@@ -279,9 +270,7 @@ async def health() -> HealthResponse:
         status="healthy" if _wrapper is not None else "degraded",
         wrapper_initialized=_wrapper is not None,
         n_candidate_personas=len(_wrapper.candidate_personas) if _wrapper else 0,
-        latency_budget_seconds=(
-            _wrapper.latency_budget_seconds if _wrapper else DEFAULT_LATENCY_BUDGET_SECONDS
-        ),
+        latency_budget_seconds=(_wrapper.latency_budget_seconds if _wrapper else DEFAULT_LATENCY_BUDGET_SECONDS),
     )
 
 

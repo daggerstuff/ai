@@ -27,7 +27,7 @@ class TranscriptCorrector:
                         "medical_terms": [],
                         "common_misinterpretations": {},
                     }
-            except (json.JSONDecodeError, FileNotFoundError):
+            except json.JSONDecodeError, FileNotFoundError:
                 pass
         return {"cptsd_terms": [], "medical_terms": [], "common_misinterpretations": {}}
 

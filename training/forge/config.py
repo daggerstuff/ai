@@ -25,17 +25,11 @@ class ForgeConfig:
         )
     )
     hivemind_endpoint: str = field(
-        default_factory=lambda: os.getenv(
-            "HIVEMIND_SERVER_ENDPOINT", "https://hivemind.wandb.tools"
-        )
+        default_factory=lambda: os.getenv("HIVEMIND_SERVER_ENDPOINT", "https://hivemind.wandb.tools")
     )
 
     # Scopes
-    entity: str = field(
-        default_factory=lambda: os.getenv(
-            "COREWEAVE_ENTITY", os.getenv("WANDB_ENTITY", "wutang")
-        )
-    )
+    entity: str = field(default_factory=lambda: os.getenv("COREWEAVE_ENTITY", os.getenv("WANDB_ENTITY", "wutang")))
     project: str = field(
         default_factory=lambda: os.getenv(
             "COREWEAVE_PROJECT",
@@ -44,11 +38,7 @@ class ForgeConfig:
     )
 
     # API Keys & Secrets
-    api_key: str = field(
-        default_factory=lambda: os.getenv(
-            "COREWEAVE_FORGE_API_KEY", os.getenv("WANDB_API_KEY", "")
-        )
-    )
+    api_key: str = field(default_factory=lambda: os.getenv("COREWEAVE_FORGE_API_KEY", os.getenv("WANDB_API_KEY", "")))
 
     # Storage and Quota Management (GB)
     storage_quota_gb: float = 200.0
@@ -56,9 +46,7 @@ class ForgeConfig:
 
     # Paths
     local_checkpoint_root: Path = field(
-        default_factory=lambda: Path(__file__).resolve().parents[2]
-        / "output"
-        / "wandb_local_checkpoints"
+        default_factory=lambda: Path(__file__).resolve().parents[2] / "output" / "wandb_local_checkpoints"
     )
 
     # Model Catalog Defaults

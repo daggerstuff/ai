@@ -273,9 +273,7 @@ def render_candidate(
     return stats
 
 
-def create_manifest(
-    stats: dict[str, Any], output: Path, release_id: str, repairs_path: Path | None
-) -> dict[str, Any]:
+def create_manifest(stats: dict[str, Any], output: Path, release_id: str, repairs_path: Path | None) -> dict[str, Any]:
     payload_paths = stats["payload_paths"]
     row_counts = stats["row_counts"]
     group_sets = stats["group_sets"]

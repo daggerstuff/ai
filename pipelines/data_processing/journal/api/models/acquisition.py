@@ -23,9 +23,7 @@ class AcquisitionInitiateRequest(BaseModel):
 class AcquisitionUpdateRequest(BaseModel):
     """Request model for updating acquisition status."""
 
-    status: str = Field(
-        description="Acquisition status: pending, approved, in-progress, completed, failed"
-    )
+    status: str = Field(description="Acquisition status: pending, approved, in-progress, completed, failed")
 
 
 class AcquisitionResponse(BaseModel):
@@ -34,9 +32,7 @@ class AcquisitionResponse(BaseModel):
     acquisition_id: str
     source_id: str
     status: str
-    download_progress: float | None = Field(
-        default=None, ge=0, le=100, description="Download progress percentage"
-    )
+    download_progress: float | None = Field(default=None, ge=0, le=100, description="Download progress percentage")
     file_path: str | None = None
     file_size: float | None = Field(default=None, description="File size in MB")
     acquired_date: datetime | None = None

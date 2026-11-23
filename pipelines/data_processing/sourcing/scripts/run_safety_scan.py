@@ -88,10 +88,7 @@ def main() -> None:
         sys.exit(1)
 
     # Find all .jsonl files (excluding already-processed .safe.jsonl)
-    jsonl_files = sorted(
-        f for f in input_dir.rglob("*.jsonl")
-        if ".safe." not in f.name
-    )
+    jsonl_files = sorted(f for f in input_dir.rglob("*.jsonl") if ".safe." not in f.name)
 
     if not jsonl_files:
         print(f"No .jsonl files found in {input_dir}")
@@ -128,12 +125,8 @@ def main() -> None:
     # Aggregate totals
     total_in = sum(r.get("input_records", 0) for r in all_reports)
     total_out = sum(r.get("output_records", 0) for r in all_reports)
-    total_pii = sum(
-        r.get("pii", {}).get("total_redactions", 0) for r in all_reports
-    )
-    total_toxic = sum(
-        r.get("toxicity", {}).get("flagged_records", 0) for r in all_reports
-    )
+    total_pii = sum(r.get("pii", {}).get("total_redactions", 0) for r in all_reports)
+    total_toxic = sum(r.get("toxicity", {}).get("flagged_records", 0) for r in all_reports)
 
     print(f"TOTAL: {total_in} records in -> {total_out} out")
     print(f"PII redactions: {total_pii}")

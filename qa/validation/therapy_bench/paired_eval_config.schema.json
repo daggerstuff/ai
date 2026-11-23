@@ -7,6 +7,16 @@
   "properties": {
     "schema_version": {"const": 1},
     "run_id": {"type": "string", "minLength": 1},
+    "loader": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["load_in_4bit", "dtype"],
+      "properties": {
+        "load_in_4bit": {"type": "boolean"},
+        "dtype": {"type": "string", "minLength": 1},
+        "base_model_revision": {"type": "string", "minLength": 1}
+      }
+    },
     "decoding": {
       "type": "object",
       "additionalProperties": false,

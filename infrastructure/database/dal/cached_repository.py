@@ -75,7 +75,7 @@ class CMSCacheLayer:
             return None
         try:
             return json.loads(raw)
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             logger.warning("Corrupt cache entry at %s, deleting", key)
             self._redis.delete(key)
             return None
@@ -109,7 +109,7 @@ class CMSCacheLayer:
             return None
         try:
             return json.loads(raw)
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             self._redis.delete(cache_key)
             return None
 
@@ -129,7 +129,7 @@ class CMSCacheLayer:
             return None
         try:
             return json.loads(raw)
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             self._redis.delete(key)
             return None
 

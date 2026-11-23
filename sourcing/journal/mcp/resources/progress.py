@@ -75,17 +75,17 @@ class ProgressMetricsResource(MCPResource):
             content = self.format_content(progress_dict)
             return {"contents": [content]}
 
-        except KeyError:
+        except KeyError as exc:
             raise MCPError(
                 MCPErrorCode.RESOURCE_NOT_FOUND,
                 f"Session {session_id} not found",
-            )
+            ) from exc
         except Exception as e:
             logger.exception(f"Error reading progress metrics for session {session_id}")
             raise MCPError(
                 JSONRPCErrorCode.INTERNAL_ERROR,
                 f"Failed to read progress metrics: {e!s}",
-            )
+            ) from e
 
     def validate_uri(self, uri: str) -> bool:
         """
@@ -168,17 +168,17 @@ class ProgressHistoryResource(MCPResource):
             content = self.format_content(history_dicts)
             return {"contents": [content]}
 
-        except KeyError:
+        except KeyError as exc:
             raise MCPError(
                 MCPErrorCode.RESOURCE_NOT_FOUND,
                 f"Session {session_id} not found",
-            )
+            ) from exc
         except Exception as e:
             logger.exception(f"Error reading progress history for session {session_id}")
             raise MCPError(
                 JSONRPCErrorCode.INTERNAL_ERROR,
                 f"Failed to read progress history: {e!s}",
-            )
+            ) from e
 
     def validate_uri(self, uri: str) -> bool:
         """

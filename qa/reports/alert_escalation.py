@@ -14,8 +14,8 @@ import time
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from email.mime.multipart import MimeMultipart
-from email.mime.text import MimeText
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -514,7 +514,7 @@ class AlertEscalationManager:
         config = channel.config
 
         # Create message
-        msg = MimeMultipart()
+        msg = MIMEMultipart()
         msg["From"] = config.get("from_address", "alerts@pixelatedempathy.com")
         msg["To"] = ", ".join(rule.recipients)
         msg["Subject"] = f"[{alert.severity.value.upper()}] {alert.title}"
@@ -539,7 +539,7 @@ Metadata:
 Please acknowledge this alert in the monitoring system.
 """
 
-        msg.attach(MimeText(body, "plain"))
+        msg.attach(MIMEText(body, "plain"))
 
         # Send email
         server = smtplib.SMTP(config["smtp_server"], config["smtp_port"])

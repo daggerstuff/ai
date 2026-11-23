@@ -36,15 +36,11 @@ class MemorizeStage:
         self.embedder = embedder
         self.config = config or MemorizeRankConfig()
 
-    def retrieve(
-        self, presentation: PatientPresentation, top_k: int = 20
-    ) -> list[Candidate]:
+    def retrieve(self, presentation: PatientPresentation, top_k: int = 20) -> list[Candidate]:
         """Retrieve top candidates for a presentation."""
         top_k = max(1, top_k)
         # Encode presentation findings to a single vector.
-        query_vec = self.embedder.encode_presentation(
-            presentation, self.hierarchy
-        )
+        query_vec = self.embedder.encode_presentation(presentation, self.hierarchy)
 
         candidates: list[Candidate] = []
         all_cond_ids = [
@@ -58,20 +54,13 @@ class MemorizeStage:
             if cond_node is None:
                 continue
             # Semantic similarity (cosine in embedding space).
-            cond_vec = self.embedder.encode_condition(
-                self.hierarchy, cid
-            )
+            cond_vec = self.embedder.encode_condition(self.hierarchy, cid)
             sim_sem = self.embedder.cosine(query_vec, cond_vec)
 
             # Hierarchical closeness via Wu-Palmer similarity to presentation.
             # We approximate by mapping presentation descriptors to closest node.
-            closest_node = self._closest_node_for_findings(
-                presentation
-            )
-            sim_hier = (
-                self.hierarchy.similarity(closest_node, cid)
-                if closest_node else 0.0
-            )
+            closest_node = self._closest_node_for_findings(presentation)
+            sim_hier = self.hierarchy.similarity(closest_node, cid) if closest_node else 0.0
 
             # Keyword overlap: descriptor/token overlap.
             sim_kw = self._keyword_overlap(presentation, cond_node)
@@ -80,11 +69,7 @@ class MemorizeStage:
             alpha = self.config.retrieval_alpha
             beta = self.config.retrieval_beta
             gamma = self.config.retrieval_gamma
-            score = (
-                alpha * sim_sem
-                + beta * sim_hier
-                + gamma * sim_kw
-            )
+            score = alpha * sim_sem + beta * sim_hier + gamma * sim_kw
 
             evidence = RetrievalEvidence(
                 source="semantic" if sim_sem > sim_hier else "hierarchical",
@@ -111,9 +96,7 @@ class MemorizeStage:
         candidates.sort(key=lambda c: c.retrieval_score, reverse=True)
         return candidates[:top_k]
 
-    def _closest_node_for_findings(
-        self, presentation: PatientPresentation
-    ) -> str | None:
+    def _closest_node_for_findings(self, presentation: PatientPresentation) -> str | None:
         """Find the closest hierarchy node to any finding's descriptors."""
         best_node: str | None = None
         best_score = -1.0
@@ -132,9 +115,7 @@ class MemorizeStage:
                         best_node = nid
         return best_node
 
-    def _keyword_overlap(
-        self, presentation: PatientPresentation, node: Any
-    ) -> float:
+    def _keyword_overlap(self, presentation: PatientPresentation, node: Any) -> float:
         """Simple Jaccard overlap between finding tokens and node descriptors."""
         tokens: set[str] = set()
         for finding in presentation.findings:
@@ -149,14 +130,10 @@ class MemorizeStage:
 
     def memorize(self, presentation: PatientPresentation) -> MeraResult:
         """Run full Memorize stage: retrieve and assemble MeraResult."""
-        candidates = self.retrieve(
-            presentation, top_k=self.config.top_k_retrieval
-        )
+        candidates = self.retrieve(presentation, top_k=self.config.top_k_retrieval)
         # Prune below floor.
         floor = self.config.prune_floor
-        candidates = [
-            c for c in candidates if c.retrieval_score >= floor
-        ]
+        candidates = [c for c in candidates if c.retrieval_score >= floor]
         return MeraResult(
             case_id=presentation.case_id,
             ranked_candidates=candidates,

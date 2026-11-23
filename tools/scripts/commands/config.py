@@ -15,8 +15,8 @@ import click
 import psutil
 import yaml
 
-from .config import CLIConfig, get_config, save_config
-from .utils import get_logger, setup_logging
+from tools.scripts.config import CLIConfig, get_config, save_config
+from tools.scripts.utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 

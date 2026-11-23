@@ -158,7 +158,6 @@ class QualityRecommendationSystem:
                 review_schedule=review_schedule,
             )
 
-
         except Exception:
             return RecommendationPlan(
                 plan_id="ERROR",

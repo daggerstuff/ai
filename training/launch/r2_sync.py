@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import base64
 import gzip
+import hashlib
 import json
 import mimetypes
 import os
@@ -33,15 +34,9 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Callable
-from pathlib import Path
+from collections.abc import Callable, Iterable
+from pathlib import Path, PurePosixPath
 from typing import Any
-
-# boto3 is a declared core dependency (pyproject.toml, [project].dependencies),
-# not an optional extra, so it is imported eagerly: the module either imports or
-# it fails immediately, never halfway through a job.
-import boto3
-from botocore.config import Config
 
 REQUIRED_ENV = ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT")
 DEFAULT_BUCKET_ENV = "R2_BUCKET"
@@ -95,7 +90,16 @@ def credentials(*, env_file: Path | None = None) -> dict[str, str]:
 
 
 def client(*, env_file: Path | None = None) -> Any:
-    """A boto3 S3 client pointed at R2."""
+    """A boto3 S3 client pointed at R2.
+
+    boto3 is imported lazily: the GPU image runs this module for the
+    stdlib-only put-file/fetch-file path and has no SDK installed, so an
+    eager import would break result upload from the job even before
+    credentials are ever needed.
+    """
+    import boto3
+    from botocore.config import Config
+
     settings = credentials(env_file=env_file)
     return boto3.client(
         "s3",
@@ -121,6 +125,15 @@ def _skip(path: Path) -> bool:
     return any(part in SKIP_PARTS for part in path.parts) or path.suffix in SKIP_SUFFIXES
 
 
+def _file_md5(path: Path) -> str:
+    """MD5 hex of a file: what S3/R2 reports as the ETag of a single-part PUT."""
+    digest = hashlib.md5(usedforsecurity=False)
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def upload_dir(
     source: Path,
     *,
@@ -128,12 +141,22 @@ def upload_dir(
     prefix: str,
     s3_client: Any | None = None,
     skip_unchanged: bool = False,
+    include: Iterable[str] | None = None,
 ) -> list[str]:
     """Mirror a local directory under ``prefix``. Returns the uploaded keys.
 
     ``skip_unchanged`` compares against the objects already under ``prefix`` and
-    uploads only what is missing or has a different size. The input bundle holds
-    two 344 MB adapters, so re-sending them on every submit is not free.
+    uploads only what is missing or whose size or MD5 digest differs. Size alone
+    is not enough: a rebuilt adapter or runner file can keep its byte count while
+    its contents change, and the job would then score the previous bundle. The
+    digest is only computed when the size matches; a multipart ETag is not the
+    object's MD5, so an object stored that way is always re-sent. The input bundle
+    holds two 344 MB adapters, so re-sending them on every submit is not free.
+
+    ``include`` restricts the mirror to a named set of source-relative paths, so
+    a caller that signs a fixed bundle cannot upload a leftover from a reused
+    directory: the object would land in the bucket without a presigned GET, a
+    manifest entry, or a digest.
 
     Callers that need a non-default ``env_file`` build the client with
     :func:`client` and pass it in: credentials are resolved in exactly one
@@ -141,16 +164,25 @@ def upload_dir(
     """
     s3 = s3_client if s3_client is not None else client()
     base = prefix.strip("/")
-    existing: dict[str, int] = {}
+    allowed = None if include is None else {PurePosixPath(relative).as_posix() for relative in include}
+    existing: dict[str, tuple[int, str]] = {}
     if skip_unchanged:
-        existing = {entry["key"]: entry["size"] for entry in list_prefix(bucket=bucket, prefix=base, s3_client=s3)}
+        existing = {
+            entry["key"]: (entry["size"], entry["etag"])
+            for entry in list_prefix(bucket=bucket, prefix=base, s3_client=s3)
+        }
     uploaded: list[str] = []
     for path in sorted(source.rglob("*")):
         if not path.is_file() or _skip(path.relative_to(source)):
             continue
-        key = f"{base}/{path.relative_to(source).as_posix()}" if base else path.relative_to(source).as_posix()
-        if skip_unchanged and existing.get(key) == path.stat().st_size:
+        relative = path.relative_to(source).as_posix()
+        if allowed is not None and relative not in allowed:
             continue
+        key = f"{base}/{relative}" if base else relative
+        if skip_unchanged:
+            known = existing.get(key)
+            if known is not None and known[0] == path.stat().st_size and known[1] == _file_md5(path):
+                continue
         s3.put_object(Bucket=bucket, Key=key, Body=path.read_bytes(), ContentType=content_type(path))
         uploaded.append(key)
     return uploaded
@@ -192,7 +224,7 @@ def list_prefix(
     prefix: str,
     s3_client: Any | None = None,
 ) -> list[dict[str, Any]]:
-    """Every object under ``prefix`` as ``{key, size}``."""
+    """Every object under ``prefix`` as ``{key, size, etag}``."""
     s3 = s3_client if s3_client is not None else client()
     base = prefix.strip("/")
     found: list[dict[str, Any]] = []
@@ -202,7 +234,10 @@ def list_prefix(
         if token:
             request["ContinuationToken"] = token
         page = s3.list_objects_v2(**request)
-        found += [{"key": entry["Key"], "size": entry["Size"]} for entry in page.get("Contents", [])]
+        found += [
+            {"key": entry["Key"], "size": entry["Size"], "etag": entry.get("ETag", "").strip('"')}
+            for entry in page.get("Contents", [])
+        ]
         if not page.get("IsTruncated"):
             return found
         token = page.get("NextContinuationToken")

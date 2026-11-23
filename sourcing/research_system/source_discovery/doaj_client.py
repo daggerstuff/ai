@@ -77,7 +77,7 @@ class DOAJMetadataExtractor(MetadataExtractor):
             if pub_date_str:
                 try:
                     pub_date = datetime(int(pub_date_str), self.DEFAULT_MONTH, self.DEFAULT_DAY)
-                except (ValueError, TypeError):
+                except ValueError, TypeError:
                     logger.debug(f"Invalid publication date '{pub_date_str}', using None")
 
             # Extract identifiers

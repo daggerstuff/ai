@@ -1,0 +1,132 @@
+# Training-infra recipe registry (PIX-5000).
+#
+# Agents select recipes; they never define them. Adding a recipe is a
+# reviewed code change — keep entries aligned with the real entrypoints
+# under training/. Phase 0 is read-only: these describe what CAN run.
+
+recipes:
+  - id: eval-crisis-v2
+    kind: eval_paired
+    description: >-
+      Paired crisis-suite eval on OVH GPU. Scores baseline (bf16) and
+      quantized (nf4) adapter arms across dev + sealed splits of the v2
+      graded case suite. Results land in R2 under evals/<tag>/.
+    backend: ovhai
+    entrypoint: "python -m training.ovh_v22_eval.submit run --execute --tag <tag> --suite v2"
+    cost_class: gpu-hour
+    est_cost_usd: 2.0
+    gpu: l4-1-gpu
+    timeout: 2h
+    inputs:
+      tag: "result tag, e.g. v30-eval-v2"
+    outputs:
+      r2_prefix: "evals/<tag>/"
+      result_files: ["manifest.json", "results.jsonl"]
+    invariants:
+      r2_only: true
+      no_volume_mounts: true
+
+  - id: eval-crisis-v1
+    kind: eval_paired
+    description: >-
+      Same paired eval against the v1 crisis case suite. Use for
+      longitudinal comparison with earlier releases.
+    backend: ovhai
+    entrypoint: "python -m training.ovh_v22_eval.submit run --execute --tag <tag> --suite v1"
+    cost_class: gpu-hour
+    est_cost_usd: 2.0
+    gpu: l4-1-gpu
+    timeout: 2h
+    inputs:
+      tag: "result tag"
+    outputs:
+      r2_prefix: "evals/<tag>/"
+      result_files: ["manifest.json", "results.jsonl"]
+    invariants:
+      r2_only: true
+      no_volume_mounts: true
+
+  - id: train-sft-latest
+    kind: train_sft
+    description: >-
+      W&B Serverless SFT launch using the newest versioned execute script
+      and a launch config derived from the release manifest via
+      make_launch_config.py. Learning-rate schedule is recipe-derived,
+      never transcribed.
+    backend: wandb-serverless
+    entrypoint: "python -m training.launch.wandb_sft_v15_execute --execute --config <launch_config>"
+    cost_class: gpu-day
+    est_cost_usd: 25.0
+    gpu: serverless
+    timeout: 24h
+    inputs:
+      # The launch config pins the manifest (and the train payload sha256)
+      # internally, so it is the only input the entrypoint receives. Requiring
+      # a manifest here would demand a value the command never uses.
+      launch_config: "path to a launch config from training.launch.make_launch_config"
+    overrides:
+      epochs: { type: int, min: 1, max: 10, default: 3, locked: false }
+      learning_rate: { locked: true }
+    outputs:
+      wandb_run: "serverless training job id"
+      state_dir: "docs/training/execution-*/wandb-sft-state/"
+    invariants:
+      recipe_derived_lr: true
+      make_launch_config_verify: true
+
+  - id: curate-sft-v29
+    kind: curate_dataset
+    description: >-
+      Build the v29 agent-tool SFT dataset from the curated corpus.
+      Local CPU; writes versioned dataset artifacts consumed by
+      train-sft-latest.
+    backend: local
+    entrypoint: "python -m training.build_agent_tool_sft_v29 <dry_run>"
+    cost_class: cpu-hour
+    est_cost_usd: 0.0
+    gpu: none
+    timeout: 4h
+    inputs:
+      corpus: "hackathon corpus root (HACKATHON_ROOT)"
+    overrides:
+      dry_run: { type: bool, default: false, locked: false }
+    outputs:
+      dataset: "versioned SFT jsonl under training/output/"
+
+  - id: curate-sft-v30
+    kind: curate_dataset
+    description: >-
+      Build the v30 agent-tool SFT dataset from the curated corpus.
+      Local CPU; writes versioned dataset artifacts consumed by
+      train-sft-latest.
+    backend: local
+    entrypoint: "python -m training.build_agent_tool_sft_v30 <dry_run>"
+    cost_class: cpu-hour
+    est_cost_usd: 0.0
+    gpu: none
+    timeout: 4h
+    inputs:
+      corpus: "hackathon corpus root (HACKATHON_ROOT)"
+    overrides:
+      dry_run: { type: bool, default: false, locked: false }
+    outputs:
+      dataset: "versioned SFT jsonl under training/output/"
+
+  - id: build-release-v30
+    kind: build_release
+    description: >-
+      Assemble the v30 release manifest + payload (sha256-pinned) from
+      train outputs and eval results.
+    backend: local
+    entrypoint: "python -m training.build_v30_release <dry_run>"
+    cost_class: cpu-minute
+    est_cost_usd: 0.0
+    gpu: none
+    timeout: 30m
+    inputs:
+      train_payload: "sha256 + rows from the SFT run"
+      eval_tag: "R2 eval tag to bind into the manifest"
+    overrides:
+      dry_run: { type: bool, default: false, locked: false }
+    outputs:
+      manifest: "docs/training/execution-*/release manifest"

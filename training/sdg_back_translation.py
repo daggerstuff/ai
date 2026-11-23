@@ -69,9 +69,7 @@ def _content_hash(record: dict[str, Any]) -> str:
     """Hash record content for dedup."""
     import hashlib
 
-    text_blob = "||".join(
-        f"{m.get('role', '')}:{m.get('content', '')}" for m in record.get("messages", [])
-    )
+    text_blob = "||".join(f"{m.get('role', '')}:{m.get('content', '')}" for m in record.get("messages", []))
     return hashlib.sha256(text_blob.encode("utf-8")).hexdigest()[:16]
 
 
@@ -202,7 +200,7 @@ def back_translate(text: str, target_lang: str) -> str:
         core = w[prefix_punct:]
         suffix_punct = len(core) - len(core.rstrip(".,!?;:'\""))
         core_clean = core[: len(core) - suffix_punct] if suffix_punct else core
-        trailing = core[len(core_clean):] if suffix_punct else ""
+        trailing = core[len(core_clean) :] if suffix_punct else ""
 
         lc = core_clean.lower()
         if lc in synonym_map:
@@ -323,7 +321,9 @@ def expand_seeds(
                 "Thank you for reaching out. This matters, and you don't have to carry it alone. What would feel most helpful to talk through first?",
                 "I'm here with you. It takes courage to put this into words. What's been weighing on you the most lately?",
             ]
-            assistant_reply = reply_variants[(hash(seed.get("id", seed.get("prompt", ""))) + hash(lang)) % len(reply_variants)]
+            assistant_reply = reply_variants[
+                (hash(seed.get("id", seed.get("prompt", ""))) + hash(lang)) % len(reply_variants)
+            ]
 
             # Rebuild the seed instruction template with the paraphrased utterance
             # (preserves the prompt schema while projecting the paraphrase into it)
@@ -364,9 +364,7 @@ def expand_seeds(
             provenance_dict = {
                 "source_url": "synthetic_sdg",
                 "source_type": "synthetic_sdg",
-                "acquired_at": (
-                    __import__("datetime").datetime.utcnow().isoformat() + "Z"
-                ),
+                "acquired_at": (__import__("datetime").datetime.utcnow().isoformat() + "Z"),
                 "pipeline_version": "pix4345-sdg",
                 "license": "NOASSERTION",
                 "transformations": ["sdg_back_translation_pix4345"],
@@ -393,9 +391,7 @@ def build_parser() -> Any:
     """Build argument parser for CLI entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Back-translation SDG expansion (PIX-4345 §B.5.2)"
-    )
+    parser = argparse.ArgumentParser(description="Back-translation SDG expansion (PIX-4345 §B.5.2)")
     parser.add_argument(
         "--seeds-path",
         type=str,

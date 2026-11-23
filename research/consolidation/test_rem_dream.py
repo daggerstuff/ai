@@ -114,10 +114,7 @@ def test_rem_dream_process_session() -> None:
 
 def test_rem_dream_replay() -> None:
     scheduler = RemDreamScheduler()
-    memories = [
-        _make_memory(f"m{i}", f"Memory content {i}", raw_importance=i * 0.2)
-        for i in range(1, 6)
-    ]
+    memories = [_make_memory(f"m{i}", f"Memory content {i}", raw_importance=i * 0.2) for i in range(1, 6)]
     replayed = scheduler._replay(memories)
     assert len(replayed) == max(1, len(memories) // 3)
 

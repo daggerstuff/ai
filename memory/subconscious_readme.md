@@ -14,9 +14,7 @@ from ai.memory.v3 import SubconsciousClient, SubconsciousConfig
 config = SubconsciousConfig.from_env()
 client = await SubconsciousClient.create(config, user_id="pixelated")
 
-response = await client.chat(
-    [{"role": "user", "content": "Help me think through the deployment issue."}]
-)
+response = await client.chat([{"role": "user", "content": "Help me think through the deployment issue."}])
 
 await client.close()
 ```

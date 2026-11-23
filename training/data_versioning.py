@@ -42,7 +42,7 @@ def _read_dvc_md5(dvc_path: str | Path) -> str | None:
         return None
     try:
         meta = json.loads(p.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
+    except json.JSONDecodeError, OSError:
         return None
     outs = meta.get("outs", [])
     if not outs:
@@ -109,10 +109,7 @@ def load_versioned(
     if expected_md5 is not None:
         actual_md5 = _md5_file(data_path)
         if actual_md5 != expected_md5:
-            raise RuntimeError(
-                f"Hash mismatch for {data_path}: "
-                f"expected {expected_md5}, got {actual_md5}"
-            )
+            raise RuntimeError(f"Hash mismatch for {data_path}: expected {expected_md5}, got {actual_md5}")
 
     # Parse and return JSONL records.
     records: list[dict[str, Any]] = []

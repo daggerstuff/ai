@@ -13,9 +13,9 @@ Features:
 
 import os
 from datetime import UTC, datetime
+from pathlib import Path
 
 from flask import Flask, jsonify, send_file
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

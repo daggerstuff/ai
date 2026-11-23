@@ -142,9 +142,7 @@ def apply_fsdp2_sharding(model: Any, cfg: FSDP2TrialConfig) -> tuple[bool, str]:
             dist.init_process_group(backend="gloo")
         launched_world = dist.get_world_size()
         if launched_world != cfg.world_size and launched_world != 1:
-            return False, (
-                f"launched world={launched_world} does not match cfg.world_size={cfg.world_size}"
-            )
+            return False, (f"launched world={launched_world} does not match cfg.world_size={cfg.world_size}")
         # Multi-rank run: mesh spans every rank. Single-process CPU mock:
         # degenerate world=1 mesh keeps the API-surface check local.
         mesh_world = launched_world if launched_world == cfg.world_size else 1
@@ -156,7 +154,7 @@ def apply_fsdp2_sharding(model: Any, cfg: FSDP2TrialConfig) -> tuple[bool, str]:
         for child in model.children():
             try:
                 fully_shard(child, mesh=mesh, reshard_after_forward=cfg.fsdp_reshard_after_forward)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 # Some children (activations) not shardable; skip.
                 pass
         fully_shard(model, mesh=mesh, reshard_after_forward=cfg.fsdp_reshard_after_forward)

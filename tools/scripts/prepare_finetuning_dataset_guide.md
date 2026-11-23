@@ -185,8 +185,8 @@ The QA module checks for:
 {
     "example_type": "memory_retrieval",
     "input": "Context: Client discusses anxiety about job interview\n\nQuery: What memories are relevant?",
-    "target": "[{\"content\": \"Client has history of interview anxiety\", \"category\": \"therapeutic_insight\"}]",
-    "memory_retrieval_query": "Relevant memories for job interview discussion"
+    "target": '[{"content": "Client has history of interview anxiety", "category": "therapeutic_insight"}]',
+    "memory_retrieval_query": "Relevant memories for job interview discussion",
 }
 ```
 
@@ -196,7 +196,7 @@ The QA module checks for:
 {
     "example_type": "memory_synthesis",
     "input": "Context: Session 5 progress review\nMemories: [5 memory entries]",
-    "target": "Synthesized insight: Client shows improvement in coping strategies but still struggles with performance anxiety"
+    "target": "Synthesized insight: Client shows improvement in coping strategies but still struggles with performance anxiety",
 }
 ```
 

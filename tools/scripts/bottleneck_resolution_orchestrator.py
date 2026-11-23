@@ -62,7 +62,7 @@ class BottleneckResolutionOrchestrator:
         try:
             subprocess.run(["python3", "--version"], capture_output=True, check=True)
             logger.info("✅ Python 3.8+ available")
-        except (subprocess.CalledProcessError, FileNotFoundError):
+        except subprocess.CalledProcessError, FileNotFoundError:
             logger.error("❌ Python 3.8+ not found")
             missing.append("Python 3.8+")
 
@@ -70,7 +70,7 @@ class BottleneckResolutionOrchestrator:
         try:
             subprocess.run(["docker", "--version"], capture_output=True, check=True)
             logger.info("✅ Docker available")
-        except (subprocess.CalledProcessError, FileNotFoundError):
+        except subprocess.CalledProcessError, FileNotFoundError:
             logger.error("❌ Docker not found")
             missing.append("Docker")
 
@@ -78,11 +78,11 @@ class BottleneckResolutionOrchestrator:
         try:
             subprocess.run(["docker", "compose", "version"], capture_output=True, check=True)
             logger.info("✅ Docker Compose available")
-        except (subprocess.CalledProcessError, FileNotFoundError):
+        except subprocess.CalledProcessError, FileNotFoundError:
             try:
                 subprocess.run(["docker-compose", "--version"], capture_output=True, check=True)
                 logger.info("✅ Docker Compose available")
-            except (subprocess.CalledProcessError, FileNotFoundError):
+            except subprocess.CalledProcessError, FileNotFoundError:
                 logger.error("❌ Docker Compose not found")
                 missing.append("Docker Compose")
 
@@ -90,7 +90,7 @@ class BottleneckResolutionOrchestrator:
         try:
             subprocess.run(["psql", "--version"], capture_output=True, check=True)
             logger.info("✅ PostgreSQL client available")
-        except (subprocess.CalledProcessError, FileNotFoundError):
+        except subprocess.CalledProcessError, FileNotFoundError:
             logger.error("❌ PostgreSQL client not found")
             missing.append("PostgreSQL client")
 

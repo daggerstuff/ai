@@ -1028,7 +1028,7 @@ class HealthCheckManager:
             for handler in logging.root.handlers:
                 try:
                     handler.flush()
-                except:
+                except Exception:
                     pass  # Ignore errors during flushing
 
             self.logger.info("Logs flushed successfully")
@@ -1095,7 +1095,7 @@ class HealthCheckManager:
             for handler in logging.root.handlers:
                 with contextlib.suppress(BaseException):
                     handler.close()
-        except:
+        except Exception:
             pass
 
         # Try to close any remaining resources

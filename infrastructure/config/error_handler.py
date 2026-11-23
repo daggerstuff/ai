@@ -246,7 +246,7 @@ class ConfigErrorHandler:
                     os.environ[error.field] = str(bool_value).lower()
                     logger.info(f"Converted {error.field} to boolean: {bool_value}")
                     return True
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 pass
 
         return False
@@ -524,7 +524,9 @@ def handle_validation_error(message: str, field: str | None = None, value: Any =
     return handler.handle_error(error)
 
 
-def handle_security_error(message: str, field: str | None = None, severity: ErrorSeverity = ErrorSeverity.CRITICAL) -> bool:
+def handle_security_error(
+    message: str, field: str | None = None, severity: ErrorSeverity = ErrorSeverity.CRITICAL
+) -> bool:
     """Handle a security error"""
     handler = ConfigErrorHandler()
     error = ConfigError(

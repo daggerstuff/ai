@@ -10,3 +10,28 @@ from .dream_integration import DreamReflectionInsight, DreamReflectionIntegrator
 from .pattern_detection import PatternDetector, PatternReport, ProgressTrend, RecurringTheme, TriggerPattern
 from .reflexion import ActionFeedbackPair, FeedbackType, ReflexionEngine, ReflexionResult, VerbalReflection
 from .session_consolidation import EmotionalArc, SessionConsolidator, SessionSummary
+
+__all__ = [
+    "ActionFeedbackPair",
+    "ActionPipeline",
+    "ActionRecommendation",
+    "ActionResult",
+    "DreamReflectionInsight",
+    "DreamReflectionIntegrator",
+    "DreamReflectionResult",
+    "EmotionalArc",
+    "FeedbackType",
+    "PatternDetector",
+    "PatternReport",
+    "ProgressTrend",
+    "RecurringTheme",
+    "ReflexionEngine",
+    "ReflexionResult",
+    "SessionConsolidator",
+    "SessionSummary",
+    "TherapistNotification",
+    "TriggerPattern",
+    "UserFeedback",
+    "UserReflectionSummary",
+    "VerbalReflection",
+]

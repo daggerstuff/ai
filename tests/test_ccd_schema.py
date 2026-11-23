@@ -99,7 +99,10 @@ class TestCCDHypothesis(unittest.TestCase):
             testable_predictions=["If behavioral activation increases, depression should decrease"],
         )
 
-        assert hypothesis.hypothesis_statement == "Depression maintained by negative thought patterns and social withdrawal"
+        assert (
+            hypothesis.hypothesis_statement
+            == "Depression maintained by negative thought patterns and social withdrawal"
+        )
         assert hypothesis.confidence == 0.8
         assert len(hypothesis.supporting_evidence) == 2
         assert len(hypothesis.contradicting_evidence) == 1
@@ -162,7 +165,10 @@ class TestCCDFormulation(unittest.TestCase):
             confidence=0.75,
         )
 
-        assert formulation.summary == "Client presents with moderate depression exacerbated by work stress and social isolation"
+        assert (
+            formulation.summary
+            == "Client presents with moderate depression exacerbated by work stress and social isolation"
+        )
         assert len(formulation.strengths) == 2
         assert len(formulation.vulnerabilities) == 2
         assert len(formulation.treatment_goals) == 2
@@ -284,7 +290,9 @@ class TestCCDConceptualization(unittest.TestCase):
 
         assert self.conceptualization.formulation is not None
         formulation = self.conceptualization.formulation
-        assert formulation.summary == "Client presents with anxiety disorder maintained by avoidance and cognitive fusion"
+        assert (
+            formulation.summary == "Client presents with anxiety disorder maintained by avoidance and cognitive fusion"
+        )
         assert len(formulation.strengths) == 2
         assert len(formulation.vulnerabilities) == 2
         assert len(formulation.treatment_goals) == 2

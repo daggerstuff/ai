@@ -275,9 +275,7 @@ class MemoryManager:
             # --- Delete matching memories ---
             # Prefer batch deletion when available for efficiency.
             if hasattr(self.client, "_delete_memories"):
-                deleted = self.client._delete_memories(
-                    session_memory_ids, user_id=user_id
-                )
+                deleted = self.client._delete_memories(session_memory_ids, user_id=user_id)
                 if isinstance(deleted, int):
                     success = deleted == len(session_memory_ids)
                 else:
@@ -300,10 +298,7 @@ class MemoryManager:
                 elif hasattr(self.client, "delete_memory"):
                     ok = self.client.delete_memory(mid, user_id=user_id)
                 else:
-                    logger.error(
-                        "Memory client does not support deletion (no "
-                        "'delete' or 'delete_memory' method)"
-                    )
+                    logger.error("Memory client does not support deletion (no 'delete' or 'delete_memory' method)")
                     return False
                 if not ok:
                     failed.append(mid)

@@ -12,11 +12,11 @@ class DatasetLoader:
     def load_jsonl(self, prefix, source_family, category):
         """Streams a JSONL or JSON dataset from a specific S3 prefix."""
         import json
+
         files = list(self.streamer.list_files(prefix))
         for f in files:
             if not (f.endswith((".jsonl", ".json"))):
                 continue
-
 
             # If it's a huge standard JSON array
             if f.endswith(".json") and "combined_dataset" not in f:
@@ -28,11 +28,7 @@ class DatasetLoader:
                         for record in data:
                             yield {
                                 "raw_data": record,
-                                "metadata": {
-                                    "source_family": source_family,
-                                    "category": category,
-                                    "file_key": f
-                                }
+                                "metadata": {"source_family": source_family, "category": category, "file_key": f},
                             }
                 except Exception:
                     pass
@@ -41,11 +37,7 @@ class DatasetLoader:
                 for record in self.streamer.stream_jsonl(f):
                     yield {
                         "raw_data": record,
-                        "metadata": {
-                            "source_family": source_family,
-                            "category": category,
-                            "file_key": f
-                        }
+                        "metadata": {"source_family": source_family, "category": category, "file_key": f},
                     }
 
     def load_csv(self, prefix, source_family, category):
@@ -55,7 +47,6 @@ class DatasetLoader:
             if not f.endswith(".csv"):
                 continue
 
-
             # Since S3Streamer yields lines, we can use csv.DictReader
             # but we need an iterator that returns strings
             line_iterator = self.streamer.stream_text(f)
@@ -64,9 +55,5 @@ class DatasetLoader:
             for row in reader:
                 yield {
                     "raw_data": row,
-                    "metadata": {
-                        "source_family": source_family,
-                        "category": category,
-                        "file_key": f
-                    }
+                    "metadata": {"source_family": source_family, "category": category, "file_key": f},
                 }

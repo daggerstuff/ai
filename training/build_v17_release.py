@@ -178,6 +178,8 @@ def stamp_release_identity(
 class _Release(v16._Release):
     """v16's build, with the v13 direct-register family in place of v12."""
 
+    shuffle_seed = SHUFFLE_SEED
+
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)
         self.v13_rows: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []

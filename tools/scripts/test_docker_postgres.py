@@ -5,6 +5,7 @@ Quick test to verify the Docker PostgreSQL container is working.
 """
 
 import logging
+import unittest
 
 import psycopg2
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestModule(unittest.TestCase):
-    def test_connection():
+    def test_connection(self):
         """Test connection to Docker PostgreSQL."""
         try:
             # Connect to Docker PostgreSQL on port 5433
@@ -65,4 +66,4 @@ class TestModule(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    test_connection()
+    TestModule().test_connection()

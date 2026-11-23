@@ -29,19 +29,22 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import numpy as np
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 # Configure logging
+_LOG_DIR = _PROJECT_ROOT / "ai" / "logs"
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "api_monitoring.log")), logging.StreamHandler()],
+    handlers=[logging.FileHandler(_LOG_DIR / "api_monitoring.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -258,7 +261,9 @@ class PerformanceAnalyzer:
     def __init__(self, metrics_collector: MetricsCollector):
         self.collector = metrics_collector
 
-    def get_response_time_percentiles(self, endpoint: str | None = None, time_window_minutes: int = 60) -> dict[str, float]:
+    def get_response_time_percentiles(
+        self, endpoint: str | None = None, time_window_minutes: int = 60
+    ) -> dict[str, float]:
         """Calculate response time percentiles"""
         cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 

@@ -100,7 +100,7 @@ class PsychEvalAdapter(BaseDatasetAdapter):
                             **data,
                         }
                     )
-                except (json.JSONDecodeError, OSError):
+                except json.JSONDecodeError, OSError:
                     continue
 
         return records

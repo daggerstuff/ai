@@ -21,7 +21,9 @@ _PATTERNS: dict[str, re.Pattern[str]] = {
     "ip_address": re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"),
     "credit_card": re.compile(r"\b(?:\d[ -]*?){13,16}\b"),
     "date_of_birth": re.compile(r"\b(?:DOB|Date of Birth)[:\s]*\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b", re.IGNORECASE),
-    "street_address": re.compile(r"\b\d+\s+[A-Za-z]+\s+(?:St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Blvd|Boulevard|Ln|Lane)\b"),
+    "street_address": re.compile(
+        r"\b\d+\s+[A-Za-z]+\s+(?:St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Blvd|Boulevard|Ln|Lane)\b"
+    ),
     "zip_code": re.compile(r"\b\d{5}(?:-\d{4})?\b"),
 }
 
@@ -73,16 +75,20 @@ class ContentAnonymizer:
 
         for pii_type, pattern in self._patterns.items():
             for match in pattern.finditer(result_text):
-                redactions.append({
-                    "type": pii_type,
-                    "position": match.start(),
-                    "original_length": len(match.group(0)),
-                })
+                redactions.append(
+                    {
+                        "type": pii_type,
+                        "position": match.start(),
+                        "original_length": len(match.group(0)),
+                    }
+                )
                 total += 1
             result_text = pattern.sub(
-                lambda m, t=pii_type: (f"[HASH:{hashlib.sha256(m.group(0).encode()).hexdigest()[:8]}]"
-                                       if mode == "hash"
-                                       else f"[REDACTED_{t.upper()}]"),
+                lambda m, t=pii_type: (
+                    f"[HASH:{hashlib.sha256(m.group(0).encode()).hexdigest()[:8]}]"
+                    if mode == "hash"
+                    else f"[REDACTED_{t.upper()}]"
+                ),
                 result_text,
             )
 
@@ -101,11 +107,13 @@ class ContentAnonymizer:
         findings: list[dict[str, str | int]] = []
         for pii_type, pattern in self._patterns.items():
             for match in pattern.finditer(text):
-                findings.append({
-                    "type": pii_type,
-                    "position": match.start(),
-                    "match": match.group(0),
-                })
+                findings.append(
+                    {
+                        "type": pii_type,
+                        "position": match.start(),
+                        "match": match.group(0),
+                    }
+                )
         return findings
 
     def has_pii(self, text: str) -> bool:

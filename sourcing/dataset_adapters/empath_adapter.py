@@ -49,7 +49,7 @@ def _parse_list(val: str) -> list[str]:
         result = ast.literal_eval(val)
         if isinstance(result, list):
             return [str(x) for x in result if x is not None]
-    except (ValueError, SyntaxError):
+    except ValueError, SyntaxError:
         pass
     return []
 

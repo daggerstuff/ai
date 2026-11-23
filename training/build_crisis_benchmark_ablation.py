@@ -26,8 +26,7 @@ SOURCE_DIR = ROOT / "ai/data/curated/recovery/gold-20261017/wandb-full-corpus-20
 OUTPUT = SOURCE_DIR / "crisis-benchmark-ablation-v2"
 SOURCE_LABEL = "crisis_benchmark"
 PLACEHOLDER_TARGET = (
-    "Assess this input for risk level, propose safety resources, and "
-    "generate a compassionate, non-harmful response."
+    "Assess this input for risk level, propose safety resources, and generate a compassionate, non-harmful response."
 )
 EXPECTED_CANDIDATE_SHA = "4f0fd4c5fcfdffeb5434057ff4e122356256f9775540a3b41c1421a75e507663"
 EXPECTED_RELEASE_SHA = "138045ba6fb263e0d68bb42c3e8d0a7e3bf7314c3fc79397ecfd805a2c980a76"
@@ -113,9 +112,7 @@ def validate_inputs() -> dict[str, Any]:
             f"{split} payload",
         )
     internal = release["internal_manifest"]
-    verify_release_file(
-        ROOT / internal["path"], internal["sha256"], internal["row_count"], "internal manifest"
-    )
+    verify_release_file(ROOT / internal["path"], internal["sha256"], internal["row_count"], "internal manifest")
     rowrefs = release["evidence"]["group_disjointness"]
     verify_release_file(
         ROOT / rowrefs["evidence_path"],
@@ -222,9 +219,7 @@ def render_ablation(staging: Path) -> BuildState:
                     continue
                 if current_number < row_number:
                     raise ValueError("internal manifest row order is not strictly increasing")
-                process_release_row(
-                    row_number, line, current_internal, context
-                )
+                process_release_row(row_number, line, current_internal, context)
                 current_internal = next(internal_iter, None)
         if current_internal is not None:
             raise ValueError("internal manifest has unmatched candidate rows")
@@ -283,9 +278,7 @@ def validate_repairs_retained(release: dict[str, Any], state: BuildState) -> dic
     )
     repairs = [json.loads(line) for line in repair_path.open(encoding="utf-8")]
     retained = {row["candidate_row_number_1based"]: row["candidate_row_sha256"] for row in state.rowrefs}
-    repair_rowrefs = {
-        row["candidate_row_number_1based"]: row["candidate_row_sha256"] for row in repairs
-    }
+    repair_rowrefs = {row["candidate_row_number_1based"]: row["candidate_row_sha256"] for row in repairs}
     if len(repair_rowrefs) != len(repairs) or not repair_rowrefs:
         raise ValueError("repair overlay contains missing or duplicate candidate row references")
     if any(retained.get(row_number) != row_hash for row_number, row_hash in repair_rowrefs.items()):

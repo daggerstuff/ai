@@ -186,18 +186,12 @@ class TestSessionPairs:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         captured: dict[int, list[str]] = {}
-        current = {
-            ("arc_9001", n): {"turns": _turns(f"good{n}", 3), "writer_model": "w1"}
-            for n in (1, 2, 3)
-        }
+        current = {("arc_9001", n): {"turns": _turns(f"good{n}", 3), "writer_model": "w1"} for n in (1, 2, 3)}
         snapshot = tmp_path / ".pre_multisession"
         snapshot.mkdir()
         _write_checkpoint(
             snapshot / "sessions_checkpoint.jsonl",
-            [
-                {"arc_id": "arc_9001", "session_n": n, "turns": _turns(f"old{n}", 3)}
-                for n in (2, 3)
-            ],
+            [{"arc_id": "arc_9001", "session_n": n, "turns": _turns(f"old{n}", 3)} for n in (2, 3)],
         )
         monkeypatch.setattr(bd, "_load_plan", lambda _arc_id: dict(PLAN))
 

@@ -81,10 +81,7 @@ from training.generation_backend import resolve_backend  # noqa: E402
 FEATHERLESS_URL = "https://api.featherless.ai/v1/chat/completions"
 OUT_DIR = Path(__file__).resolve().parent / "eval_results"
 OUT_DIR.mkdir(exist_ok=True)
-SCENARIOS_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "data/synthetic/assets/empathy_nightmare_fuel/scenarios.jsonl"
-)
+SCENARIOS_PATH = Path(__file__).resolve().parents[1] / "data/synthetic/assets/empathy_nightmare_fuel/scenarios.jsonl"
 
 ARMS: dict[str, dict] = {
     "boulesis": {
@@ -146,10 +143,7 @@ ARMS: dict[str, dict] = {
     },
 }
 
-HEADER = (
-    "You are generating a realistic therapy session dialogue. "
-    "Each turn must be a single utterance by one speaker."
-)
+HEADER = "You are generating a realistic therapy session dialogue. Each turn must be a single utterance by one speaker."
 _QC = '"\u201c\u201d'  # straight + curly double quotes
 _MAX_ATTEMPTS = 3
 
@@ -271,10 +265,14 @@ async def call_model(
     latency = time.monotonic() - t0
     choice = data["choices"][0]
     usage = data.get("usage", {})
-    return choice["message"].get("content") or "", {
-        "finish_reason": choice.get("finish_reason", ""),
-        "completion_tokens": usage.get("completion_tokens", 0),
-    }, latency
+    return (
+        choice["message"].get("content") or "",
+        {
+            "finish_reason": choice.get("finish_reason", ""),
+            "completion_tokens": usage.get("completion_tokens", 0),
+        },
+        latency,
+    )
 
 
 def strip_think(raw: str) -> str:
@@ -300,7 +298,7 @@ def extract_response(raw: str) -> str:
     text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
 
     last_q = max(text.rfind(q) for q in _QC)
-    tail = text[last_q + 1:].strip() if last_q != -1 else ""
+    tail = text[last_q + 1 :].strip() if last_q != -1 else ""
     before = text[:last_q].rstrip() if last_q != -1 else ""
     # fragment guard: lowercase tail right after a letter = mid-sentence cut
     tail_starts_fresh = not (tail[:1:1].islower() and before[-1:].isalpha())
@@ -341,9 +339,7 @@ def extract_response(raw: str) -> str:
         parts = re.split(r"(?<=[.!?\u201d])\s+", candidate, maxsplit=1)
         if len(parts) == 2:
             head = parts[0].strip()
-            if len(head) < 60 and not head.endswith("?") and (
-                _META.match(head) or head.endswith(":")
-            ):
+            if len(head) < 60 and not head.endswith("?") and (_META.match(head) or head.endswith(":")):
                 candidate = parts[1].strip()
                 continue
         break
@@ -375,7 +371,7 @@ async def build_client_lines(scenarios: list[dict]) -> dict:
     if cache_path.exists():
         try:
             cached = json.loads(cache_path.read_text())
-        except (OSError, ValueError):
+        except OSError, ValueError:
             cached = {}
         for k, v in cached.get("client_lines", {}).items():
             client_lines.setdefault(str(k), v)
@@ -414,7 +410,9 @@ async def run_arm(arm_name: str, scenarios: list[dict], client_lines: dict[str, 
     os.environ["NF_MODEL"] = arm["model"]
     backend = resolve_backend()
     endpoint = arm.get("url", FEATHERLESS_URL)
-    print(f"== GENERATION: {arm_name} | backend={backend.name} | model={backend.model} | endpoint={endpoint}", flush=True)
+    print(
+        f"== GENERATION: {arm_name} | backend={backend.name} | model={backend.model} | endpoint={endpoint}", flush=True
+    )
     out: list[dict] = []
     async with aiohttp.ClientSession() as session:
         for idx, sc in enumerate(scenarios, 1):
@@ -432,7 +430,10 @@ async def run_arm(arm_name: str, scenarios: list[dict], client_lines: dict[str, 
                         session, arm, sys_p, user_p, max_tokens=retry_max_tokens, timeout_s=retry_timeout
                     )
                 except Exception as exc:  # noqa: BLE001
-                    print(f"[{arm_name}] ({idx}/{len(scenarios)}) {sid} gen ERROR: {type(exc).__name__}: {exc}", flush=True)
+                    print(
+                        f"[{arm_name}] ({idx}/{len(scenarios)}) {sid} gen ERROR: {type(exc).__name__}: {exc}",
+                        flush=True,
+                    )
                     attempts.append({"n": attempt_n, "error": f"{type(exc).__name__}: {exc}"})
                     break
                 extracted = extract_response(raw)
@@ -492,9 +493,7 @@ async def run_arm(arm_name: str, scenarios: list[dict], client_lines: dict[str, 
 # ------------------------------------------------------------------ judging
 
 
-async def judge_items(
-    gen: dict[str, dict], scenarios_by_id: dict[str, dict]
-) -> dict[str, dict]:
+async def judge_items(gen: dict[str, dict], scenarios_by_id: dict[str, dict]) -> dict[str, dict]:
     """Dual judge: primary DeepSeek-V4.1-Flash (Featherless) x3 + secondary Kimi-K3 (Featherless)."""
     prim_headers = {
         "Content-Type": "application/json",
@@ -505,6 +504,7 @@ async def judge_items(
     sem = asyncio.Semaphore(4)
 
     async with aiohttp.ClientSession() as session:
+
         async def one(sid: str, arm: str) -> None:
             rec = gen[arm][sid]
             if not rec.get("response"):
@@ -593,8 +593,7 @@ def write_report(gen: dict[str, dict], judge: dict[str, dict], client: dict) -> 
         lat = [d["latency_s"] for r in rows.values() for d in r["details"] if d.get("gate_hit") is False]
         tok = [d["completion_tokens"] for r in rows.values() for d in r["details"] if d.get("gate_hit") is False]
         jrows = [
-            v for k, v in judge.items()
-            if k.startswith(f"{arm}:") and "empty_response" not in str(v.get("reason", ""))
+            v for k, v in judge.items() if k.startswith(f"{arm}:") and "empty_response" not in str(v.get("reason", ""))
         ]
         acc = sum(1 for v in jrows if v["accepted"])
         hrr = sum(1 for v in jrows if v["needs_human_review"])
@@ -605,9 +604,7 @@ def write_report(gen: dict[str, dict], judge: dict[str, dict], client: dict) -> 
             "tok_s": round(sum(tok) / sum(lat), 1) if lat and sum(lat) else None,
             "judge_accept": f"{acc}/{len(jrows)}",
             "human_review_rate": round(hrr / len(jrows), 2) if jrows else None,
-            "mean_judge_quality": round(
-                sum(v["primary_quality"] for v in jrows) / len(jrows), 2
-            ) if jrows else None,
+            "mean_judge_quality": round(sum(v["primary_quality"] for v in jrows) / len(jrows), 2) if jrows else None,
         }
 
     arms = list(gen.keys())
@@ -616,10 +613,24 @@ def write_report(gen: dict[str, dict], judge: dict[str, dict], client: dict) -> 
     lines = [f"# Comparison: {' vs '.join(arms)} (NF pipeline, {n_items} scenarios)", ""]
     lines.append("| metric | " + " | ".join(arms) + " |")
     lines.append("|---|" + "---|" * len(arms))
-    keys = ("gate_pass", "first_attempt_pass", "mean_judge_quality", "judge_accept",
-            "human_review_rate", "mean_latency", "tok_s")
-    labels = ("cliche gate pass", "first-attempt pass", "mean judge quality",
-              "judge accept", "human review rate", "mean latency/s", "tok/s")
+    keys = (
+        "gate_pass",
+        "first_attempt_pass",
+        "mean_judge_quality",
+        "judge_accept",
+        "human_review_rate",
+        "mean_latency",
+        "tok_s",
+    )
+    labels = (
+        "cliche gate pass",
+        "first-attempt pass",
+        "mean judge quality",
+        "judge accept",
+        "human review rate",
+        "mean latency/s",
+        "tok/s",
+    )
     for key, label in zip(keys, labels):
         lines.append(f"| {label} | " + " | ".join(str(stats[a][key]) for a in arms) + " |")
     lines.append("")
@@ -654,9 +665,10 @@ async def main() -> int:
     client = await build_client_lines(scenarios)
     client_lines = client["client_lines"]
 
-    arms = [
-        a.strip() for a in os.environ.get("EVAL_ARMS", "boulesis,ornith").split(",") if a.strip() in ARMS
-    ] or ["boulesis", "ornith"]
+    arms = [a.strip() for a in os.environ.get("EVAL_ARMS", "boulesis,ornith").split(",") if a.strip() in ARMS] or [
+        "boulesis",
+        "ornith",
+    ]
     gen: dict[str, dict] = {}
     for arm in arms:
         needs_gen = "--regen" in argv or not gen_path[arm].exists()
@@ -675,10 +687,7 @@ async def main() -> int:
             judge = json.loads(judge_path.read_text())
         # Only judge entries missing from the cache (partial merge) — avoids
         # re-judging unchanged arms and halves 429 exposure on the shared key.
-        pending = {
-            arm: {sid: rec for sid, rec in gen[arm].items() if f"{arm}:{sid}" not in judge}
-            for arm in gen
-        }
+        pending = {arm: {sid: rec for sid, rec in gen[arm].items() if f"{arm}:{sid}" not in judge} for arm in gen}
         pending = {arm: items for arm, items in pending.items() if items}
         if pending:
             judge.update(await judge_items(pending, scenarios_by_id))

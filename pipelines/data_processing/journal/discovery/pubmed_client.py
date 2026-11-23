@@ -336,7 +336,7 @@ class PubMedClient:
                 month_int = int(month) if month.isdigit() else 1
                 day_int = int(day) if day.isdigit() else 1
                 return datetime(year_int, month_int, day_int)
-        except (ValueError, AttributeError):
+        except ValueError, AttributeError:
             pass
 
         return datetime.now(UTC)

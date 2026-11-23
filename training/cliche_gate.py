@@ -100,9 +100,7 @@ ROBOTIC_SOMATIC_PHRASES: tuple[str, ...] = (
 )
 
 # Roles whose turns are treated as clinician output for the purposes of this gate.
-ASSISTANT_ROLES: frozenset[str] = frozenset(
-    {"assistant", "therapist", "clinician", "counselor"}
-)
+ASSISTANT_ROLES: frozenset[str] = frozenset({"assistant", "therapist", "clinician", "counselor"})
 
 
 def is_sycophantic(text: str) -> tuple[bool, str]:
@@ -112,12 +110,7 @@ def is_sycophantic(text: str) -> tuple[bool, str]:
     if not text or not isinstance(text, str):
         return False, ""
     t_lower = (
-        text.strip()
-        .replace("\u2018", "'")
-        .replace("\u2019", "'")
-        .replace("\u201c", '"')
-        .replace("\u201d", '"')
-        .lower()
+        text.strip().replace("\u2018", "'").replace("\u2019", "'").replace("\u201c", '"').replace("\u201d", '"').lower()
     )
 
     # Prefix checks (at string start or right after a newline)

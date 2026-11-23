@@ -3,12 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
-
-from .types import (
-    DiseaseRarity,
-    OrganSystem,
-)
 
 
 @dataclass(frozen=True)
@@ -47,12 +41,8 @@ class DiagnosisArenaAdapter:
             return DiagnosisArenaMetrics()
 
         r1 = sum(1 for h, g in zip(self._hits, self._ground_truth) if h and h[0] == g)
-        r5 = sum(
-            1 for h, g in zip(self._hits, self._ground_truth) if g in h[:5]
-        )
-        r10 = sum(
-            1 for h, g in zip(self._hits, self._ground_truth) if g in h[:10]
-        )
+        r5 = sum(1 for h, g in zip(self._hits, self._ground_truth) if g in h[:5])
+        r10 = sum(1 for h, g in zip(self._hits, self._ground_truth) if g in h[:10])
         mrr = self._compute_mrr()
 
         return DiagnosisArenaMetrics(

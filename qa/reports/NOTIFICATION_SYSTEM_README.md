@@ -92,6 +92,7 @@ python3 test_notifications.py priorities
 import asyncio
 from notification_integrations import NotificationManager, NotificationPriority
 
+
 async def send_alert():
     manager = NotificationManager()
 
@@ -100,16 +101,13 @@ async def send_alert():
         title="High Memory Usage Detected",
         message="Memory usage has exceeded 85% threshold on server-01",
         priority=NotificationPriority.MEDIUM,
-        metadata={
-            "server": "server-01",
-            "memory_usage": "87%",
-            "threshold": "85%"
-        }
+        metadata={"server": "server-01", "memory_usage": "87%", "threshold": "85%"},
     )
 
     # Check results
     for channel, success in results.items():
         print(f"{channel.value}: {'✅' if success else '❌'}")
+
 
 # Run the example
 asyncio.run(send_alert())
@@ -125,7 +123,7 @@ results = await manager.send_alert(
     title="Custom Alert",
     message="This goes to email and Slack only",
     priority=NotificationPriority.HIGH,
-    channels=[NotificationChannel.EMAIL, NotificationChannel.SLACK]
+    channels=[NotificationChannel.EMAIL, NotificationChannel.SLACK],
 )
 ```
 
@@ -133,6 +131,7 @@ results = await manager.send_alert(
 
 ```python
 from monitoring_notification_bridge import MonitoringBridge
+
 
 async def setup_monitoring():
     bridge = MonitoringBridge()
@@ -149,6 +148,7 @@ async def setup_monitoring():
 
     # Start continuous monitoring
     await bridge.start_monitoring_loop(check_interval=60)
+
 
 asyncio.run(setup_monitoring())
 ```
@@ -223,7 +223,7 @@ bridge.add_alert_rule(
     threshold=100.0,
     operator=">",
     priority="high",
-    cooldown_minutes=20
+    cooldown_minutes=20,
 )
 ```
 
@@ -257,9 +257,9 @@ bridge.add_alert_rule(
 ```python
 from notification_integrations import NotificationPriority
 
-NotificationPriority.LOW       # Informational alerts
-NotificationPriority.MEDIUM    # Warning alerts
-NotificationPriority.HIGH      # Error alerts requiring attention
+NotificationPriority.LOW  # Informational alerts
+NotificationPriority.MEDIUM  # Warning alerts
+NotificationPriority.HIGH  # Error alerts requiring attention
 NotificationPriority.CRITICAL  # Critical alerts requiring immediate action
 ```
 
@@ -268,10 +268,10 @@ NotificationPriority.CRITICAL  # Critical alerts requiring immediate action
 ```python
 from notification_integrations import NotificationChannel
 
-NotificationChannel.EMAIL      # Email notifications
-NotificationChannel.SLACK      # Slack notifications
+NotificationChannel.EMAIL  # Email notifications
+NotificationChannel.SLACK  # Slack notifications
 NotificationChannel.PAGERDUTY  # PagerDuty notifications
-NotificationChannel.WEBHOOK    # Generic webhook notifications
+NotificationChannel.WEBHOOK  # Generic webhook notifications
 ```
 
 ## Testing and Validation
@@ -337,16 +337,15 @@ import asyncio
 app = Flask(__name__)
 bridge = MonitoringBridge()
 
-@app.route('/webhook/alerts', methods=['POST'])
+
+@app.route("/webhook/alerts", methods=["POST"])
 def receive_alert():
     alert_data = request.json
 
     # Process alert asynchronously
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    result = loop.run_until_complete(
-        bridge.process_external_alerts(alert_data)
-    )
+    result = loop.run_until_complete(bridge.process_external_alerts(alert_data))
     loop.close()
 
     return {"status": "processed", "results": result}
@@ -402,6 +401,7 @@ Enable debug logging:
 
 ```python
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 ```
 

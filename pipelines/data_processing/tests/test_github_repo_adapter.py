@@ -69,7 +69,10 @@ def sample_json_conversation() -> list[dict[str, Any]]:
             "emotion_type": "anxiety",
             "dialog": [
                 {"speaker": "seeker", "utterance": "I can't handle the pressure"},
-                {"speaker": "supporter", "utterance": "It sounds like you're under a lot of stress. What's been happening?"},
+                {
+                    "speaker": "supporter",
+                    "utterance": "It sounds like you're under a lot of stress. What's been happening?",
+                },
                 {"speaker": "seeker", "utterance": "I have three exams next week"},
                 {"speaker": "supporter", "utterance": "That's a lot. Let's talk about how to break this down."},
             ],
@@ -179,9 +182,11 @@ class TestCsvConversion:
     def test_csv_conversation_pattern(self, adapter, sample_csv_conversation: Path):
         """CSV with user/assistant columns produces therapy_response_generation records."""
         rows, _ = _classify_csv(sample_csv_conversation)
-        records = adapter.convert_to_chatml([
-            {"type": "csv", "rows": rows, "file_info": {"path": "data/conv.csv"}},
-        ])
+        records = adapter.convert_to_chatml(
+            [
+                {"type": "csv", "rows": rows, "file_info": {"path": "data/conv.csv"}},
+            ]
+        )
 
         assert len(records) == 2
         for r in records:
@@ -193,9 +198,11 @@ class TestCsvConversion:
     def test_csv_classification_pattern(self, adapter, sample_csv_classification: Path):
         """CSV with text/label columns produces symptom_classification records."""
         rows, _ = _classify_csv(sample_csv_classification)
-        records = adapter.convert_to_chatml([
-            {"type": "csv", "rows": rows, "file_info": {"path": "data/labels.csv"}},
-        ])
+        records = adapter.convert_to_chatml(
+            [
+                {"type": "csv", "rows": rows, "file_info": {"path": "data/labels.csv"}},
+            ]
+        )
 
         assert len(records) == 3
         assert records[0]["task_type"] == "symptom_classification"
@@ -206,9 +213,11 @@ class TestCsvConversion:
     def test_csv_provenance(self, adapter, sample_csv_conversation: Path):
         """Records include provenance with GitHub source URL."""
         rows, _ = _classify_csv(sample_csv_conversation)
-        records = adapter.convert_to_chatml([
-            {"type": "csv", "rows": rows, "file_info": {"path": "data/conv.csv"}},
-        ])
+        records = adapter.convert_to_chatml(
+            [
+                {"type": "csv", "rows": rows, "file_info": {"path": "data/conv.csv"}},
+            ]
+        )
         assert records[0]["provenance"]["access_method"] == "github"
         assert "test-owner/test-repo" in records[0]["provenance"]["source_url"]
         assert records[0]["provenance"]["original_format"] == "csv"
@@ -222,9 +231,11 @@ class TestJsonConversion:
 
     def test_json_conversation_pattern(self, adapter, sample_json_conversation):
         """JSON with dialog turns produces therapy_response_generation records."""
-        records = adapter.convert_to_chatml([
-            {"type": "json", "data": sample_json_conversation, "file_info": {"path": "data/conv.json"}},
-        ])
+        records = adapter.convert_to_chatml(
+            [
+                {"type": "json", "data": sample_json_conversation, "file_info": {"path": "data/conv.json"}},
+            ]
+        )
         assert len(records) == 1
         r = records[0]
         assert r["messages"][0]["role"] == "system"
@@ -234,9 +245,11 @@ class TestJsonConversion:
 
     def test_sharegpt_pattern(self, adapter, sample_sharegpt):
         """ShareGPT format conversations are converted correctly."""
-        records = adapter.convert_to_chatml([
-            {"type": "json", "data": sample_sharegpt, "file_info": {"path": "data/sharegpt.json"}},
-        ])
+        records = adapter.convert_to_chatml(
+            [
+                {"type": "json", "data": sample_sharegpt, "file_info": {"path": "data/sharegpt.json"}},
+            ]
+        )
         assert len(records) == 1
         r = records[0]
         assert r["messages"][0]["role"] == "user"
@@ -246,9 +259,11 @@ class TestJsonConversion:
 
     def test_preformatted_chatml(self, adapter, sample_preformatted_chatml):
         """Already-ChatML records pass through with provenance added."""
-        records = adapter.convert_to_chatml([
-            {"type": "json", "data": sample_preformatted_chatml, "file_info": {"path": "data/chatml.json"}},
-        ])
+        records = adapter.convert_to_chatml(
+            [
+                {"type": "json", "data": sample_preformatted_chatml, "file_info": {"path": "data/chatml.json"}},
+            ]
+        )
         assert len(records) == 1
         r = records[0]
         assert r["messages"][0]["role"] == "system"
@@ -258,9 +273,11 @@ class TestJsonConversion:
 
     def test_json_classification(self, adapter, sample_json_classification):
         """Text+label JSON items become symptom_classification records."""
-        records = adapter.convert_to_chatml([
-            {"type": "json", "data": sample_json_classification, "file_info": {"path": "data/labels.json"}},
-        ])
+        records = adapter.convert_to_chatml(
+            [
+                {"type": "json", "data": sample_json_classification, "file_info": {"path": "data/labels.json"}},
+            ]
+        )
         assert len(records) == 2
         assert records[0]["task_type"] == "symptom_classification"
         assert records[0]["diagnostic_tag"] == "depression"
@@ -314,7 +331,9 @@ class TestRunIntegration:
         with open(target, "w", encoding="utf-8") as f:
             for item in sample_json_classification:
                 f.write(json.dumps(item) + "\n")
-        adapter._file_list = [{"path": "data/records.jsonl", "local_file": "data_records.jsonl", "size": 300, "sha": "ghi"}]
+        adapter._file_list = [
+            {"path": "data/records.jsonl", "local_file": "data_records.jsonl", "size": 300, "sha": "ghi"}
+        ]
 
         with patch.object(adapter, "download"):
             output_path = adapter.run()

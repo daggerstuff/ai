@@ -233,7 +233,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid permission: {e}",
-            )
+            ) from e
 
         api_key, api_key_obj = auth_system.create_api_key(name, permission_objects, expires_in_days)
 

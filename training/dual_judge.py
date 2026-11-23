@@ -76,18 +76,13 @@ OFFSET_TRAIN_SAMPLES = 100
 def _judge_auth_header() -> dict[str, str]:
     """Bearer auth for the judge endpoint (both judges on the Vercel AI Gateway;
     Featherless key honored as fallback during transition)."""
-    key = (
-        os.environ.get("AI_GATEWAY_API_KEY", "")
-        or os.environ.get("FEATHERLESS_API_KEY", "")
-    )
+    key = os.environ.get("AI_GATEWAY_API_KEY", "") or os.environ.get("FEATHERLESS_API_KEY", "")
     return {"Authorization": f"Bearer {key}"} if key else {}
 
 
 def _secondary_judge_target() -> tuple[str, dict[str, str]]:
     """Companion judge (Kimi-K3) endpoint + auth header."""
-    url = os.environ.get(
-        "DUAL_JUDGE_SECONDARY_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
-    )
+    url = os.environ.get("DUAL_JUDGE_SECONDARY_URL", "https://ai-gateway.vercel.sh/v1/chat/completions")
     return url, _judge_auth_header()
 
 
@@ -206,7 +201,6 @@ class JudgeVerdict:
 # ---------------------------------------------------------------------------
 
 
-
 def _looks_like_judge_payload(d: Any) -> bool:
     """Return True when a decoded object carries judge-verdict keys."""
     return isinstance(d, dict) and ("quality_score" in d or "dim_scores" in d)
@@ -279,7 +273,7 @@ def _parse_dims(payload: dict[str, Any]) -> dict[str, float]:
     for dim in DIMENSIONS:
         try:
             dim_scores[dim] = float(dim_raw.get(dim, 0.0))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             dim_scores[dim] = 0.0
     return dim_scores
 
@@ -313,7 +307,7 @@ def parse_judge_json(content: str) -> JudgeVerdict:
     dim_scores = _parse_dims(payload)
     try:
         quality = float(payload.get("quality_score", 0.0))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         quality = 0.0
     quality = max(0.0, min(1.0, quality))
     reject_reason = str(payload.get("reject_reason", "") or "")
@@ -582,9 +576,7 @@ def _combine_part_verdicts(verdicts: Sequence[JudgeVerdict]) -> JudgeVerdict:
         "style": alliance.quality_score,
         "safety": safety.quality_score,
     }
-    reasoning = " | ".join(
-        (v.reasoning or v.reject_reason) for v in verdicts if (v.reasoning or v.reject_reason)
-    )
+    reasoning = " | ".join((v.reasoning or v.reject_reason) for v in verdicts if (v.reasoning or v.reject_reason))
     return JudgeVerdict(quality_score=round(weighted, 4), dim_scores=dim_scores, reasoning=reasoning)
 
 
@@ -598,20 +590,22 @@ async def _judge_parts_combined(
     headers: dict[str, str] | None = None,
     force_json: bool = True,
 ) -> JudgeVerdict:
-    verdicts = await asyncio.gather(*[
-        _call_judge_with_retry(
-            session,
-            url=url,
-            model=model,
-            candidate_content=candidate_content,
-            reference_content=reference_content,
-            headers=headers,
-            force_json=force_json,
-            system_prompt=part["prompt"],
-            attempts=3,
-        )
-        for part in JUDGE_PART_DEFS
-    ])
+    verdicts = await asyncio.gather(
+        *[
+            _call_judge_with_retry(
+                session,
+                url=url,
+                model=model,
+                candidate_content=candidate_content,
+                reference_content=reference_content,
+                headers=headers,
+                force_json=force_json,
+                system_prompt=part["prompt"],
+                attempts=3,
+            )
+            for part in JUDGE_PART_DEFS
+        ]
+    )
     return _combine_part_verdicts(verdicts)
 
 
@@ -704,13 +698,19 @@ async def judge_record_turns(
         joined_cand = "\n".join(cand for _, cand in pairs)
         primary_headers = _judge_auth_header()
         if per_turn:
-            primary_turns = await asyncio.gather(*[
-                _judge_parts_combined(
-                    session, url=url, model=primary_model, candidate_content=cand, reference_content=ref,
-                    headers=primary_headers,
-                )
-                for ref, cand in pairs
-            ])
+            primary_turns = await asyncio.gather(
+                *[
+                    _judge_parts_combined(
+                        session,
+                        url=url,
+                        model=primary_model,
+                        candidate_content=cand,
+                        reference_content=ref,
+                        headers=primary_headers,
+                    )
+                    for ref, cand in pairs
+                ]
+            )
         else:
             primary_turns = [
                 await _judge_parts_combined(
@@ -808,6 +808,7 @@ def _compute_cohen_kappa(human_accept: list[bool], judge_accept: list[bool]) -> 
         return 1.0 if p_o == 1.0 else 0.0
     return round((p_o - p_e) / (1.0 - p_e), 4)
 
+
 def _offset_calibrated_kappa(
     human_scores: Sequence[float],
     judge_scores: Sequence[float],
@@ -837,18 +838,14 @@ def _offset_calibrated_kappa(
         sum(float(human_scores[i]) for i in range(train_n)) / train_n
         - sum(float(judge_scores[i]) for i in range(train_n)) / train_n
     )
-    calibrated_eval = [
-        min(1.0, max(0.0, float(judge_scores[i]) + offset)) for i in range(train_n, n)
-    ]
+    calibrated_eval = [min(1.0, max(0.0, float(judge_scores[i]) + offset)) for i in range(train_n, n)]
     judge_bins = [DualModelQualityJudge.classify_score(v) for v in calibrated_eval]
     try:
         eval_human_levels = [BIN_TO_LEVEL[human_bins[i]] for i in range(train_n, n)]
         eval_judge_levels = [BIN_TO_LEVEL[b] for b in judge_bins]
         # labels pins the full 4-bin level space so degenerate single-class
         # eval halves still produce a defined confusion matrix.
-        kappa = float(
-            cohen_kappa_score(eval_human_levels, eval_judge_levels, labels=[0, 1, 2, 3], weights="quadratic")
-        )
+        kappa = float(cohen_kappa_score(eval_human_levels, eval_judge_levels, labels=[0, 1, 2, 3], weights="quadratic"))
         if math.isnan(kappa):
             # Degenerate identical single-class halves: perfect agreement is
             # kappa 1.0 (sklearn's 0/0 otherwise).
@@ -936,15 +933,11 @@ async def _call_judge_with_retry(session: aiohttp.ClientSession, *, attempts: in
     verdict = JudgeVerdict(0.0, "no_attempt")
     for attempt in range(attempts):
         verdict = await _call_judge_model(session, **kwargs)
-        infra = verdict.quality_score == 0.0 and any(
-            verdict.reject_reason.startswith(p) for p in _JUDGE_RETRY_PREFIXES
-        )
+        infra = verdict.quality_score == 0.0 and any(verdict.reject_reason.startswith(p) for p in _JUDGE_RETRY_PREFIXES)
         if not infra:
             return verdict
         if attempt < attempts - 1:
-            logger.warning(
-                "judge infra failure (attempt %d/%d): %s", attempt + 1, attempts, verdict.reject_reason
-            )
+            logger.warning("judge infra failure (attempt %d/%d): %s", attempt + 1, attempts, verdict.reject_reason)
             await asyncio.sleep(delay)
             delay = min(delay * 2, 40.0)
     return verdict
@@ -975,9 +968,7 @@ async def _eval_sample_cf(
         "max_tokens": CF_MAX_TOKENS,
         "temperature": JUDGE_TEMPERATURE,
     }
-    verdict, _ = await _post_with_cf_retries(
-        session, cf_url=cf_url, headers=headers, payload=payload, sid=sid
-    )
+    verdict, _ = await _post_with_cf_retries(session, cf_url=cf_url, headers=headers, payload=payload, sid=sid)
     return verdict
 
 
@@ -1048,6 +1039,7 @@ def _load_checkpoint(path: str | None) -> dict[str, dict[str, Any]]:
                 rows[str(row["id"])] = row
     return rows
 
+
 def _append_checkpoint_row(path: str | None, row: dict[str, Any]) -> None:
     """Append one completed sample row to the checkpoint JSONL (if enabled)."""
 
@@ -1055,6 +1047,7 @@ def _append_checkpoint_row(path: str | None, row: dict[str, Any]) -> None:
         return
     with Path(path).open("a", encoding="utf-8") as f:
         f.write(json.dumps(row) + "\n")
+
 
 def _checkpoint_resume_verdict(
     checkpointed_row: dict[str, Any],
@@ -1072,9 +1065,7 @@ def _checkpoint_resume_verdict(
     """
 
     cached_score = float(checkpointed_row.get("judge_score", 0.0))
-    cached_dims = {
-        d: float(checkpointed_row.get("judge_dim_scores", {}).get(d, 0.0)) for d in DIMENSIONS
-    }
+    cached_dims = {d: float(checkpointed_row.get("judge_dim_scores", {}).get(d, 0.0)) for d in DIMENSIONS}
     sample_rows[idx] = {
         "id": sid,
         "judge_score": cached_score,
@@ -1083,6 +1074,7 @@ def _checkpoint_resume_verdict(
         "human_dim_scores": {d: float(hs_dict.get(d, 0.0)) for d in DIMENSIONS},
     }
     return JudgeVerdict(quality_score=cached_score, dim_scores=cached_dims, reasoning="checkpoint_resume")
+
 
 def _print_sample_progress(
     completed: int,
@@ -1102,6 +1094,7 @@ def _print_sample_progress(
         f"human={human_score:.2f} (diff={judge_score - human_score:+.2f}){suffix}",
         flush=True,
     )
+
 
 async def _run_live_calibration_async(
     golden_path: str,
@@ -1183,9 +1176,7 @@ async def _run_live_calibration_async(
                     "id": sid,
                     "judge_score": verdict.quality_score,
                     "human_score": hs_mean,
-                    "judge_dim_scores": {
-                        d: float(verdict.dim_scores.get(d, 0.0)) for d in DIMENSIONS
-                    },
+                    "judge_dim_scores": {d: float(verdict.dim_scores.get(d, 0.0)) for d in DIMENSIONS},
                     "human_dim_scores": {d: float(hs_dict.get(d, 0.0)) for d in DIMENSIONS},
                 }
                 _append_checkpoint_row(checkpoint_path, sample_rows[idx])

@@ -166,9 +166,7 @@ class SimHashIndex:
         self.bands = bands
         self.band_bits = bits // bands
         self.signatures: dict[str, int] = {}
-        self.buckets: list[dict[int, list[str]]] = [
-            defaultdict(list) for _ in range(bands)
-        ]
+        self.buckets: list[dict[int, list[str]]] = [defaultdict(list) for _ in range(bands)]
 
     def _band(self, signature: int, band: int) -> int:
         shift = band * self.band_bits

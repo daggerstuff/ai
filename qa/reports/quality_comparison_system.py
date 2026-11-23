@@ -170,7 +170,7 @@ class QualityComparisonSystem:
             # Statistical test (Mann-Whitney U)
             try:
                 _statistic, p_value = stats.mannwhitneyu(values_a, values_b, alternative="two-sided")
-            except:
+            except Exception:
                 p_value = 1.0
 
             # Effect size (Cohen's d)
@@ -180,7 +180,7 @@ class QualityComparisonSystem:
                     / (len(values_a) + len(values_b) - 2)
                 )
                 effect_size = abs(difference) / pooled_std if pooled_std > 0 else 0
-            except:
+            except Exception:
                 effect_size = 0
 
             # Interpretation

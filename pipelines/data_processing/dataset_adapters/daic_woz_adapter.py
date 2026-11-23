@@ -16,10 +16,18 @@ import json
 import os
 from typing import Any
 
+import datasets
+
 from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
 from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 _HF_REPO_ID = "saeedzou/DAIC-WOZ"
+_PHQ8_BANDS = (
+    (5, "minimal"),
+    (10, "mild"),
+    (15, "moderate"),
+    (20, "moderately_severe"),
+)
 _SOURCE_URL = "https://dcapswoz.ict.usc.edu/"
 
 _README_TEXT = """\
@@ -63,8 +71,6 @@ class DAICWozAdapter(BaseDatasetAdapter):
         # Try HF download
         readme = self._raw_dir / "README.txt"
         try:
-            import datasets
-
             cache_dir = str(self.output_dir.parent / ".hf_cache")
             os.environ.setdefault("HF_HOME", cache_dir)
             os.environ.setdefault("HF_HUB_CACHE", os.path.join(cache_dir, "hub"))
@@ -87,8 +93,8 @@ class DAICWozAdapter(BaseDatasetAdapter):
 
         for jf in sorted(self._raw_dir.glob("*.jsonl")):
             with open(jf, encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
+                for raw_line in f:
+                    line = raw_line.strip()
                     if not line:
                         continue
                     row = json.loads(line)
@@ -180,7 +186,7 @@ class DAICWozAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": "depression" if phq8_binary else "ptsd",
                 "demographic_tags": [],
                 "linguistic_style": "mixed",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "session_id": session.get("session_id", ""),
                 "phq8_score": str(phq8_score) if phq8_score != "" else None,
                 "phq8_binary": str(phq8_binary) if phq8_binary != "" else None,
@@ -225,15 +231,9 @@ class DAICWozAdapter(BaseDatasetAdapter):
             return "unknown"
         try:
             score = float(phq8)
-            if score < 5:
-                return "minimal"
-            elif score < 10:
-                return "mild"
-            elif score < 15:
-                return "moderate"
-            elif score < 20:
-                return "moderately_severe"
-            else:
-                return "severe"
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return "unknown"
+        for limit, label in _PHQ8_BANDS:
+            if score < limit:
+                return label
+        return "severe"

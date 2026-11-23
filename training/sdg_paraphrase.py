@@ -5,6 +5,7 @@ LLM paraphraser with high temperature. Filter: ROUGE-L > 0.85 vs original
 
 Blueprint ref: docs/training-pipeline-blueprint-2026-08-10.md §B.5.3
 """
+
 from __future__ import annotations
 
 import json
@@ -33,9 +34,8 @@ def load_seeds(path: Path = SEEDS_PATH) -> list[dict[str, Any]]:
 
 def _content_hash(record: dict[str, Any]) -> str:
     import hashlib
-    text_blob = "||".join(
-        f"{m.get('role', '')}:{m.get('content', '')}" for m in record.get("messages", [])
-    )
+
+    text_blob = "||".join(f"{m.get('role', '')}:{m.get('content', '')}" for m in record.get("messages", []))
     return hashlib.sha256(text_blob.encode("utf-8")).hexdigest()[:16]
 
 
@@ -56,6 +56,7 @@ def paraphrase_text(text: str, seed_id: str = "") -> str:
     actually tracks the input text instead of injecting canned sentences.
     """
     from training.sdg_back_translation import back_translate
+
     # Deterministic lang pick from seed_id so paraphrase differs from each
     # pivot-language back-translation variant.
     langs = ["de", "fr", "es", "ru", "zh", "ar", "ja", "ko"]
@@ -74,6 +75,7 @@ def expand_seeds(
     seen_hashes: set[str] = set()
     from training.sdg_back_translation import _extract_user_utterance, _rebuild_prompt
     from training.stage1_filters import FilterVerdict, NearDuplicateIndex, run_stage1_on_record
+
     stage1_index = NearDuplicateIndex()
     for iteration in range(200):
         if len(synthetic) >= target_count:
@@ -145,6 +147,7 @@ def expand_seeds(
 
 def build_parser() -> Any:
     import argparse
+
     parser = argparse.ArgumentParser(description="Paraphrase SDG expansion (PIX-4345 §B.5.3)")
     parser.add_argument("--seeds-path", type=str, default=str(SEEDS_PATH))
     parser.add_argument("--output-dir", type=str, default="ai/data/synthetic/paraphrase")

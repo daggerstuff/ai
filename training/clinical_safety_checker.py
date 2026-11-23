@@ -73,14 +73,14 @@ class ClinicalContentAnalyzer:
         for pattern in cls.CRISIS_PATTERNS:
             for match in pattern.finditer(text_lower):
                 pre_start = max(0, match.start() - cls.NEGATION_WINDOW)
-                pre_context = text_lower[pre_start:match.start()]
+                pre_context = text_lower[pre_start : match.start()]
                 if any(neg.search(pre_context) for neg in cls.NEGATION_PATTERNS):
                     continue
 
                 post_end = min(len(text_lower), match.end() + cls.NEGATION_WINDOW_AFTER)
-                post_raw = text_lower[match.end():post_end]
+                post_raw = text_lower[match.end() : post_end]
                 sent_boundary = cls._SENTENCE_END.search(post_raw)
-                post_context = post_raw[:sent_boundary.start()] if sent_boundary else post_raw
+                post_context = post_raw[: sent_boundary.start()] if sent_boundary else post_raw
                 if any(neg.search(post_context) for neg in cls.NEGATION_PATTERNS):
                     continue
 

@@ -29,9 +29,7 @@ class EvaluationUpdateRequest(BaseModel):
     data_structure_quality: int | None = Field(
         default=None, ge=1, le=10, description="Data structure quality score (1-10)"
     )
-    training_integration: int | None = Field(
-        default=None, ge=1, le=10, description="Training integration score (1-10)"
-    )
+    training_integration: int | None = Field(default=None, ge=1, le=10, description="Training integration score (1-10)")
     ethical_accessibility: int | None = Field(
         default=None, ge=1, le=10, description="Ethical accessibility score (1-10)"
     )

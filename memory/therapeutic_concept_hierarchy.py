@@ -88,10 +88,7 @@ class TherapeuticConceptHierarchy:
         if parent_id is not None and parent_id not in self._nodes:
             raise ValueError(f"Parent {parent_id} does not exist")
         if parent_id is not None and self._nodes[parent_id].level != level - 1:
-            raise ValueError(
-                f"Parent {parent_id} is at level {self._nodes[parent_id].level}, "
-                f"expected {level - 1}"
-            )
+            raise ValueError(f"Parent {parent_id} is at level {self._nodes[parent_id].level}, expected {level - 1}")
 
         node = ConceptNode(
             id=node_id,
@@ -246,9 +243,7 @@ class TherapeuticConceptHierarchy:
     # Negative sampling helpers (contrastive learning)
     # ------------------------------------------------------------------
 
-    def sample_negatives(
-        self, anchor_id: str, strategy: str = "mixed", k: int = 5
-    ) -> list[tuple[str, str]]:
+    def sample_negatives(self, anchor_id: str, strategy: str = "mixed", k: int = 5) -> list[tuple[str, str]]:
         """
         Sample negative examples for contrastive learning.
 
@@ -275,9 +270,7 @@ class TherapeuticConceptHierarchy:
                     easy_pool.append(self._nodes[rid])
                 easy_pool = [n for n in easy_pool if n.id != anchor_id]
                 if easy_pool:
-                    chosen = np.random.choice(
-                        len(easy_pool), size=min(k, len(easy_pool)), replace=False
-                    )
+                    chosen = np.random.choice(len(easy_pool), size=min(k, len(easy_pool)), replace=False)
                     for idx in chosen:
                         negatives.append((easy_pool[idx].id, "easy"))
 
@@ -286,14 +279,12 @@ class TherapeuticConceptHierarchy:
             root = self._get_root(anchor_id)
             if root is not None:
                 medium_pool = [
-                    n for n in self.get_descendants(root.id) + [root]
-                    if n.level == 1 and n.id != anchor_id
-                    and self.lowest_common_ancestor_level(n.id, anchor_id) == 0
+                    n
+                    for n in self.get_descendants(root.id) + [root]
+                    if n.level == 1 and n.id != anchor_id and self.lowest_common_ancestor_level(n.id, anchor_id) == 0
                 ]
                 if medium_pool:
-                    chosen = np.random.choice(
-                        len(medium_pool), size=min(k, len(medium_pool)), replace=False
-                    )
+                    chosen = np.random.choice(len(medium_pool), size=min(k, len(medium_pool)), replace=False)
                     for idx in chosen:
                         negatives.append((medium_pool[idx].id, "medium"))
 
@@ -302,13 +293,12 @@ class TherapeuticConceptHierarchy:
             condition_ancestor = self._get_ancestor_at_level(anchor_id, 1)
             if condition_ancestor is not None:
                 hard_pool = [
-                    n for n in self.get_descendants(condition_ancestor.id) + [condition_ancestor]
+                    n
+                    for n in self.get_descendants(condition_ancestor.id) + [condition_ancestor]
                     if n.level == 2 and n.id != anchor_id
                 ]
                 if hard_pool:
-                    chosen = np.random.choice(
-                        len(hard_pool), size=min(k, len(hard_pool)), replace=False
-                    )
+                    chosen = np.random.choice(len(hard_pool), size=min(k, len(hard_pool)), replace=False)
                     for idx in chosen:
                         negatives.append((hard_pool[idx].id, "hard"))
 
@@ -380,6 +370,7 @@ class TherapeuticConceptHierarchy:
 # ------------------------------------------------------------------
 # Factory: pre-built hierarchy with 100+ conditions
 # ------------------------------------------------------------------
+
 
 def build_default_therapeutic_hierarchy() -> TherapeuticConceptHierarchy:
     """

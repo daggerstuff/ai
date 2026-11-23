@@ -118,7 +118,7 @@ async def integrate_dataset(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to integrate dataset: {e!s}",
-        )
+        ) from e
 
 
 @router.get(
@@ -158,7 +158,7 @@ async def get_training_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get training status: {e!s}",
-        )
+        ) from e
 
 
 @router.post(
@@ -277,7 +277,7 @@ async def integrate_all_datasets(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to integrate datasets: {e!s}",
-        )
+        ) from e
 
 
 @router.get(
@@ -305,4 +305,4 @@ async def get_pipeline_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get pipeline status: {e!s}",
-        )
+        ) from e

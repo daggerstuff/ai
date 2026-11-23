@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
 from typing import Any
 
 from .differential import DifferentialDiagnosisManager
-from .state import ConvergenceStatus, RareDiseaseState
+from .state import ConvergenceStatus
 from .types import (
     DifferentialEntry,
     DiseaseRarity,
@@ -114,12 +113,16 @@ class ControllerOrchestrator:
                     posterior_probability=score,
                 )
             )
-        return differential if differential else [
-            DifferentialEntry(
-                disease_id="unknown",
-                disease_name="Undifferentiated rare disease",
-                organ_systems=[],
-                rarity=DiseaseRarity.ULTRA_RARE,
-                posterior_probability=1.0,
-            )
-        ]
+        return (
+            differential
+            if differential
+            else [
+                DifferentialEntry(
+                    disease_id="unknown",
+                    disease_name="Undifferentiated rare disease",
+                    organ_systems=[],
+                    rarity=DiseaseRarity.ULTRA_RARE,
+                    posterior_probability=1.0,
+                )
+            ]
+        )

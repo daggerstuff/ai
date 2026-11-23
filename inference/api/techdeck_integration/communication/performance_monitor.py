@@ -11,7 +11,10 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from ai.inference.api.techdeck_integration.error_handling.custom_errors import PerformanceMonitoringError, ValidationError
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
+    PerformanceMonitoringError,
+    ValidationError,
+)
 from ai.inference.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.inference.api.techdeck_integration.utils.logger import get_request_logger
 

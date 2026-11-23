@@ -210,8 +210,8 @@ class WithRecordSamplerMixin:
         num_records = len(self._record_sampler_dataset)
         try:
             record = self._record_sampler_dataset.iloc[i]
-        except IndexError:
-            raise DatasetSampleDisplayError(f"Index {i} is out of bounds for dataset of length {num_records}.")
+        except IndexError as exc:
+            raise DatasetSampleDisplayError(f"Index {i} is out of bounds for dataset of length {num_records}.") from exc
 
         processor_data_to_display = None
         if self._has_processor_artifacts() and len(self.processor_artifacts) > 0:

@@ -674,7 +674,9 @@ class CrisisInterventionSystem:
         self.responder = TherapeuticCrisisResponder()
         self.active_crisis_sessions = {}
 
-    async def handle_crisis_message(self, user_id: str, message: str, conversation_history: list[str] | None = None) -> dict:
+    async def handle_crisis_message(
+        self, user_id: str, message: str, conversation_history: list[str] | None = None
+    ) -> dict:
         """Handle incoming message with crisis assessment and response"""
 
         # Step 1: Crisis assessment

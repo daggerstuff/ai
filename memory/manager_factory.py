@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import logging
 import os
+from typing import TYPE_CHECKING
 
 from .base import BaseMemoryManager
 from .local_memory_settings import resolve_local_memory_settings, resolve_memory_provider
+
+if TYPE_CHECKING:
+    from .dream_manager import DreamManager
 
 logger = logging.getLogger("MemoryManagerFactory")
 
@@ -68,7 +74,7 @@ def get_required_memory_manager() -> BaseMemoryManager:
 
 def create_dream_manager(
     mongodb_uri: str | None = None,
-) -> "DreamManager":
+) -> DreamManager:
     """Create a DreamManager configured for the runtime environment.
 
     When MongoDB is available (via *mongodb_uri* or the ``MONGODB_URI``

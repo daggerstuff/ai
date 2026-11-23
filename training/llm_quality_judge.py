@@ -270,18 +270,10 @@ class DualModelQualityJudge:
 
         from ai.tools.utilities.common.llm_client import LLMClient
 
-        key = (
-            os.environ.get("AI_GATEWAY_API_KEY")
-            or os.environ.get("LLM_API_KEY")
-            or os.environ.get("OPENAI_API_KEY")
-        )
+        key = os.environ.get("AI_GATEWAY_API_KEY") or os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")
         if not key:
             return None
-        base = (
-            os.environ.get("AI_GATEWAY_URL")
-            or os.environ.get("LLM_BASE_URL")
-            or "https://ai-gateway.vercel.sh/v1"
-        )
+        base = os.environ.get("AI_GATEWAY_URL") or os.environ.get("LLM_BASE_URL") or "https://ai-gateway.vercel.sh/v1"
         return LLMClient(driver="openai", model=model, config={"api_key": key, "base_url": base})
 
     @staticmethod
@@ -290,11 +282,7 @@ class DualModelQualityJudge:
 
         from ai.tools.utilities.common.llm_client import LLMClient
 
-        key = (
-            os.environ.get("NVIDIA_NIM_API_KEY")
-            or os.environ.get("NIM_API_KEY")
-            or os.environ.get("NVIDIA_API_KEY")
-        )
+        key = os.environ.get("NVIDIA_NIM_API_KEY") or os.environ.get("NIM_API_KEY") or os.environ.get("NVIDIA_API_KEY")
         if not key:
             return None
         base = (
@@ -304,9 +292,7 @@ class DualModelQualityJudge:
             or "https://integrate.api.nvidia.com/v1"
         )
         nim_model = os.environ.get("JUDGE_NIM_MODEL") or (
-            "deepseek-ai/" + model[len("deepseek/"):]
-            if model.startswith("deepseek/")
-            else model
+            "deepseek-ai/" + model[len("deepseek/") :] if model.startswith("deepseek/") else model
         )
         return LLMClient(driver="nvidia", model=nim_model, config={"api_key": key, "base_url": base})
 
@@ -466,11 +452,7 @@ class DualModelQualityJudge:
             raise FileNotFoundError(f"Golden calibration file not found: {path}")
 
         samples = self._load_golden_samples(path)
-        if any(
-            s.get("_synthetic_golden_calibration")
-            or s.get("_neon_consensus_label")
-            for s in samples
-        ):
+        if any(s.get("_synthetic_golden_calibration") or s.get("_neon_consensus_label") for s in samples):
             logger.warning(
                 "Using synthetic/placeholder golden calibration data; "
                 "release-gate metrics are not representative of real human ratings."
@@ -554,14 +536,10 @@ class DualModelQualityJudge:
         eval_idx = order[split:]
         if not fit_idx or not eval_idx:
             return 0.0, 0.0
-        offset = (
-            sum(human_overalls[i] for i in fit_idx) / len(fit_idx)
-            - sum(judge_overalls[i] for i in fit_idx) / len(fit_idx)
+        offset = sum(human_overalls[i] for i in fit_idx) / len(fit_idx) - sum(judge_overalls[i] for i in fit_idx) / len(
+            fit_idx
         )
-        calibrated = [
-            min(1.0, max(0.0, judge_overalls[i] + offset))
-            for i in range(len(judge_overalls))
-        ]
+        calibrated = [min(1.0, max(0.0, judge_overalls[i] + offset)) for i in range(len(judge_overalls))]
         calibrated_bins = [self.classify_score(value) for value in calibrated]
         kappa = self._safe_weighted_kappa(
             [human_bins[i] for i in eval_idx],
@@ -575,12 +553,8 @@ class DualModelQualityJudge:
 
     def _judge_turn_sync(self, turn_index: int, context: dict[str, str]) -> TurnScore:
         """Score a single turn synchronously with k=3 self-consistency samples."""
-        primary_results = [
-            self._call_model_sync(self.primary_client, context) for _ in range(self.k_samples)
-        ]
-        secondary_results = [
-            self._call_model_sync(self.secondary_client, context) for _ in range(self.k_samples)
-        ]
+        primary_results = [self._call_model_sync(self.primary_client, context) for _ in range(self.k_samples)]
+        secondary_results = [self._call_model_sync(self.secondary_client, context) for _ in range(self.k_samples)]
         return self._build_turn_score(turn_index, primary_results, secondary_results)
 
     def _build_turn_score(
@@ -616,12 +590,8 @@ class DualModelQualityJudge:
         primary_all_failed = len(primary_results) > 0 and not primary_scores_list
         secondary_all_failed = len(secondary_results) > 0 and not secondary_scores_list
         all_failed = primary_all_failed or secondary_all_failed
-        primary_partial = len(primary_results) > 0 and 0 < len(primary_scores_list) < len(
-            primary_results
-        )
-        secondary_partial = len(secondary_results) > 0 and 0 < len(secondary_scores_list) < len(
-            secondary_results
-        )
+        primary_partial = len(primary_results) > 0 and 0 < len(primary_scores_list) < len(primary_results)
+        secondary_partial = len(secondary_results) > 0 and 0 < len(secondary_scores_list) < len(secondary_results)
         partial_failure = primary_partial or secondary_partial
 
         return TurnScore(
@@ -648,13 +618,9 @@ class DualModelQualityJudge:
         weights = [self.decay ** (n - 1 - i) for i in range(n)]
         weight_sum = sum(weights)
 
-        primary_weighted = (
-            sum(w * ts.primary_overall for w, ts in zip(weights, turn_scores, strict=False))
-            / weight_sum
-        )
+        primary_weighted = sum(w * ts.primary_overall for w, ts in zip(weights, turn_scores, strict=False)) / weight_sum
         secondary_weighted = (
-            sum(w * ts.secondary_overall for w, ts in zip(weights, turn_scores, strict=False))
-            / weight_sum
+            sum(w * ts.secondary_overall for w, ts in zip(weights, turn_scores, strict=False)) / weight_sum
         )
 
         # If one model completely failed for every turn, fall back to the other.
@@ -709,11 +675,7 @@ class DualModelQualityJudge:
             "secondary_overall": round(secondary_weighted, 4),
             "consistency_diff": round(consistency_diff, 4),
             "needs_human_review": needs_human_review,
-            "disposition": (
-                "human_review"
-                if needs_human_review or overall < FILTER_ACCEPT_MIN
-                else "accept"
-            ),
+            "disposition": ("human_review" if needs_human_review or overall < FILTER_ACCEPT_MIN else "accept"),
             "metadata": {
                 "n_turns": n,
                 "decay": self.decay,
@@ -741,9 +703,7 @@ class DualModelQualityJudge:
             "dimension_scores": dict.fromkeys(self.DIMENSIONS, 0.0),
         }
         try:
-            result = client.generate_structured(
-                user_prompt, schema, JUDGE_SYSTEM_PROMPT, temperature=self.temperature
-            )
+            result = client.generate_structured(user_prompt, schema, JUDGE_SYSTEM_PROMPT, temperature=self.temperature)
             if not isinstance(result, dict):
                 logger.warning("LLM client returned non-dict result: %s", type(result))
                 return None
@@ -754,13 +714,9 @@ class DualModelQualityJudge:
             logger.warning("LLM call failed: %s", e)
             return None
 
-    def _generate_structured(
-        self, client: Any, prompt: str, schema: dict[str, Any], system_prompt: str
-    ) -> Any:
+    def _generate_structured(self, client: Any, prompt: str, schema: dict[str, Any], system_prompt: str) -> Any:
         """Backward-compatible wrapper (kept for callers that override it)."""
-        return client.generate_structured(
-            prompt, schema, system_prompt, temperature=self.temperature
-        )
+        return client.generate_structured(prompt, schema, system_prompt, temperature=self.temperature)
 
     def _build_user_prompt(self, context: dict[str, str]) -> str:
         """Build the user prompt for the LLM judge.

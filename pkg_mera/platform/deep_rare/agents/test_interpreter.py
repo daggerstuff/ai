@@ -131,7 +131,7 @@ def _check_reference_range(test: TestResult) -> tuple[bool, str | None]:
                 if val > high:
                     return True, f"High: {val}{unit} (ref {low}-{high}{unit})"
                 return False, f"Normal: {val}{unit} (ref {low}-{high}{unit})"
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 return False, None
     return False, None
 

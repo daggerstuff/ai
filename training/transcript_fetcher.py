@@ -17,7 +17,7 @@ from urllib.parse import parse_qs, urlparse
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("transcript_fetcher")
 
@@ -75,7 +75,7 @@ def extract_video_id(url: str) -> str:
 def sanitize_filename(text: str) -> str:
     """Sanitize text for use as filename."""
     # Remove or replace problematic characters
-    text = re.sub(r'[<>:\"/\\\\|?*\\x00-\\x1f]', "_", text)
+    text = re.sub(r"[<>:\"/\\\\|?*\\x00-\\x1f]", "_", text)
     # Remove leading/trailing spaces and dots
     text = text.strip(" .")
     # Limit length
@@ -84,7 +84,12 @@ def sanitize_filename(text: str) -> str:
     return text or "unknown"
 
 
-def fetch_transcript(video_id: str, output_path: Path, language_priority: list[str] | None = None, cookies_from_browser: str | None = None) -> bool:
+def fetch_transcript(
+    video_id: str,
+    output_path: Path,
+    language_priority: list[str] | None = None,
+    cookies_from_browser: str | None = None,
+) -> bool:
     """
     Fetch transcript for a single video using yt-dlp.
 
@@ -109,14 +114,20 @@ def fetch_transcript(video_id: str, output_path: Path, language_priority: list[s
             cmd = [
                 "yt-dlp",
                 "--write-auto-sub",  # Write automatic subtitles
-                "--sub-lang", lang,  # Language
-                "--skip-download",   # Don't download video
-                "--output", str(output_path.with_suffix("")),  # Output template (without extension)
+                "--sub-lang",
+                lang,  # Language
+                "--skip-download",  # Don't download video
+                "--output",
+                str(output_path.with_suffix("")),  # Output template (without extension)
                 # Add headers to appear more like a regular browser
-                "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                "--referer", "https://www.youtube.com/",
-                "--sleep-interval", "1",  # Sleep between requests to avoid rate limiting
-                "--max-sleep-interval", "5",
+                "--user-agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "--referer",
+                "https://www.youtube.com/",
+                "--sleep-interval",
+                "1",  # Sleep between requests to avoid rate limiting
+                "--max-sleep-interval",
+                "5",
             ]
 
             # Add cookies if specified
@@ -131,7 +142,7 @@ def fetch_transcript(video_id: str, output_path: Path, language_priority: list[s
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30  # 30 second timeout per video
+                timeout=30,  # 30 second timeout per video
             )
 
             # Log stderr for debugging if needed
@@ -302,7 +313,9 @@ def _fetch_video_metadata(url: str) -> dict:
     try:
         result = subprocess.run(
             ["yt-dlp", "--dump-json", url],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
         result.check_returncode()
         return json.loads(result.stdout)
@@ -313,6 +326,7 @@ def _fetch_video_metadata(url: str) -> dict:
 
 def _fetch_subtitles(video_id: str, lang: str) -> Path | None:
     import tempfile
+
     tmp = Path(tempfile.mkdtemp())
     out_template = tmp / "%(id)s.%(ext)s"
     try:
@@ -320,15 +334,22 @@ def _fetch_subtitles(video_id: str, lang: str) -> Path | None:
             [
                 "yt-dlp",
                 "--write-auto-sub",
-                "--sub-lang", lang,
+                "--sub-lang",
+                lang,
                 "--skip-download",
-                "--output", str(out_template),
-                "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "--sleep-interval", "1",
-                "--max-sleep-interval", "2",
+                "--output",
+                str(out_template),
+                "--user-agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "--sleep-interval",
+                "1",
+                "--max-sleep-interval",
+                "2",
                 f"https://www.youtube.com/watch?v={video_id}",
             ],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
         vtt_files = list(tmp.glob(f"{video_id}*.vtt"))
         if vtt_files:
@@ -394,9 +415,11 @@ def run_fetch(args: argparse.Namespace) -> None:
 
         if rate_limit > 0:
             import time
+
             time.sleep(rate_limit)
 
     import time as time_mod
+
     manifest = {
         "generated_at": time_mod.strftime("%Y-%m-%dT%H:%M:%SZ", time_mod.gmtime()),
         "stats": stats,
@@ -408,53 +431,39 @@ def run_fetch(args: argparse.Namespace) -> None:
 
     logger.info(
         "Fetch complete: %d fetched, %d no subtitles (total %d URLs)",
-        stats["fetched"], stats["no_subtitles"], stats["total_urls"],
+        stats["fetched"],
+        stats["no_subtitles"],
+        stats["total_urls"],
     )
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Fetch YouTube transcripts using yt-dlp for therapeutic AI training."
-    )
+    parser = argparse.ArgumentParser(description="Fetch YouTube transcripts using yt-dlp for therapeutic AI training.")
     parser.add_argument(
         "--playlists-file",
         type=str,
         default="ai/docs/youtube_playlists.txt",
-        help="Path to YouTube playlists file containing URLs"
+        help="Path to YouTube playlists file containing URLs",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
         default="training/data/transcripts",
-        help="Base directory for storing transcripts (will create channel subdirs)"
+        help="Base directory for storing transcripts (will create channel subdirs)",
     )
     parser.add_argument(
-        "--channel-name",
-        type=str,
-        default="Tim Fletcher",
-        help="Channel name to use for organizing transcripts"
+        "--channel-name", type=str, default="Tim Fletcher", help="Channel name to use for organizing transcripts"
     )
     parser.add_argument(
         "--language",
         type=str,
         default="en",
-        help="Preferred language for transcripts (comma-separated list: en,de,etc.)"
+        help="Preferred language for transcripts (comma-separated list: en,de,etc.)",
     )
+    parser.add_argument("--max-videos", type=int, default=0, help="Maximum number of videos to process (0 for all)")
+    parser.add_argument("--skip-existing", action="store_true", help="Skip videos that already have transcript files")
     parser.add_argument(
-        "--max-videos",
-        type=int,
-        default=0,
-        help="Maximum number of videos to process (0 for all)"
-    )
-    parser.add_argument(
-        "--skip-existing",
-        action="store_true",
-        help="Skip videos that already have transcript files"
-    )
-    parser.add_argument(
-        "--cookies-from-browser",
-        type=str,
-        help="Load cookies from browser (firefox, chrome, chromium, brave, etc.)"
+        "--cookies-from-browser", type=str, help="Load cookies from browser (firefox, chrome, chromium, brave, etc.)"
     )
 
     args = parser.parse_args()
@@ -528,7 +537,7 @@ def main():
         "failed": failed,
         "skipped_existing": skipped,
         "output_directory": str(output_dir),
-        "languages_attempted": languages
+        "languages_attempted": languages,
     }
 
     manifest_path = output_dir / "manifest.json"

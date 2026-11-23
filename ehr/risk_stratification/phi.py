@@ -38,12 +38,8 @@ def redact_session_id(session_id: str) -> str:
 
 
 # Patterns for PII in free-text
-_PHONE_RE = re.compile(
-    r"\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b"
-)
-_EMAIL_RE = re.compile(
-    r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-)
+_PHONE_RE = re.compile(r"\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b")
+_EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
 _SSN_RE = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 _DATE_RE = re.compile(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b")
 _MRN_RE = re.compile(r"\bMRN[-:s]?\d+\b", re.IGNORECASE)

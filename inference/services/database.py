@@ -56,10 +56,7 @@ class DatabaseService:
         """Encrypt PHI data before storage using AES-256-GCM - HIPAA compliance"""
         if not self._encryption_key:
             if os.environ.get("NODE_ENV") == "production":
-                raise RuntimeError(
-                    "PHI_ENCRYPTION_KEY not set in production. "
-                    "Refusing to store unencrypted PHI."
-                )
+                raise RuntimeError("PHI_ENCRYPTION_KEY not set in production. Refusing to store unencrypted PHI.")
             logger.warning("PHI_ENCRYPTION_KEY not set. Using insecure placeholder for development.")
             encrypted_data = data.copy()
             encrypted_data["_insecure_mode"] = True

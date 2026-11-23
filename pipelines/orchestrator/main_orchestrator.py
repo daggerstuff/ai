@@ -10,9 +10,7 @@ from pipelines.voice.feature_extraction import FeatureExtractionPipeline
 from pipelines.voice.pair_generation import TherapeuticPairGenerator
 from pipelines.voice.transcription import TranscriptionOrchestrator
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("MainOrchestrator")
 
 AI_ROOT = Path(__file__).resolve().parents[2]
@@ -62,9 +60,7 @@ class PipelineOrchestrator:
 
         for pair_file in pairs_dir.glob("*.jsonl"):
             cursor = self.conn.cursor()
-            cursor.execute(
-                "SELECT shard_id FROM training_shards WHERE export_path = ?", (str(pair_file),)
-            )
+            cursor.execute("SELECT shard_id FROM training_shards WHERE export_path = ?", (str(pair_file),))
             if cursor.fetchone():
                 continue
 

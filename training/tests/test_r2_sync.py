@@ -7,11 +7,9 @@ carries the URLs into the job, and the plain-HTTP PUT that uses them.
 
 from __future__ import annotations
 
+import hashlib
 import io
-import time
 import urllib.error
-import urllib.request
-from email.message import Message
 from pathlib import Path
 from typing import Any
 
@@ -19,22 +17,18 @@ import pytest
 
 from training.launch import r2_sync
 
-# Two matching objects in the fake bucket, and the fake serves one per page.
-EXPECTED_LIST_PAGES = 2
-# The first attempt fails, so a successful PUT takes exactly two.
-ATTEMPTS_BEFORE_SUCCESS = 2
-HTTP_OK = 200
-# R2_MAP_B64 has to fit in a single job environment variable.
-MAX_ENV_VAR_BYTES = 400
-# 2 is the module's "degraded: the results stay in the job log" exit code.
-DEGRADED_EXIT = 2
-
 
 class FakeS3:
-    """Records every call and serves a paged listing like the real client."""
+    """Records every call and serves a paged listing like the real client.
 
-    def __init__(self, objects: dict[str, bytes] | None = None) -> None:
+    ``etags`` overrides a key's listing ETag. That is how a multipart upload
+    looks on the wire: ``"<md5-of-part-md5s>-<part-count>"``, quoted like the
+    real client, rather than the object's MD5.
+    """
+
+    def __init__(self, objects: dict[str, bytes] | None = None, *, etags: dict[str, str] | None = None) -> None:
         self.objects = objects or {}
+        self.etags = etags or {}
         self.puts: list[dict[str, Any]] = []
         self.list_calls: list[dict[str, Any]] = []
         self.presigned: list[tuple[str, dict[str, Any], int]] = []
@@ -44,12 +38,8 @@ class FakeS3:
         self.objects[kwargs["Key"]] = kwargs["Body"]
         return {}
 
-    def get_object(self, **kwargs: Any) -> dict[str, Any]:
-        # boto3 takes Bucket/Key by keyword, so the fake accepts them the same
-        # way and unpacks the one it serves; naming them would mean naming a
-        # parameter in the SDK's casing.
-        key = str(kwargs["Key"])
-        return {"Body": io.BytesIO(self.objects[key])}
+    def get_object(self, *, Bucket: str, Key: str) -> dict[str, Any]:
+        return {"Body": io.BytesIO(self.objects[Key])}
 
     def list_objects_v2(self, **kwargs: Any) -> dict[str, Any]:
         self.list_calls.append(kwargs)
@@ -58,20 +48,25 @@ class FakeS3:
         # One object per page, so the pagination branch is exercised.
         start = int(kwargs.get("ContinuationToken", "0"))
         page = keys[start : start + 1]
+        contents = [
+            {
+                "Key": key,
+                "Size": len(self.objects[key]),
+                "ETag": self.etags.get(key) or f'"{hashlib.md5(self.objects[key], usedforsecurity=False).hexdigest()}"',
+            }
+            for key in page
+        ]
         response: dict[str, Any] = {
-            "Contents": [{"Key": key, "Size": len(self.objects[key])} for key in page],
+            "Contents": contents,
             "IsTruncated": start + 1 < len(keys),
         }
         if response["IsTruncated"]:
             response["NextContinuationToken"] = str(start + 1)
         return response
 
-    def generate_presigned_url(self, operation: str, **kwargs: Any) -> str:
-        # Params/ExpiresIn are boto3 keywords; unpacked for the same reason.
-        params: dict[str, str] = kwargs["Params"]
-        expires_in = int(kwargs["ExpiresIn"])
-        self.presigned.append((operation, params, expires_in))
-        return f"https://r2.example/{params['Key']}?sig={operation}"
+    def generate_presigned_url(self, operation: str, *, Params: dict[str, str], ExpiresIn: int) -> str:
+        self.presigned.append((operation, Params, ExpiresIn))
+        return f"https://r2.example/{Params['Key']}?sig={operation}"
 
 
 def test_upload_dir_mirrors_the_tree_and_skips_bytecode(tmp_path: Path) -> None:
@@ -88,6 +83,78 @@ def test_upload_dir_mirrors_the_tree_and_skips_bytecode(tmp_path: Path) -> None:
     types = {put["Key"]: put["ContentType"] for put in s3.puts}
     assert types["evals/v22/tag/run/results.jsonl"] == "application/x-ndjson"
     assert types["evals/v22/tag/run/manifest.json"] == "application/json"
+
+
+def test_upload_dir_include_restricts_the_mirror_to_the_signed_bundle(tmp_path: Path) -> None:
+    """A reused stage directory can hold leftovers; only the signed paths go up."""
+    stage = tmp_path / "stage"
+    (stage / "code").mkdir(parents=True)
+    (stage / "code" / "run_ovh.py").write_text("print('train')")
+    (stage / "code" / "notes.txt").write_text("leftover")
+    (stage / "data").mkdir()
+    (stage / "data" / "tinker-dataset.json").write_text("{}")
+    s3 = FakeS3()
+
+    keys = r2_sync.upload_dir(
+        stage,
+        bucket="training",
+        prefix="inputs/v23/tag",
+        s3_client=s3,
+        include=["code/run_ovh.py", "data/tinker-dataset.json"],
+    )
+
+    assert keys == ["inputs/v23/tag/code/run_ovh.py", "inputs/v23/tag/data/tinker-dataset.json"]
+    assert [put["Key"] for put in s3.puts] == keys
+
+
+def test_skip_unchanged_leaves_an_identical_object_alone_and_sends_the_rest(tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "results.jsonl").write_text('{"a": 1}\n')
+    (run / "manifest.json").write_text("{}")
+    prefix = "evals/v22/tag/run"
+    s3 = FakeS3({f"{prefix}/results.jsonl": b'{"a": 1}\n'})
+
+    keys = r2_sync.upload_dir(run, bucket="training", prefix=prefix, s3_client=s3, skip_unchanged=True)
+
+    assert keys == [f"{prefix}/manifest.json"]
+    assert [put["Key"] for put in s3.puts] == [f"{prefix}/manifest.json"]
+
+
+def test_skip_unchanged_uploads_a_same_size_file_whose_bytes_changed(tmp_path: Path) -> None:
+    """Size is not identity: a rebuilt adapter can keep its byte count.
+
+    This is the case the digest comparison exists for. With a size-only check the
+    job would score the previous bundle while believing it shipped the new one.
+    """
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "adapter.bin").write_bytes(b"fresh weights")
+    key = "evals/v22/tag/run/adapter.bin"
+    s3 = FakeS3({key: b"stale weights"})  # same length, different bytes
+
+    keys = r2_sync.upload_dir(run, bucket="training", prefix="evals/v22/tag/run", s3_client=s3, skip_unchanged=True)
+
+    assert keys == [key]
+    assert s3.puts[0]["Body"] == b"fresh weights"
+
+
+def test_skip_unchanged_reuploads_an_object_with_a_multipart_etag(tmp_path: Path) -> None:
+    """A multipart ETag is not the object's MD5, so the digest cannot be verified.
+
+    R2 returns ``<md5-of-part-md5s>-<part-count>`` for a multipart PUT, which
+    never equals the local file's MD5. The object is re-sent rather than trusted.
+    """
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "adapter.bin").write_bytes(b"fresh weights")
+    key = "evals/v22/tag/run/adapter.bin"
+    part_digest = hashlib.md5(b"part", usedforsecurity=False).hexdigest()
+    s3 = FakeS3({key: b"fresh weights"}, etags={key: f'"{part_digest}-2"'})
+
+    keys = r2_sync.upload_dir(run, bucket="training", prefix="evals/v22/tag/run", s3_client=s3, skip_unchanged=True)
+
+    assert keys == [key]
 
 
 def test_download_prefix_follows_pagination_and_mirrors_keys(tmp_path: Path) -> None:
@@ -109,7 +176,7 @@ def test_download_prefix_follows_pagination_and_mirrors_keys(tmp_path: Path) -> 
     ]
     assert (tmp_path / "out" / "run" / "results.jsonl").read_bytes() == b"one\n"
     # Two matching objects, one per page: the second call must carry a token.
-    assert len(s3.list_calls) == EXPECTED_LIST_PAGES
+    assert len(s3.list_calls) == 2
     assert "ContinuationToken" not in s3.list_calls[0]
     assert s3.list_calls[1]["ContinuationToken"] == "1"
 
@@ -141,17 +208,17 @@ def test_put_file_sends_a_content_length_and_retries_a_failed_attempt(
         def __exit__(self, *_: Any) -> None:
             return None
 
-    def fake_urlopen(request: Any, **_: Any) -> Handle:
+    def fake_urlopen(request: Any, timeout: float) -> Handle:
         attempts.append(request)
         if len(attempts) == 1:
             raise urllib.error.URLError("connection reset")
         return Handle()
 
-    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(r2_sync.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(r2_sync.time, "sleep", lambda _seconds: None)
 
-    assert r2_sync.put_file("https://r2.example/key?sig=put_object", payload) == HTTP_OK
-    assert len(attempts) == ATTEMPTS_BEFORE_SUCCESS
+    assert r2_sync.put_file("https://r2.example/key?sig=put_object", payload) == 200
+    assert len(attempts) == 2
     # A presigned PUT without Content-Length is sent chunked, which S3 rejects.
     assert attempts[1].get_header("Content-length") == str(len(payload.read_bytes()))
 
@@ -159,13 +226,12 @@ def test_put_file_sends_a_content_length_and_retries_a_failed_attempt(
 def test_put_file_gives_up_after_the_attempt_budget(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     payload = tmp_path / "results.jsonl"
     payload.write_text("x\n")
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(r2_sync.time, "sleep", lambda _seconds: None)
 
-    def always_fail(request: Any, **_: Any) -> Any:
-        headers: Message[str, str] = Message()
-        raise urllib.error.HTTPError(request.full_url, 403, "SignatureDoesNotMatch", headers, None)
+    def always_fail(request: Any, timeout: float) -> Any:
+        raise urllib.error.HTTPError(request.full_url, 403, "SignatureDoesNotMatch", {}, None)
 
-    monkeypatch.setattr(urllib.request, "urlopen", always_fail)
+    monkeypatch.setattr(r2_sync.urllib.request, "urlopen", always_fail)
 
     with pytest.raises(RuntimeError, match="upload failed after 3 attempts"):
         r2_sync.put_file("https://r2.example/key", payload, attempts=3)
@@ -180,7 +246,7 @@ def test_the_job_map_survives_a_round_trip_through_an_environment_variable() -> 
     blob = r2_sync.encode_map({"upload": urls, "tag": "l4d"})
 
     # It has to fit in one env var, so the compression is part of the contract.
-    assert len(blob) < MAX_ENV_VAR_BYTES
+    assert len(blob) < 400
     assert r2_sync.decode_map(blob) == {"upload": urls, "tag": "l4d"}
 
 
@@ -190,12 +256,7 @@ def test_upload_run_sends_only_the_files_that_were_signed(tmp_path: Path, monkey
     (run / "results.jsonl").write_text("{}\n")
     (run / "manifest.json").write_text("{}")
     sent: list[tuple[str, Path]] = []
-
-    def record_put(url: str, path: Path) -> int:
-        sent.append((url, path))
-        return HTTP_OK
-
-    monkeypatch.setattr(r2_sync, "put_file", record_put)
+    monkeypatch.setattr(r2_sync, "put_file", lambda url, path: sent.append((url, path)) or 200)
 
     keys = r2_sync.upload_run(run, {"eval-nf4-sealed/results.jsonl": "https://r2.example/one"})
 
@@ -228,42 +289,6 @@ def test_credentials_strip_the_quotes_a_dotenv_file_keeps(tmp_path: Path, monkey
     assert settings["R2_BUCKET"] == "training"
 
 
-def test_client_builds_the_s3_client_from_the_module_level_sdk(monkeypatch: pytest.MonkeyPatch) -> None:
-    """boto3 is a core dependency, so ``client()`` reads the eager import.
-
-    Patching the module attributes is the assertion: an ``importlib`` lookup
-    inside ``client()`` would ignore these fakes and reach for the real SDK.
-    """
-    calls: list[dict[str, Any]] = []
-    configs: list[dict[str, Any]] = []
-
-    class FakeBoto3:
-        def client(self, service: str, **kwargs: Any) -> str:
-            calls.append({"service": service, **kwargs})
-            return "s3-client"
-
-    class FakeConfig:
-        def __init__(self, **kwargs: Any) -> None:
-            configs.append(kwargs)
-
-    monkeypatch.setattr(r2_sync, "boto3", FakeBoto3())
-    monkeypatch.setattr(r2_sync, "Config", FakeConfig)
-    monkeypatch.setenv("R2_ACCESS_KEY_ID", "be4c9f")
-    monkeypatch.setenv("R2_SECRET_ACCESS_KEY", "b4289e")
-    monkeypatch.setenv("R2_ENDPOINT", "https://account.r2.cloudflarestorage.com")
-
-    assert r2_sync.client() == "s3-client"
-
-    assert calls[0]["service"] == "s3"
-    assert calls[0]["endpoint_url"] == "https://account.r2.cloudflarestorage.com"
-    assert calls[0]["aws_access_key_id"] == "be4c9f"
-    # R2 has no regions; "auto" is the placeholder the client must send.
-    assert calls[0]["region_name"] == "auto"
-    # The signature version is what R2 accepts, and the retry budget is the contract.
-    assert configs[0]["signature_version"] == "s3v4"
-    assert configs[0]["retries"] == {"max_attempts": 5, "mode": "standard"}
-
-
 def test_the_upload_run_command_needs_no_credential(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The job side of the contract: a map in the environment is all it takes."""
     run = tmp_path / "eval-bf16-dev"
@@ -277,12 +302,7 @@ def test_the_upload_run_command_needs_no_credential(tmp_path: Path, monkeypatch:
         r2_sync.encode_map({"upload": {"eval-bf16-dev/results.jsonl": "https://r2.example/one"}}),
     )
     sent: list[str] = []
-
-    def record_put(url: str, _path: Path) -> int:
-        sent.append(url)
-        return HTTP_OK
-
-    monkeypatch.setattr(r2_sync, "put_file", record_put)
+    monkeypatch.setattr(r2_sync, "put_file", lambda _url, _path: sent.append(_url) or 200)
 
     assert r2_sync.main(["upload-run", "--run-dir", str(run)]) == 0
     assert sent == ["https://r2.example/one"]
@@ -297,13 +317,8 @@ def test_the_upload_run_command_degrades_when_the_map_is_absent(
     (run / "results.jsonl").write_text("{}\n")
     sent: list[str] = []
     monkeypatch.delenv("R2_MAP_B64", raising=False)
+    monkeypatch.setattr(r2_sync, "put_file", lambda _url, _path: sent.append(_url) or 200)
 
-    def record_put(url: str, _path: Path) -> int:
-        sent.append(url)
-        return HTTP_OK
-
-    monkeypatch.setattr(r2_sync, "put_file", record_put)
-
-    assert r2_sync.main(["upload-run", "--run-dir", str(run)]) == DEGRADED_EXIT
+    assert r2_sync.main(["upload-run", "--run-dir", str(run)]) == 2
     assert sent == []
     assert "R2_MAP_B64 is unset" in capsys.readouterr().err

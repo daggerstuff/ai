@@ -7,6 +7,7 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
+from qa.testing.engine.models.clients.conftest import make_mock_async_client, make_mock_sync_client
 
 from data_designer.config.models import Modality
 from data_designer.config.utils.media_helpers import get_media_base64_context, get_media_url_context
@@ -19,7 +20,6 @@ from data_designer.engine.models.clients.types import (
     ImageGenerationRequest,
 )
 from data_designer.engine.models.usage import TokenCountSource
-from qa.testing.engine.models.clients.conftest import make_mock_async_client, make_mock_sync_client
 
 PROVIDER = "test-provider"
 MODEL = "gpt-test"

@@ -390,8 +390,6 @@ class TestCCDIntegration(unittest.TestCase):
         assert isinstance(profile.common_therapist_mistakes, list)
         assert isinstance(profile.response_patterns, dict)
 
-
-
     def test_invalid_learning_objective_parsing(self):
         """Test parsing of invalid learning objectives."""
         ccd_template = get_resistant_ccd_template()
@@ -457,6 +455,4 @@ class TestCCDIntegration(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
-
-
-            # actually we can't easily patch local variables
+    # actually we can't easily patch local variables

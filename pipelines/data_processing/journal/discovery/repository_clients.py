@@ -180,7 +180,7 @@ class DryadClient:
             date_str = dataset.get("publicationDate") or dataset.get("datePublished")
             if date_str:
                 return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-        except (ValueError, TypeError, AttributeError):
+        except ValueError, TypeError, AttributeError:
             pass
 
         return datetime.now(UTC)
@@ -355,7 +355,7 @@ class ZenodoClient:
             date_str = metadata.get("publication_date") or metadata.get("date")
             if date_str:
                 return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-        except (ValueError, TypeError, AttributeError):
+        except ValueError, TypeError, AttributeError:
             pass
 
         return datetime.now(UTC)
@@ -540,7 +540,7 @@ class ClinicalTrialsClient:
                 day = completion_date.get("day", 1)
                 if year:
                     return datetime(int(year), int(month), int(day))
-        except (ValueError, TypeError, AttributeError):
+        except ValueError, TypeError, AttributeError:
             pass
 
         return datetime.now(UTC)

@@ -73,9 +73,7 @@ def tensor_summary(path: Path, expected_rank: int, packed_experts: int = 1) -> d
             # dimension. Gemma's published text configuration has 128 experts:
             # https://huggingface.co/google/gemma-4-26B-A4B-it/blob/main/config.json
             # Layout: OpenPipe/ART src/art/utils/convert_moe_lora.py.
-            is_fused_expert = name.endswith((
-                ".moe.experts.lora_A.weight", ".moe.experts.base_layer.lora_A.weight"
-            ))
+            is_fused_expert = name.endswith((".moe.experts.lora_A.weight", ".moe.experts.base_layer.lora_A.weight"))
             expected_inner = expected_rank * (packed_experts if is_fused_expert else 1)
             if shape[0] != expected_inner:
                 raise ValueError("LoRA tensor rank differs from adapter configuration")

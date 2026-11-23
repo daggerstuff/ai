@@ -38,7 +38,9 @@ class Leaderboard:
             entries,
             key=lambda e: (
                 e.summary.overall_accuracy,
-                getattr(e.summary, 'dimension_stats', getattr(e.summary, 'by_dimension', {})).get("final_diagnosis", 0.0),
+                getattr(e.summary, "dimension_stats", getattr(e.summary, "by_dimension", {})).get(
+                    "final_diagnosis", 0.0
+                ),
             ),
             reverse=True,
         )
@@ -66,7 +68,7 @@ class Leaderboard:
                     "label": e.label,
                     "system": e.system,
                     "overall_accuracy": e.summary.overall_accuracy,
-                    "by_dimension": getattr(e.summary, 'dimension_stats', getattr(e.summary, 'by_dimension', {})),
+                    "by_dimension": getattr(e.summary, "dimension_stats", getattr(e.summary, "by_dimension", {})),
                     "by_difficulty": e.summary.by_difficulty,
                     "error_distribution": e.summary.error_distribution,
                 }
@@ -79,9 +81,7 @@ class Leaderboard:
         lines: list[str] = []
         lines.append("# DiagnosisArena Multi-System Leaderboard")
         lines.append("")
-        lines.append(
-            f"Generated at {datetime.now(UTC).isoformat()} \u2014 {len(self.entries)} systems"
-        )
+        lines.append(f"Generated at {datetime.now(UTC).isoformat()} \u2014 {len(self.entries)} systems")
         lines.append("")
 
         lines.append("| Rank | Label | System | Overall | Hypothesis | Evidence | Differential | Final |")
@@ -131,8 +131,9 @@ __all__ = [
 ]
 
 
-
-def write_leaderboard(leaderboard: Leaderboard, out_dir: str | Path, *, also_json: bool = True) -> tuple[Path, Path | None]:
+def write_leaderboard(
+    leaderboard: Leaderboard, out_dir: str | Path, *, also_json: bool = True
+) -> tuple[Path, Path | None]:
     """Persist a leaderboard to disk."""
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)

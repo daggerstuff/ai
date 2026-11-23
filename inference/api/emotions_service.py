@@ -138,7 +138,7 @@ class EmotionAnalyzer:
     def _clamp(value: Any, low: float = 0.0, high: float = 1.0) -> float:
         try:
             return max(low, min(high, float(value)))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return 0.5
 
     def analyze(self, text: str, model_label: str) -> dict[str, Any]:

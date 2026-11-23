@@ -69,13 +69,13 @@ class RcloneS3Client:
 
     def put_object(self, Bucket, Key, Body):
         cmd = ["rclone", "rcat", f"{self.remote}:{Bucket}/{Key}"]
-        
+
         if isinstance(Body, str):
             proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True)
             assert proc.stdin is not None
             proc.stdin.write(Body)
             proc.stdin.close()
-        elif hasattr(Body, '__iter__') and not isinstance(Body, (bytes, bytearray)):
+        elif hasattr(Body, "__iter__") and not isinstance(Body, (bytes, bytearray)):
             # Handle string iterators (generators)
             proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True)
             assert proc.stdin is not None
@@ -87,7 +87,7 @@ class RcloneS3Client:
             assert proc.stdin is not None
             proc.stdin.write(Body)
             proc.stdin.close()
-            
+
         proc.wait()
 
     def upload_file(self, Filename, Bucket, Key):

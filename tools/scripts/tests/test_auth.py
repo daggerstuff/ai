@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from .auth import AuthManager, TokenManager
-from .exceptions import CLIAuthError
+from tools.scripts.auth import AuthManager, TokenManager
+from tools.scripts.exceptions import CLIAuthError
 
 
 class TestAuthManager:

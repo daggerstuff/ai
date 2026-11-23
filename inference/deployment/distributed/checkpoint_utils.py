@@ -17,7 +17,6 @@ from typing import Any
 
 import psutil
 from checkpoint_system import (
-
     CheckpointManager,
     CheckpointStatus,
     CheckpointStorage,

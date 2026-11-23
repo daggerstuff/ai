@@ -215,9 +215,13 @@ class S3DatasetLoader:
             self._ensure_client().head_object(Bucket=bucket_name, Key=object_key)
             return True
         except Exception as exc:
-            if botocore and hasattr(botocore.exceptions, "ClientError") and isinstance(
-                exc,
-                botocore.exceptions.ClientError,
+            if (
+                botocore
+                and hasattr(botocore.exceptions, "ClientError")
+                and isinstance(
+                    exc,
+                    botocore.exceptions.ClientError,
+                )
             ):
                 code = exc.response.get("Error", {}).get("Code", "")
                 if code in {"404", "NotFound", "NoSuchKey"}:

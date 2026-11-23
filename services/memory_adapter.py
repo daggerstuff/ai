@@ -23,10 +23,6 @@ from typing import Any
 try:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "foresight"))
     from foresight.schema import (
-        CreateMemoryInput,
-        EmotionalContext,
-        EmpathyMetrics,
-        MemoryCreateOptions,
         MemoryScope,
         RetentionPolicy,
         SourceService,

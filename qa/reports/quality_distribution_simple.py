@@ -47,7 +47,6 @@ class SimpleQualityDistributionAnalyzer:
                 "dataset_distribution": self._analyze_categorical(df, "dataset_source", "Dataset Distribution"),
             }
 
-
         except Exception:
             return {}
 

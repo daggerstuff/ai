@@ -65,9 +65,7 @@ class RankStage:
         ranked.sort(key=lambda x: x.final_score, reverse=True)
         return ranked
 
-    def _evidence_score(
-        self, presentation: PatientPresentation, candidate: Candidate
-    ) -> float:
+    def _evidence_score(self, presentation: PatientPresentation, candidate: Candidate) -> float:
         w_sym = self.config.rank_symptom_weight
         w_pres = self.config.rank_presentation_weight
         w_test = self.config.rank_test_weight
@@ -97,16 +95,9 @@ class RankStage:
         # Progression / history match: neutral baseline.
         prog_score = 0.5
 
-        return (
-            w_sym * sym_score
-            + w_pres * pres_score
-            + w_test * test_score
-            + w_prog * prog_score
-        )
+        return w_sym * sym_score + w_pres * pres_score + w_test * test_score + w_prog * prog_score
 
-    def _build_chain(
-        self, presentation: PatientPresentation, candidate: Candidate
-    ) -> list[EvidenceChainLink]:
+    def _build_chain(self, presentation: PatientPresentation, candidate: Candidate) -> list[EvidenceChainLink]:
         # Candidate reserved for future hierarchy-path evidence links.
         del candidate
         chain: list[EvidenceChainLink] = []

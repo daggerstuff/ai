@@ -60,6 +60,7 @@ class GPUStatsThread(threading.Thread):
                 pass
 """
 
+
 def update_notebook():
     with open(PROD_SCRIPT_PATH) as f:
         prod_code = f.readlines()
@@ -73,10 +74,7 @@ def update_notebook():
             imports_finished = True
 
         if "return parser.parse_args()" in line:
-            replacement = (
-                "return parser.parse_args(args=[]) if 'ipykernel' in sys.modules "
-                "else parser.parse_args()"
-            )
+            replacement = "return parser.parse_args(args=[]) if 'ipykernel' in sys.modules else parser.parse_args()"
             patched_code.append(line.replace("return parser.parse_args()", replacement))
         elif 'if __name__ == "__main__":' in line:
             # Wrap main with telemetry thread and stop processing
@@ -99,8 +97,8 @@ def update_notebook():
                 "source": [
                     "# 🚀 Wayfarer-2-12B Distributed Production Pilot\n",
                     "**Status**: Production-Mirror Hardened\n",
-                    "**Data**: 35.6B Token S3 Stream (PII Scrubbed & Clinically Aligned)"
-                ]
+                    "**Data**: 35.6B Token S3 Stream (PII Scrubbed & Clinically Aligned)",
+                ],
             },
             {
                 "cell_type": "code",
@@ -109,8 +107,8 @@ def update_notebook():
                 "outputs": [],
                 "source": [
                     "# Install dependencies\n",
-                    "%pip install -q transformers peft trl datasets bitsandbytes accelerate pynvml\n"
-                ]
+                    "%pip install -q transformers peft trl datasets bitsandbytes accelerate pynvml\n",
+                ],
             },
             {
                 "cell_type": "code",
@@ -121,40 +119,30 @@ def update_notebook():
                     "# Mount Google Drive to persist checkpoints across Colab sessions\n",
                     "# from google.colab import drive\n",
                     "# drive.mount('/content/drive')\n",
-                    "# os.environ['WORKSPACE_ROOT'] = '/content/drive/MyDrive/wayfarer_training'\n"
-                ]
+                    "# os.environ['WORKSPACE_ROOT'] = '/content/drive/MyDrive/wayfarer_training'\n",
+                ],
             },
             {
                 "cell_type": "code",
                 "execution_count": None,
                 "metadata": {"id": "train-main"},
                 "outputs": [],
-                "source": patched_code
-            }
+                "source": patched_code,
+            },
         ],
         "metadata": {
             "accelerator": "GPU",
-            "colab": {
-                "provenance": []
-            },
-            "kernelspec": {
-                "display_name": "Python 3",
-                "language": "python",
-                "name": "python3"
-            },
-            "language_info": {
-                "name": "python",
-                "version": "3.10.12"
-            }
+            "colab": {"provenance": []},
+            "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
+            "language_info": {"name": "python", "version": "3.10.12"},
         },
         "nbformat": 4,
-        "nbformat_minor": 0
+        "nbformat_minor": 0,
     }
 
     with open(NB_PATH, "w") as f:
         json.dump(nb, f, indent=2)
 
+
 if __name__ == "__main__":
     update_notebook()
-
-

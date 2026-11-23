@@ -129,17 +129,13 @@ class CrossConditionTransferEvaluator:
         split_idx = int(len(shuffled) * self.train_ratio)
         return shuffled[:split_idx], shuffled[split_idx:]
 
-    def _train_hierarchical_model(
-        self, train_conditions: list[str]
-    ) -> HierarchicalContrastiveLearner:
+    def _train_hierarchical_model(self, train_conditions: list[str]) -> HierarchicalContrastiveLearner:
         """Train a hierarchical contrastive model on the train conditions."""
         # Subset the hierarchy to train conditions
         # For simplicity, we train on the full hierarchy but only evaluate on test conditions
         config = HCLConfig(epochs=10, batch_size=16, device="cpu")
         dataset = HierarchicalConceptDataset(self.hierarchy, config)
-        dataloader = __import__("torch").utils.data.DataLoader(
-            dataset, batch_size=config.batch_size, shuffle=True
-        )
+        dataloader = __import__("torch").utils.data.DataLoader(dataset, batch_size=config.batch_size, shuffle=True)
         model = HierarchicalContrastiveLearner(config, num_classes=len(train_conditions))
         trainer = HCLTrainer(model, config)
         trainer.fit(dataloader, epochs=config.epochs)
@@ -197,7 +193,7 @@ class CrossConditionTransferEvaluator:
             cond_true = [t for t in true_labels if t == true_cid]
             if cond_true:
                 per_condition[true_cid] = {
-                    "hierarchical_accuracy": accuracy_score(cond_true, cond_hier[-len(cond_true):]),
+                    "hierarchical_accuracy": accuracy_score(cond_true, cond_hier[-len(cond_true) :]),
                     "support": len(cond_true),
                 }
 
@@ -223,9 +219,7 @@ class CrossConditionTransferEvaluator:
 
         for i in range(self.num_splits):
             train_c, test_c = self._split_conditions(seed=i * 42)
-            result = self.evaluate_split(
-                train_c, test_c, split_name=f"split_{i + 1}"
-            )
+            result = self.evaluate_split(train_c, test_c, split_name=f"split_{i + 1}")
             results.append(result)
 
         report = TransferEvaluationReport(

@@ -111,12 +111,10 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(LOG_DIR, exist_ok=True)
 
-
     start_total = time.time()
     results = []
 
     for _i, cat in enumerate(CATEGORIES, 1):
-
         cat_start = time.time()
         count = run_one_category(cat)
         cat_elapsed = time.time() - cat_start

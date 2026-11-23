@@ -163,7 +163,9 @@ class PartialResultManager:
         logger.info(f"Stored partial result {result_id}")
         return result_id
 
-    def recover_partial_results(self, process_id: str, result_types: list[ResultType] | None = None) -> list[PartialResult]:
+    def recover_partial_results(
+        self, process_id: str, result_types: list[ResultType] | None = None
+    ) -> list[PartialResult]:
         """Recover partial results for a process"""
 
         with sqlite3.connect(self.db_path) as conn:

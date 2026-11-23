@@ -405,10 +405,14 @@ def evaluate_gate2(
             r = normalizer.normalize_record(s)
             if r is not None and "messages" in r:
                 msgs = r["messages"]
-                if isinstance(msgs, list) and len(msgs) >= 2 and all(
-                    isinstance(m, dict) and "content" in m and m["content"].strip()
-                    for m in msgs
-                    if m.get("role") in ("user", "assistant")
+                if (
+                    isinstance(msgs, list)
+                    and len(msgs) >= 2
+                    and all(
+                        isinstance(m, dict) and "content" in m and m["content"].strip()
+                        for m in msgs
+                        if m.get("role") in ("user", "assistant")
+                    )
                 ):
                     schema_valid += 1
         except Exception:

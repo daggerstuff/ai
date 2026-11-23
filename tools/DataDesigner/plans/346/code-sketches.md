@@ -9,10 +9,10 @@ for the full design.
 ```python
 @dataclass
 class ExecutionGraph:
-    _upstream: dict[str, set[str]]             # column → upstream columns
-    _downstream: dict[str, set[str]]           # column → downstream columns
+    _upstream: dict[str, set[str]]  # column → upstream columns
+    _downstream: dict[str, set[str]]  # column → downstream columns
     _strategies: dict[str, GenerationStrategy]  # column → cell-by-cell or full-column
-    _side_effect_map: dict[str, str]            # e.g. "summary__trace" → "summary"
+    _side_effect_map: dict[str, str]  # e.g. "summary__trace" → "summary"
 
     def upstream(self, column: str) -> set[str]: ...
     def downstream(self, column: str) -> set[str]: ...
@@ -92,7 +92,7 @@ Pure state store — does not resolve dependencies or determine readiness.
 class CompletionTracker:
     def __init__(self) -> None:
         self._completed: dict[int, dict[str, set[int]]] = {}  # rg → col → {row indices}
-        self._dropped: dict[int, set[int]] = {}                # rg → {row indices}
+        self._dropped: dict[int, set[int]] = {}  # rg → {row indices}
 
     def mark_complete(self, column: str, row_group: int, row_index: int) -> None:
         self._completed.setdefault(row_group, {}).setdefault(column, set()).add(row_index)
@@ -120,7 +120,10 @@ class CompletionTracker:
         return row_index in self._dropped.get(row_group, set())
 
     def is_row_group_complete(
-        self, row_group: int, row_group_size: int, all_columns: list[str],
+        self,
+        row_group: int,
+        row_group_size: int,
+        all_columns: list[str],
     ) -> bool:
         dropped = self._dropped.get(row_group, set())
         completed = self._completed.get(row_group, {})
@@ -143,6 +146,7 @@ class Task:
     row_index: int | None  # None for batch/full-column tasks
     task_type: Literal["from_scratch", "cell", "batch", "pre_batch_processor", "post_batch_processor"]
 
+
 @dataclass
 class TaskResult:
     task: Task
@@ -150,6 +154,7 @@ class TaskResult:
     output: Any = None
     error: Exception | None = None
     retryable: bool = False
+
 
 @dataclass
 class TaskTrace:
@@ -297,7 +302,6 @@ Additions to the existing `ColumnGenerator`:
 
 ```python
 class ColumnGenerator(ConfigurableTask[TaskConfigT], ABC):
-
     @property
     def is_stateful(self) -> bool:
         """Override to True for generators that maintain state across calls."""
@@ -322,7 +326,6 @@ class ColumnGenerator(ConfigurableTask[TaskConfigT], ABC):
 
 
 class FromScratchColumnGenerator(ColumnGenerator[TaskConfigT], ABC):
-
     async def agenerate_from_scratch(self, num_records: int) -> pd.DataFrame:
         return await asyncio.to_thread(self.generate_from_scratch, num_records)
 
@@ -331,7 +334,6 @@ class FromScratchColumnGenerator(ColumnGenerator[TaskConfigT], ABC):
 
 
 class ColumnGeneratorFullColumn(ColumnGenerator[TaskConfigT], ABC):
-
     async def agenerate(self, data: pd.DataFrame) -> pd.DataFrame:
         return await asyncio.to_thread(self.generate, data.copy())
 ```
@@ -342,7 +344,6 @@ Additions to `ColumnWiseDatasetBuilder`:
 
 ```python
 class ColumnWiseDatasetBuilder:
-
     def _build_async(self, generators: list[ColumnGenerator], num_records: int, buffer_size: int) -> None:
         # 1. Build graph
         strategies = {g.task_config.name: g.get_generation_strategy() for g in generators}

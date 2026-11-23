@@ -382,7 +382,6 @@ class QualityTrendDemo:
                 },
             }
 
-
         except Exception:
             return {}
 

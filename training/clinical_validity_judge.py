@@ -230,8 +230,7 @@ class ClinicalValidityJudge:
         # the LLM judge is unavailable. Fail loudly instead (blueprint S2).
         if nemo_config is None:
             raise RuntimeError(
-                "ClinicalValidityJudge.evaluate requires nemo_config "
-                "(no silent fallback to keyword scorer)."
+                "ClinicalValidityJudge.evaluate requires nemo_config (no silent fallback to keyword scorer)."
             )
 
         judge_result: dict[str, Any] | None = None
@@ -241,9 +240,7 @@ class ClinicalValidityJudge:
             raise RuntimeError(f"LLM judge call failed: {e}") from e
 
         if judge_result is None:
-            raise RuntimeError(
-                "LLM judge returned no result (None/empty/unparseable response)."
-            )
+            raise RuntimeError("LLM judge returned no result (None/empty/unparseable response).")
 
         return judge_result
 
@@ -336,9 +333,7 @@ class ClinicalValidityJudge:
         # Extract overall score
         overall = parsed.get("clinical_validity_score")
         if overall is None or not isinstance(overall, (int, float)):
-            logger.warning(
-                "ClinicalValidityJudge: missing or invalid clinical_validity_score in response"
-            )
+            logger.warning("ClinicalValidityJudge: missing or invalid clinical_validity_score in response")
             return None
 
         overall = max(0.0, min(1.0, float(overall)))
@@ -418,13 +413,9 @@ def main() -> None:
         uv run python -m training.clinical_validity_judge --text "Your text here"
         uv run python -m training.clinical_validity_judge --text "..." --detail
     """
-    parser = argparse.ArgumentParser(
-        description="Evaluate clinical validity of therapeutic text using LLM judge"
-    )
+    parser = argparse.ArgumentParser(description="Evaluate clinical validity of therapeutic text using LLM judge")
     parser.add_argument("--text", type=str, default=None, help="Text to evaluate")
-    parser.add_argument(
-        "--detail", action="store_true", help="Include per-dimension scores in output"
-    )
+    parser.add_argument("--detail", action="store_true", help="Include per-dimension scores in output")
     args = parser.parse_args()
 
     text = args.text

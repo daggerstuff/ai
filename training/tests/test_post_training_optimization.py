@@ -73,6 +73,7 @@ PLAN_AMOUNT_KEY = "amount"
 # Pruning tests
 # ---------------------------------------------------------------------------
 
+
 class TestPruningStats:
     def test_defaults(self):
         stats = PruningStats(adapter_path="./lora-out", amount=PRUNE_AMOUNT)
@@ -97,6 +98,7 @@ class TestPruningStats:
         assert d["sparsity"] == PRUNED_RATIO
         assert "q_proj" in d["target_modules"]
 
+
 class TestExtractDomainScore:
     def test_found(self):
         report = {
@@ -114,6 +116,7 @@ class TestExtractDomainScore:
     def test_empty(self):
         assert _extract_domain_score({}) is None
         assert _extract_domain_score({"results": []}) is None
+
 
 class TestVerifyQuality:
     def test_pass(self, tmp_path):
@@ -176,6 +179,7 @@ class TestVerifyQuality:
         assert result["quality_gate_passed"] is None
         assert "INSUFFICIENT_DATA" in result["verdict"]
 
+
 class TestPruneLoraAdapter:
     def test_no_lora_modules(self):
         model = MagicMock()
@@ -189,6 +193,7 @@ class TestPruneLoraAdapter:
         """Test pruning with a real nn.Linear and torch.nn.utils.prune."""
         # Create a real linear layer with random weights.
         linear = nn.Linear(8, 8)
+
         # Wrap in a simple module that looks like a LoRA layer.
         class _MockLoraModule(nn.Module):
             def __init__(self, lin: nn.Linear) -> None:
@@ -211,19 +216,26 @@ class TestPruneLoraAdapter:
         assert stats.sparsity > 0.0
         assert len(stats.target_modules) > 0
 
+
 class TestPruneCLI:
     def test_dry_run(self, tmp_path):
         adapter_path = tmp_path / "lora-out"
         adapter_path.mkdir()
         out_dir = tmp_path / "pruning"
 
-        with patch("sys.argv", [
-            "prune_adapter",
-            "--adapter-path", str(adapter_path),
-            "--amount", str(PRUNE_AMOUNT),
-            "--dry-run",
-            "--out-dir", str(out_dir),
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "prune_adapter",
+                "--adapter-path",
+                str(adapter_path),
+                "--amount",
+                str(PRUNE_AMOUNT),
+                "--dry-run",
+                "--out-dir",
+                str(out_dir),
+            ],
+        ):
             ret = prune_main()
         assert ret == 0
 
@@ -236,18 +248,26 @@ class TestPruneCLI:
         adapter_path = tmp_path / "lora-out"
         adapter_path.mkdir()
 
-        with patch("sys.argv", [
-            "prune_adapter",
-            "--adapter-path", str(adapter_path),
-            "--amount", str(PRUNE_AMOUNT),
-            "--out-dir", str(tmp_path / "pruning"),
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "prune_adapter",
+                "--adapter-path",
+                str(adapter_path),
+                "--amount",
+                str(PRUNE_AMOUNT),
+                "--out-dir",
+                str(tmp_path / "pruning"),
+            ],
+        ):
             ret = prune_main()
         assert ret == 1
+
 
 # ---------------------------------------------------------------------------
 # Quantization tests
 # ---------------------------------------------------------------------------
+
 
 class TestQuantizationStats:
     def test_defaults(self):
@@ -281,6 +301,7 @@ class TestQuantizationStats:
         assert d["gguf_quant"] == "q4_k_m"
         assert d["bits"] is None
 
+
 class TestDirSizeMB:
     def test_single_file(self, tmp_path):
         f = tmp_path / "test.bin"
@@ -297,20 +318,28 @@ class TestDirSizeMB:
     def test_empty_dir(self, tmp_path):
         assert _dir_size_mb(tmp_path) == 0.0
 
+
 class TestQuantizeCLI:
     def test_dry_run_awq(self, tmp_path):
         model_path = tmp_path / "model"
         model_path.mkdir()
         out_dir = tmp_path / "quantized"
 
-        with patch("sys.argv", [
-            "quantize_model",
-            "--model-path", str(model_path),
-            "--method", "awq",
-            "--bits", str(BITS_AWQ),
-            "--dry-run",
-            "--out-dir", str(out_dir),
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "quantize_model",
+                "--model-path",
+                str(model_path),
+                "--method",
+                "awq",
+                "--bits",
+                str(BITS_AWQ),
+                "--dry-run",
+                "--out-dir",
+                str(out_dir),
+            ],
+        ):
             ret = quantize_main()
         assert ret == 0
 
@@ -323,14 +352,21 @@ class TestQuantizeCLI:
         model_path.mkdir()
         out_dir = tmp_path / "quantized"
 
-        with patch("sys.argv", [
-            "quantize_model",
-            "--model-path", str(model_path),
-            "--method", "gguf",
-            "--gguf-quant", "q5_k_m",
-            "--dry-run",
-            "--out-dir", str(out_dir),
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "quantize_model",
+                "--model-path",
+                str(model_path),
+                "--method",
+                "gguf",
+                "--gguf-quant",
+                "q5_k_m",
+                "--dry-run",
+                "--out-dir",
+                str(out_dir),
+            ],
+        ):
             ret = quantize_main()
         assert ret == 0
 
@@ -338,6 +374,7 @@ class TestQuantizeCLI:
         assert plan["method"] == "gguf"
         assert plan["gguf_quant"] == "q5_k_m"
         assert plan["bits"] is None
+
 
 class TestSupportedMethods:
     def test_methods_exist(self):
@@ -350,9 +387,11 @@ class TestSupportedMethods:
         assert "q8_0" in GGUF_QUANTS
         assert "f16" in GGUF_QUANTS
 
+
 # ---------------------------------------------------------------------------
 # Distillation tests
 # ---------------------------------------------------------------------------
+
 
 class TestDistillationStats:
     def test_defaults(self):
@@ -379,6 +418,7 @@ class TestDistillationStats:
         assert d["train_samples"] == KD_TRAIN_SAMPLES
         assert d["final_loss"] == KD_FINAL_LOSS
 
+
 class TestKDLoss:
     def test_returns_three_values(self):
         """Test that kd_loss returns (total, kd_loss, ce_loss) tuple."""
@@ -402,16 +442,13 @@ class TestKDLoss:
         labels = torch.randint(0, vocab, (batch, seq_len))
 
         # With alpha=1, beta=0: total should equal kd loss.
-        total_kd_only, kd, _ce = kd_loss(
-            student_logits, teacher_logits, labels, alpha=1.0, beta=0.0
-        )
+        total_kd_only, kd, _ce = kd_loss(student_logits, teacher_logits, labels, alpha=1.0, beta=0.0)
         assert torch.allclose(total_kd_only, kd, atol=ATOL_LOSS)
 
         # With alpha=0, beta=1: total should equal ce loss.
-        total_ce_only, _kd, ce = kd_loss(
-            student_logits, teacher_logits, labels, alpha=0.0, beta=1.0
-        )
+        total_ce_only, _kd, ce = kd_loss(student_logits, teacher_logits, labels, alpha=0.0, beta=1.0)
         assert torch.allclose(total_ce_only, ce, atol=ATOL_LOSS)
+
 
 class TestDistillCLI:
     def test_train_dry_run(self, tmp_path):
@@ -419,14 +456,20 @@ class TestDistillCLI:
         teacher_outputs.write_text('{"messages": []}\n')
         out_dir = tmp_path / "distill-out"
 
-        with patch("sys.argv", [
-            "distill_model",
-            "train",
-            "--teacher-outputs", str(teacher_outputs),
-            "--student-model", "Qwen/Qwen2.5-7B",
-            "--out-dir", str(out_dir),
-            "--dry-run",
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "distill_model",
+                "train",
+                "--teacher-outputs",
+                str(teacher_outputs),
+                "--student-model",
+                "Qwen/Qwen2.5-7B",
+                "--out-dir",
+                str(out_dir),
+                "--dry-run",
+            ],
+        ):
             ret = distill_main()
         assert ret == 0
 

@@ -296,7 +296,9 @@ class TestPalInfer:
     def test_vietnamese(self, client: TestClient) -> None:
         resp = client.post(
             "/api/v1/pal/infer",
-            json={"dialogue": "B\u1ec7nh nh\u00e2n: T\u00f4i c\u1ea3m th\u1ea5y m\u1ec7t m\u1ecfi. B\u00e1c s\u0129: Bao l\u00e2u r\u1ed3i?"},
+            json={
+                "dialogue": "B\u1ec7nh nh\u00e2n: T\u00f4i c\u1ea3m th\u1ea5y m\u1ec7t m\u1ecfi. B\u00e1c s\u0129: Bao l\u00e2u r\u1ed3i?"
+            },
         )
         assert resp.status_code == 200
         data = resp.json()

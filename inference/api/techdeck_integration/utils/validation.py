@@ -9,6 +9,7 @@ import json
 import mimetypes
 import os
 import re
+from datetime import datetime
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any
@@ -697,3 +698,135 @@ def validate_file_upload(
 
     validator = InputValidator(max_file_size_mb=max_size_mb)
     return validator.validate_file_upload(file, allowed_extensions, allowed_mime_types)
+
+
+ANALYTICS_EXPORT_TYPES = frozenset({"json", "csv", "parquet", "xlsx"})
+ANALYTICS_METRIC_TYPES = frozenset({"usage", "performance", "quality", "bias", "all"})
+QUALITY_CHECKS = frozenset({"completeness", "consistency", "accuracy", "validity", "uniqueness"})
+BIAS_DETECTION_TYPES = frozenset({"demographic", "content", "representation", "all"})
+COMPLIANCE_TYPES = frozenset({"HIPAA", "GDPR", "SOC2", "all"})
+
+
+def _iso_datetime(value: Any, field: str, errors: list[str]) -> datetime | None:
+    """Parse an ISO-8601 timestamp, recording a message instead of raising."""
+    if not isinstance(value, str):
+        errors.append(f"{field} must be an ISO-8601 string")
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        errors.append(f"{field} is not a valid ISO-8601 timestamp: {value!r}")
+        return None
+
+
+def validate_analytics_request(data: Any, request_type: str = "export") -> dict[str, Any]:
+    """Validate an analytics request body against the contract its route relies on.
+
+    The export route reads export_type, metric_type, the date range, filters and
+    options straight out of the body, so an unknown enum value or an inverted
+    range would surface as a 500. Rejecting it here makes it a 400.
+
+    Returns ``{"valid": bool, "errors": list[str]}``.
+    """
+    errors: list[str] = []
+    if not isinstance(data, dict):
+        return {"valid": False, "errors": ["request body must be a JSON object"]}
+
+    if request_type != "export":
+        errors.append(f"unsupported analytics request type: {request_type!r}")
+        return {"valid": False, "errors": errors}
+
+    export_type = data.get("export_type", "json")
+    if export_type not in ANALYTICS_EXPORT_TYPES:
+        errors.append(f"export_type must be one of {sorted(ANALYTICS_EXPORT_TYPES)}, got {export_type!r}")
+
+    metric_type = data.get("metric_type", "usage")
+    if metric_type not in ANALYTICS_METRIC_TYPES:
+        errors.append(f"metric_type must be one of {sorted(ANALYTICS_METRIC_TYPES)}, got {metric_type!r}")
+
+    for key in ("filters", "options"):
+        if not isinstance(data.get(key, {}), dict):
+            errors.append(f"{key} must be an object")
+
+    start = _iso_datetime(data["start_date"], "start_date", errors) if data.get("start_date") is not None else None
+    end = _iso_datetime(data["end_date"], "end_date", errors) if data.get("end_date") is not None else None
+    if start and end and start > end:
+        errors.append("start_date must not be later than end_date")
+
+    return {"valid": not errors, "errors": errors}
+
+
+def validate_validation_request(data: Any, request_type: str = "quality") -> dict[str, Any]:
+    """Validate a validation request body against the contract its route relies on.
+
+    Every validation route reads ``data`` as the payload under test; the fields
+    that follow differ per request type and are checked accordingly.
+
+    Returns ``{"valid": bool, "errors": list[str]}``.
+    """
+    errors: list[str] = []
+    if not isinstance(data, dict):
+        return {"valid": False, "errors": ["request body must be a JSON object"]}
+
+    if data.get("data") is None:
+        errors.append("data is required")
+
+    if not isinstance(data.get("options", {}), dict):
+        errors.append("options must be an object")
+
+    if request_type == "quality":
+        checks = data.get("checks")
+        if checks is not None:
+            if not isinstance(checks, list) or not checks:
+                errors.append("checks must be a non-empty list")
+            else:
+                unknown = [c for c in checks if c not in QUALITY_CHECKS]
+                if unknown:
+                    errors.append(f"unknown checks: {unknown}; allowed: {sorted(QUALITY_CHECKS)}")
+    elif request_type == "bias":
+        detection_type = data.get("detection_type", "demographic")
+        if detection_type not in BIAS_DETECTION_TYPES:
+            errors.append(f"detection_type must be one of {sorted(BIAS_DETECTION_TYPES)}, got {detection_type!r}")
+        if not isinstance(data.get("context", {}), dict):
+            errors.append("context must be an object")
+    elif request_type == "compliance":
+        compliance_type = data.get("compliance_type", "HIPAA")
+        if compliance_type not in COMPLIANCE_TYPES:
+            errors.append(f"compliance_type must be one of {sorted(COMPLIANCE_TYPES)}, got {compliance_type!r}")
+    elif request_type == "schema":
+        schema_id = data.get("schema_id")
+        if not isinstance(schema_id, str) or not schema_id.strip():
+            errors.append("schema_id must be a non-empty string")
+        if not isinstance(data.get("strict_mode", True), bool):
+            errors.append("strict_mode must be a boolean")
+    else:
+        errors.append(f"unsupported validation request type: {request_type!r}")
+
+    return {"valid": not errors, "errors": errors}
+
+
+def validate_standardization_request(data: Any) -> dict[str, Any]:
+    """Validate a standardization request body against the contract its route relies on.
+
+    Both the validate and the transform routes read ``data`` as the payload and
+    ``schema_id`` as the schema to apply, then look that schema up in Redis; a
+    missing or blank schema_id would reach the store as ``None`` and surface as
+    a 500 instead of a 400.
+
+    Returns ``{"valid": bool, "errors": list[str]}``.
+    """
+    errors: list[str] = []
+    if not isinstance(data, dict):
+        return {"valid": False, "errors": ["request body must be a JSON object"]}
+
+    if data.get("data") is None:
+        errors.append("data is required")
+
+    schema_id = data.get("schema_id")
+    if not isinstance(schema_id, str) or not schema_id.strip():
+        errors.append("schema_id must be a non-empty string")
+
+    if not isinstance(data.get("options", {}), dict):
+        errors.append("options must be an object")
+
+    return {"valid": not errors, "errors": errors}

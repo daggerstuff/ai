@@ -6,7 +6,7 @@ Columns: example_id, text (personal addiction stories), label (trauma category),
          annotator labels (3 annotators, 2 rounds)
 License: CC BY
 
-Output task_type: therapy_response_generation
+Output task_type: text_classification
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ class AddictionStoriesAdapter(BaseDatasetAdapter):
     """Adapter for Addiction Stories dataset.
 
     Downloads via HuggingFace datasets API. Each personal addiction story
-    is converted to a ChatML therapy_response_generation record with the
+    is converted to a ChatML text_classification record with the
     story as user input and the annotated label as the assistant response.
     """
 
@@ -76,7 +76,7 @@ class AddictionStoriesAdapter(BaseDatasetAdapter):
             return json.load(f)
 
     def convert_to_chatml(self, raw_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Convert addiction stories to ChatML therapy_response_generation records."""
+        """Convert addiction stories to ChatML text_classification records."""
         records: list[dict[str, Any]] = []
 
         for row in raw_data:
@@ -98,7 +98,7 @@ class AddictionStoriesAdapter(BaseDatasetAdapter):
 
             system_content = (
                 "Addiction Stories: Personal addiction narratives with trauma classification. "
-                "Respond with the categorized trauma type and therapeutic framing."
+                "Return the source trauma category and available annotations."
             )
 
             assistant_parts: list[str] = []
@@ -107,7 +107,9 @@ class AddictionStoriesAdapter(BaseDatasetAdapter):
             if annotator_labels:
                 assistant_parts.append("Annotations:\n" + "\n".join(f"  - {a}" for a in annotator_labels))
 
-            assistant_content = "\n\n".join(assistant_parts) if assistant_parts else "Unable to classify."
+            if not assistant_parts:
+                continue
+            assistant_content = "\n\n".join(assistant_parts)
 
             messages: list[dict[str, str]] = [
                 {"role": "system", "content": system_content},
@@ -118,11 +120,11 @@ class AddictionStoriesAdapter(BaseDatasetAdapter):
             record: dict[str, Any] = {
                 "messages": messages,
                 "source": "addiction_stories",
-                "task_type": "therapy_response_generation",
+                "task_type": "text_classification",
                 "diagnostic_tag": "addiction",
                 "demographic_tags": [],
                 "linguistic_style": "informal",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "trauma_label": label,
                 "split": split,
                 "provenance": self._build_provenance(

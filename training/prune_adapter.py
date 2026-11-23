@@ -72,6 +72,7 @@ class PruningStats:
 # Core pruning logic
 # ---------------------------------------------------------------------------
 
+
 def _iter_lora_linear_modules(model: Any) -> list[tuple[str, Any]]:
     """Yield (module_fqn, module) for every LoRA linear layer in the model.
 
@@ -87,9 +88,7 @@ def _iter_lora_linear_modules(model: Any) -> list[tuple[str, Any]]:
         if hasattr(module, "lora_A") and hasattr(module, "lora_B"):
             modules.append((name, module))
         # Fallback: detect by class name for non-PEFT LoRA implementations.
-        elif isinstance(module, nn.Linear) and (
-            hasattr(module, "lora_A") or "lora" in name.lower()
-        ):
+        elif isinstance(module, nn.Linear) and (hasattr(module, "lora_A") or "lora" in name.lower()):
             modules.append((name, module))
 
     return modules
@@ -116,7 +115,6 @@ def prune_lora_adapter(
     -------
     PruningStats with total/pruned param counts and sparsity.
     """
-    import torch.nn.utils.prune as prune
 
     lora_modules = _iter_lora_linear_modules(model)
     if target_modules:
@@ -210,6 +208,7 @@ def _prune_linear(
 # Recovery fine-tune
 # ---------------------------------------------------------------------------
 
+
 def recovery_finetune(
     model: Any,
     tokenizer: Any,
@@ -260,7 +259,11 @@ def recovery_finetune(
         def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
             sample = self.samples[idx]
             messages = sample.get("messages", [])
-            text = self.tok.apply_chat_template(messages, tokenize=False) if hasattr(self.tok, "apply_chat_template") else _json.dumps(messages)
+            text = (
+                self.tok.apply_chat_template(messages, tokenize=False)
+                if hasattr(self.tok, "apply_chat_template")
+                else _json.dumps(messages)
+            )
             enc = self.tok(text, truncation=True, max_length=self.max_len, return_tensors="pt")
             return {
                 "input_ids": enc["input_ids"].squeeze(0),
@@ -312,6 +315,7 @@ def recovery_finetune(
 # ---------------------------------------------------------------------------
 # Quality verification
 # ---------------------------------------------------------------------------
+
 
 def verify_quality(
     pre_prune_report: Path,
@@ -366,6 +370,7 @@ def _extract_domain_score(report: dict[str, Any]) -> float | None:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -484,7 +489,9 @@ def main() -> int:
 
     # Recovery fine-tune.
     if args.recovery_data:
-        logger.info("Running recovery fine-tune (%d epochs, %.0f%% of data)", args.recovery_epochs, args.recovery_frac * 100)
+        logger.info(
+            "Running recovery fine-tune (%d epochs, %.0f%% of data)", args.recovery_epochs, args.recovery_frac * 100
+        )
         recovery_metrics = recovery_finetune(
             model=model,
             tokenizer=tokenizer,

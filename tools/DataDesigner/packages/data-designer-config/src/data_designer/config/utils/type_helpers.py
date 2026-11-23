@@ -97,8 +97,8 @@ def resolve_string_enum(enum_instance: Any, enum_type: type[Enum]) -> Enum:
     elif isinstance(enum_instance, str):
         try:
             return enum_type(enum_instance)
-        except ValueError:
-            raise invalid_enum_value_error
+        except ValueError as exc:
+            raise invalid_enum_value_error from exc
     else:
         raise invalid_enum_value_error
 

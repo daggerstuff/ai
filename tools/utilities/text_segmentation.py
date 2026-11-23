@@ -44,6 +44,7 @@ DEFAULT_SENTENCE_ABBREVIATIONS: tuple[str, ...] = (
 )
 DEFAULT_PARAGRAPH_SPLIT: str = r"\n{2,}"
 
+
 def split_sentences(
     text: str,
     *,
@@ -61,23 +62,11 @@ def split_sentences(
     abbrev_set = {a.rstrip(".").lower() for a in abbreviations}
 
     for s in sentences:
-        last_word = (
-            merged[-1].split()[-1] if merged and merged[-1].split() else ""
-        )
-        if (
-            merged
-            and not last_word
-            and s.lstrip()
-            and s.lstrip()[0].isupper()
-        ):
+        last_word = merged[-1].split()[-1] if merged and merged[-1].split() else ""
+        if merged and not last_word and s.lstrip() and s.lstrip()[0].isupper():
             merged[-1] = f"{merged[-1]} {s}"
             continue
-        if (
-            merged
-            and last_word.lower() in abbrev_set
-            and s.lstrip()
-            and s.lstrip()[0].isupper()
-        ):
+        if merged and last_word.lower() in abbrev_set and s.lstrip() and s.lstrip()[0].isupper():
             merged[-1] = f"{merged[-1]} {s}"
             continue
         merged.append(s)

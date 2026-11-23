@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" Letta SDK Client for Pixelated Empathy.
+"""Letta SDK Client for Pixelated Empathy.
 Provides integration with Letta Code SDK for autonomous agent capabilities:
 - Background transcript streaming
 - Client-side tools (Read, Grep, Glob, web_search)
@@ -30,13 +30,15 @@ MAX_RETRIES = 3
 RETRY_DELAY = 1.0  # seconds
 RETRY_BACKOFF = 2.0
 
+
 def retry_on_failure(max_retries=MAX_RETRIES, delay=RETRY_DELAY, backoff=RETRY_BACKOFF):
-    """ Retry decorator with exponential backoff.
+    """Retry decorator with exponential backoff.
     Args:
         max_retries: Maximum number of retry attempts
         delay: Initial delay between retries
         backoff: Multiplier for delay after each retry
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             last_exception = None
@@ -54,13 +56,17 @@ def retry_on_failure(max_retries=MAX_RETRIES, delay=RETRY_DELAY, backoff=RETRY_B
                         current_delay *= backoff
                     else:
                         logger.error(f"All {max_retries} attempts failed: {e}")
-                        raise last_exception or Exception("Unknown error")
+                        raise last_exception or Exception("Unknown error") from e
+
         return wrapper
+
     return decorator
+
 
 @dataclass
 class LettaConfig:
     """Configuration for Letta SDK integration."""
+
     api_key: str | None = None
     base_url: str = DEFAULT_BASE_URL
     agent_id: str | None = None
@@ -87,8 +93,9 @@ class LettaConfig:
             else:
                 self.sdk_tools = []
 
+
 class LettaClient:
-    """ Letta SDK client for autonomous agent operations.
+    """Letta SDK client for autonomous agent operations.
     Provides:
         - Session management with persistent agent state
         - Tool registration and execution
@@ -97,7 +104,7 @@ class LettaClient:
     """
 
     def __init__(self, config: LettaConfig | None = None):
-        """ Initialize Letta client.
+        """Initialize Letta client.
         Args:
             config: Optional configuration. If not provided, loads from environment/config file.
         """
@@ -121,7 +128,7 @@ class LettaClient:
                 agent_id = agent_id or config_data.get("agent_id")
                 base_url = base_url or config_data.get("base_url", DEFAULT_BASE_URL)
                 mode = mode or config_data.get("mode", "whisper")
-            except (json.JSONDecodeError, KeyError):
+            except json.JSONDecodeError, KeyError:
                 pass
         return LettaConfig(
             api_key=api_key,
@@ -161,7 +168,7 @@ class LettaClient:
             logger.error(f"Failed to initialize Letta client: {e}")
 
     def _save_agent_id(self, agent_id: str) -> None:
-        """ Save agent ID to config file.
+        """Save agent ID to config file.
         Create config directory with owner-only permissions (0o700).
         mode=stat.S_IRWXU on mkdir ensures the leaf dir is 0o700 atomically,
         defending against permissive umask. Parent dirs use default umask.
@@ -186,7 +193,7 @@ class LettaClient:
             os.chmod(CONFIG_FILE, mode)
 
     async def stream_transcript(self, messages: list[dict[str, Any]], session_id: str) -> None:
-        """ Stream session transcript to Letta agent.
+        """Stream session transcript to Letta agent.
         Args:
             messages: List of message dicts with role/content/timestamp
             session_id: Unique session identifier
@@ -221,7 +228,7 @@ class LettaClient:
             )
 
     async def get_memory_blocks(self) -> dict[str, str]:
-        """ Get current memory blocks from agent.
+        """Get current memory blocks from agent.
         Returns:
             Dict of memory block labels to content
         """
@@ -243,7 +250,7 @@ class LettaClient:
             return {}
 
     async def update_memory_block(self, label: str, content: str) -> None:
-        """ Update a memory block.
+        """Update a memory block.
         Args:
             label: Block label
             content: New content
@@ -263,7 +270,7 @@ class LettaClient:
             logger.error(f"Failed to update memory block: {e}")
 
     async def execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
-        """ Execute a client-side tool.
+        """Execute a client-side tool.
         Args:
             tool_name: Name of tool to execute
             arguments: Tool arguments
@@ -296,8 +303,10 @@ class LettaClient:
             pass
         self._initialized = False
 
+
 # Singleton instance
 _client: LettaClient | None = None
+
 
 def get_client(config: LettaConfig | None = None) -> LettaClient:
     """Get or create the global Letta client instance."""
@@ -305,6 +314,7 @@ def get_client(config: LettaConfig | None = None) -> LettaClient:
     if _client is None:
         _client = LettaClient(config)
     return _client
+
 
 async def initialize_client(config: LettaConfig | None = None) -> LettaClient:
     """Initialize and return the global client."""

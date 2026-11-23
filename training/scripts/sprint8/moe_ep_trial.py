@@ -261,7 +261,13 @@ def build_moe_mock_model(cfg: MoEEPTrialConfig) -> Any:
     for i in range(cfg.mock_layers):
         layers.append(SelfAttnBlock(cfg.mock_dim, cfg.mock_n_heads))
         layers.append(
-            MoELayer(dim=cfg.mock_dim, num_experts=cfg.num_experts, ep_size=cfg.ep_size, top_k=cfg.top_k, aux_weight=cfg.aux_loss_weight)
+            MoELayer(
+                dim=cfg.mock_dim,
+                num_experts=cfg.num_experts,
+                ep_size=cfg.ep_size,
+                top_k=cfg.top_k,
+                aux_weight=cfg.aux_loss_weight,
+            )
         )
         layers.append(nn.GELU())
     return nn.Sequential(*layers)
@@ -366,7 +372,13 @@ def run_moe_ep_trial(cfg: MoEEPTrialConfig) -> int:
 
     # Direct MoE forward test (verify router + expert dispatch + aux loss)
     MoELayer = _make_moe_layer_cls()
-    test_moe = MoELayer(dim=cfg.mock_dim, num_experts=cfg.num_experts, ep_size=cfg.ep_size, top_k=cfg.top_k, aux_weight=cfg.aux_loss_weight)
+    test_moe = MoELayer(
+        dim=cfg.mock_dim,
+        num_experts=cfg.num_experts,
+        ep_size=cfg.ep_size,
+        top_k=cfg.top_k,
+        aux_weight=cfg.aux_loss_weight,
+    )
     test_x = __import__("torch").randn(2, 8, cfg.mock_dim)
     test_out = test_moe(test_x)
     test_aux = test_moe.expert_layer.last_aux
