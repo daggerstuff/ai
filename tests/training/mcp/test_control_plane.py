@@ -1811,3 +1811,73 @@ def test_admission_initializes_the_registry_like_every_other_call(db_path):
     assert (os.stat(db_path).st_mode & 0o777) == 0o600
     journal = sqlite3.connect(str(db_path)).execute("PRAGMA journal_mode").fetchone()[0]
     assert journal == "wal"
+
+
+def test_an_unhashable_case_id_is_counted_as_is():
+    body = json.dumps({"case_id": ["x"], "arm_id": "sft", "state_metrics": [{"passed": True}]}).encode()
+    parsed = backends._parse_results_body(body)
+    assert parsed["arm_pass_rates"]["sft"] == {"passed": 1, "total": 1, "rate": 1.0}
+
+
+def test_draft_validation_rejects_boolean_and_overflowing_costs():
+    errors = recipes.validate_recipe_entry({**VALID_ENTRY, "est_cost_usd": False})
+    assert any("est_cost_usd" in e for e in errors)
+    errors = recipes.validate_recipe_entry({**VALID_ENTRY, "est_cost_usd": 10**400})
+    assert any("est_cost_usd" in e for e in errors)
+
+
+def test_draft_validation_rejects_a_malformed_timeout():
+    errors = recipes.validate_recipe_entry({**VALID_ENTRY, "timeout": "soon"})
+    assert any("timeout" in e for e in errors)
+
+
+def test_draft_validation_rejects_bad_override_defaults():
+    errors = recipes.validate_recipe_entry(
+        {
+            **VALID_ENTRY,
+            "overrides": {
+                "epochs": {"type": "int", "min": 1, "default": 0},
+                "label": {"type": "str", "default": 5},
+                "flag": {"type": "bool", "default": "yes"},
+                "rate": {"type": "float", "default": True},
+            },
+        }
+    )
+    assert any("epochs" in e and "default" in e for e in errors)
+    assert any("label" in e and "default" in e for e in errors)
+    assert any("flag" in e and "default" in e for e in errors)
+    assert any("rate" in e and "default" in e for e in errors)
+
+
+def test_a_recipe_timeout_kills_a_hung_job(db_path, monkeypatch):
+    db.upsert_job(db_path, {"job_id": "job-hang", "kind": "build_release", "source": "local", "status": "running"})
+    killed: list[str] = []
+
+    class _Proc:
+        returncode = None
+
+        def wait(self, timeout=None):
+            if timeout is not None:
+                raise subprocess.TimeoutExpired(cmd="job", timeout=timeout)
+            return None
+
+        def kill(self):
+            self.returncode = -9
+            killed.append("kill")
+
+    monkeypatch.setattr(runner.time, "sleep", lambda _s: None)
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda *_a, **_k: None)
+    runner._monitor(_settings(db_path), "job-hang", _Proc(), "/tmp/x.log", timeout_seconds=3600.0)
+    job = db.get_job(db_path, "job-hang")
+    assert job["status"] == "failed"
+    assert job["error"] == "exceeded its recipe timeout"
+    assert killed == ["kill"]
+
+
+def test_timeout_strings_parse_to_seconds():
+    assert runner._timeout_seconds({"timeout": "2h"}) == 7200.0
+    assert runner._timeout_seconds({"timeout": "30m"}) == 1800.0
+    assert runner._timeout_seconds({"timeout": "2d"}) == 172800.0
+    assert runner._timeout_seconds({"timeout": ""}) is None
+    assert runner._timeout_seconds({}) is None
+    assert runner._timeout_seconds({"timeout": "soon"}) is None

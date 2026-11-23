@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -124,9 +125,39 @@ def _build_env(settings: Settings) -> dict[str, str]:
 JOB_ENV_ALLOWLIST = frozenset(_ENV_ALLOWLIST) | frozenset(_JOB_SECRET_ALLOWLIST)
 
 
-def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _log_path: str) -> None:
-    with contextlib.suppress(Exception):
-        proc.wait()
+_TIMEOUT_UNITS = {"s": 1.0, "m": 60.0, "h": 3600.0, "d": 86400.0}
+
+
+def _timeout_seconds(spec: dict[str, Any] | None) -> float | None:
+    """A recipe's timeout string (``2h``, ``30m``) as seconds, if it declares one."""
+    raw = (spec or {}).get("timeout")
+    if not isinstance(raw, str) or not raw:
+        return None
+    match = re.fullmatch(r"(\d+)([smhd])", raw)
+    return float(match.group(1)) * _TIMEOUT_UNITS[match.group(2)] if match else None
+
+
+def _monitor(
+    settings: Settings,
+    job_id: str,
+    proc: subprocess.Popen[bytes],
+    _log_path: str,
+    timeout_seconds: float | None = None,
+) -> None:
+    timed_out = False
+    if timeout_seconds is None:
+        with contextlib.suppress(Exception):
+            proc.wait()
+    else:
+        # The recipe's timeout is the operator's bound on the job: a hung
+        # process holds the single-flight slot and blocks its whole backend,
+        # so it is killed at the deadline.
+        try:
+            proc.wait(timeout=timeout_seconds)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            proc.kill()
+            proc.wait()
     # Collect tail of stdout/stderr into log file (already redirected).
     rc = proc.returncode
     job = db.get_job(settings.db_path, job_id)
@@ -148,7 +179,7 @@ def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _lo
         error = "cancelled by operator"
     else:
         new_status = "failed"
-        error = f"process exited with code {rc}"
+        error = "exceeded its recipe timeout" if timed_out else f"process exited with code {rc}"
     # Collecting phase: briefly mark collecting then terminal. Both writes are
     # conditional on the row not being cancelled yet, because cancel() runs on
     # the request thread and can land inside this window: the monitor read the
@@ -361,7 +392,7 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
                 _terminate_proc(proc)
                 _drop_process(job_id)
                 return
-            _monitor(settings, job_id, proc, log_path)
+            _monitor(settings, job_id, proc, log_path, timeout_seconds=_timeout_seconds(job_row.get("spec")))
         finally:
             _forget_cancelled(job_id)
             lock.release()

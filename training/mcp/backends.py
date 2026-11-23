@@ -300,8 +300,12 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
         case_id = row.get("case_id")
         if case_id is None:
             unkeyed.append(row)
-        else:
+            continue
+        try:
             keyed[(case_id, str(row.get("arm_id", "unknown")))] = row
+        except TypeError:
+            # An unhashable id cannot be deduplicated; count the row as-is.
+            unkeyed.append(row)
     counted_rows = [*keyed.values(), *unkeyed]
     graded = any(_row_passed(row) is not None for row in counted_rows)
     for row in counted_rows:

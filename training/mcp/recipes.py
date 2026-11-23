@@ -73,6 +73,30 @@ class Recipe:
         }
 
 
+def _override_default_errors(name: str, spec: dict[str, Any]) -> list[str]:
+    """Reject a default that its own declared type and bounds disprove.
+
+    plan_job records defaults into the spec without checking them, so a bad
+    default would only fail at submit time - the registry refuses it instead.
+    """
+    default = spec.get("default")
+    otype = spec.get("type")
+    if otype == "int":
+        if not isinstance(default, int) or isinstance(default, bool):
+            return [f"override {name!r} default must be int"]
+        if "min" in spec and default < spec["min"]:
+            return [f"override {name!r} default below min {spec['min']}"]
+        if "max" in spec and default > spec["max"]:
+            return [f"override {name!r} default above max {spec['max']}"]
+    if otype == "float" and (not isinstance(default, (int, float)) or isinstance(default, bool)):
+        return [f"override {name!r} default must be number"]
+    if otype == "str" and not isinstance(default, str):
+        return [f"override {name!r} default must be string"]
+    if otype == "bool" and not isinstance(default, bool):
+        return [f"override {name!r} default must be a boolean"]
+    return []
+
+
 def validate_recipe_entry(entry: Any, known_ids: set[str] | None = None) -> list[str]:
     """Return the list of validation errors for one draft recipe entry.
 
@@ -99,19 +123,28 @@ def validate_recipe_entry(entry: Any, known_ids: set[str] | None = None) -> list
     if not isinstance(cost_class, str) or cost_class not in COST_CLASSES:
         errors.append(f"unknown cost_class {cost_class!r} (expected one of {sorted(COST_CLASSES)})")
     if "est_cost_usd" in entry:
-        try:
-            est_cost = float(entry["est_cost_usd"])
-        except TypeError, ValueError:
-            errors.append(f"est_cost_usd must be numeric, got {entry['est_cost_usd']!r}")
+        raw_cost = entry["est_cost_usd"]
+        if isinstance(raw_cost, bool):
+            # float(False) is 0.0, so a boolean would silently pass as free.
+            errors.append(f"est_cost_usd must be numeric, got {raw_cost!r}")
         else:
-            # NaN compares false against every cap, so it would silently pass
-            # the monthly spend gate; a negative cost makes the cap meaningless.
-            if not math.isfinite(est_cost) or est_cost < 0:
-                errors.append(f"est_cost_usd must be a finite non-negative number, got {entry['est_cost_usd']!r}")
+            try:
+                est_cost = float(raw_cost)
+            except TypeError, ValueError, OverflowError:
+                errors.append(f"est_cost_usd must be numeric, got {raw_cost!r}")
+            else:
+                # NaN compares false against every cap, so it would silently
+                # pass the monthly spend gate; a negative cost makes the cap
+                # meaningless.
+                if not math.isfinite(est_cost) or est_cost < 0:
+                    errors.append(f"est_cost_usd must be a finite non-negative number, got {raw_cost!r}")
     for field_name in ("inputs", "outputs", "invariants"):
         field_value = entry.get(field_name)
         if field_value is not None and not isinstance(field_value, dict):
             errors.append(f"{field_name} must be a mapping")
+    timeout = entry.get("timeout")
+    if timeout and (not isinstance(timeout, str) or re.fullmatch(r"(\d+)([smhd])", timeout) is None):
+        errors.append(f"timeout must be a duration like 2h, got {timeout!r}")
     overrides = entry.get("overrides") or {}
     if not isinstance(overrides, dict):
         errors.append("overrides must be a mapping")
@@ -121,6 +154,8 @@ def validate_recipe_entry(entry: Any, known_ids: set[str] | None = None) -> list
                 errors.append(f"override {name!r} must be a mapping")
             elif not spec.get("locked") and "type" not in spec:
                 errors.append(f"override {name!r} must declare a type unless locked")
+            elif "default" in spec:
+                errors.extend(_override_default_errors(name, spec))
     errors.extend(_multi_node_errors(entry))
     errors.extend(_launch_flag_errors(entry))
     return errors
