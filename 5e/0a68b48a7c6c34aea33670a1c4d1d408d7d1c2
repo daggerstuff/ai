@@ -1,0 +1,21 @@
+qa/testing/legacy_tests/api_tests/test_dataset_api_auth.py
+  s_7d4811cf1b0ba7::t_8223628d67d21a 12
+qa/testing/legacy_tests/api_tests/test_mcp_retain_error_leak.py
+  s_7d4811cf1b0ba7::t_f5bbefa24b1211 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5e0a68b48a7c6c34aea33670a1c4d1d408d7d1c2",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
