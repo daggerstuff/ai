@@ -1,0 +1,34 @@
+tests/test_inference_integration.py
+  s_7d4811cf1b0ba7::t_708c44cf9ff0f9 20
+  s_7d4811cf1b0ba7::t_4cd22dd56fb588 21-22
+  s_7d4811cf1b0ba7::t_c52e3daf767ddc 29
+api/mcp_server/mcp_stdio_server.py
+  s_7d4811cf1b0ba7::t_e633317e24103a 1,3-5,8,10,12
+lab/tests/safety/test_bias_privacy_hooks.py
+  s_7d4811cf1b0ba7::t_708c44cf9ff0f9 19
+scripts/rclone_boto3_shim.py
+  s_7d4811cf1b0ba7::t_e633317e24103a 1-12
+tests/safety/test_bias_privacy_hooks.py
+  s_7d4811cf1b0ba7::t_708c44cf9ff0f9 19
+tests/test_defense_endpoint.py
+  s_7d4811cf1b0ba7::t_f546b3329a9547 22
+  s_7d4811cf1b0ba7::t_a0d3557dfb01e7 1-2,4-6,10,16,18-21,23-34,36-40,42,44-47
+training/defense_mechanisms/model.py
+  s_7d4811cf1b0ba7::t_d193bb1062be76 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "842af3fc201d1fc73411ea5616a61c27a6d48045",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
