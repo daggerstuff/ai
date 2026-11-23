@@ -94,11 +94,11 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     # Expire plans left over from previous runs.
     with contextlib.suppress(Exception):
         db.prune_plans(s.db_path, max_age_seconds=s.plan_ttl_seconds)
-    # Fail local jobs this process did not start: their subprocess died with the
-    # previous server, and a `running` row with no process blocks the slot it
-    # claims forever.
+    # Fail process-backed jobs this process did not start: their subprocess died
+    # with the previous server, and a `running` row with no process blocks the
+    # slot it claims forever.
     with contextlib.suppress(Exception):
-        db.fail_orphaned_local_jobs(s.db_path)
+        db.fail_orphaned_process_jobs(s.db_path)
 
     # Periodic reconciler.
     async def _loop() -> None:

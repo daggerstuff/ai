@@ -21,18 +21,30 @@ class PlanError(Exception):
     pass
 
 
+#: Recipe inputs are single tokens — tags, digests, file paths. A value with
+#: whitespace or shell/CLI metacharacters cannot be anything a reviewed
+#: entrypoint expects, so it is rejected at plan time; ``_resolve_command``
+#: additionally quotes every substitution.
+_INPUT_TOKEN = re.compile(r"^[A-Za-z0-9._@:/+=][A-Za-z0-9._@:/+=-]*$")
+
+
 def _validate_inputs(recipe: recipes.Recipe, inputs: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
     for name in recipe.inputs:
         if name not in inputs or inputs.get(name) in (None, ""):
             raise PlanError(f"missing required input: {name}")
-    for name in inputs:
+    for name, value in inputs.items():
         if name not in recipe.inputs:
             # Fail closed: a caller that passes an input the recipe does not
             # declare believes it changed the outcome. Ignoring it silently
             # would launch work under a wrong assumption (the suite-version bug
             # class), so the plan is rejected instead.
             raise PlanError(f"unknown input '{name}' is not accepted by recipe {recipe.id}")
+        if not isinstance(value, str) or not _INPUT_TOKEN.match(value):
+            raise PlanError(
+                f"input '{name}' must be a single token of letters, digits and ._-/@+=: "
+                "spaces, quotes and shell characters are rejected"
+            )
     return warnings
 
 

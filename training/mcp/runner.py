@@ -204,6 +204,18 @@ def _drop_process(job_id: str) -> None:
         _PROCESSES.pop(job_id, None)
 
 
+def _terminate_proc(proc: subprocess.Popen[bytes]) -> None:
+    """Stop a job process: terminate, wait, then kill. Never raises."""
+    try:
+        proc.terminate()
+        try:
+            proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+    except Exception:
+        pass
+
+
 def _is_cancelled(job_id: str) -> bool:
     with _PROCESSES_GUARD:
         return job_id in _CANCELLED
@@ -247,21 +259,10 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
         # Wait for single-flight slot.
         acquired = lock.acquire(timeout=300)
         if not acquired:
-            db.upsert_job(
-                settings.db_path,
-                {
-                    "job_id": job_id,
-                    "kind": job_row["kind"],
-                    "source": job_row["source"],
-                    "name": job_row.get("name"),
-                    "status": "failed",
-                    "stage": "failed",
-                    "backend_id": job_row.get("backend_id"),
-                    "error": "single-flight timeout",
-                    "finished_at": db.now(),
-                },
-            )
-            _record_terminal_outcome(settings, job_id)
+            # Guarded like every other terminal write: a cancel that landed
+            # while this job waited for the slot owns the row and the record.
+            if db.mark_job_terminal(settings.db_path, job_id, status="failed", error="single-flight timeout"):
+                _record_terminal_outcome(settings, job_id)
             return
         try:
             # A queued job can be cancelled while it waits for the slot.
@@ -271,14 +272,15 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
             # `submitted`/`running` and eventually report `succeeded` for work
             # that was explicitly stopped.
             if _is_cancelled(job_id):
-                _record_terminal_outcome(settings, job_id)
+                # cancel() owns the row and the terminal record from here: it
+                # wins (or already won) the guarded write and records the
+                # outcome itself. Recording here too duplicated provenance.
                 return
             # Conditional on the row still being active: a cancellation that
             # landed while this job waited for the slot must not be overwritten
             # by `submitted`, or the operator's stop turns into a `succeeded`.
             if not db.transition_job(settings.db_path, job_id, status="submitted", stage="submitted"):
                 _forget_cancelled(job_id)
-                _record_terminal_outcome(settings, job_id)
                 return
             env = _build_env(settings)
             log_dir = settings.db_path.parent / "logs"
@@ -303,39 +305,40 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
                 # A spawn failure must land the job in a terminal state: this
                 # runs on a daemon thread, so an escaping exception would leave
                 # the row stuck at `submitted` forever with no operator signal.
-                db.upsert_job(
+                # The write is guarded, so a cancel that won the row meanwhile
+                # keeps its own outcome and its single provenance record.
+                if db.mark_job_terminal(
                     settings.db_path,
-                    {
-                        "job_id": job_id,
-                        "kind": job_row["kind"],
-                        "source": job_row["source"],
-                        "name": job_row.get("name"),
-                        "status": "failed",
-                        "stage": "failed",
-                        "backend_id": job_row.get("backend_id"),
-                        "error": f"spawn failed: {type(exc).__name__}: {exc}",
-                        "finished_at": db.now(),
-                    },
-                )
-                with open(log_path, "a") as lf:
-                    lf.write(f"[runner] spawn failed: {type(exc).__name__}: {exc}\n")
-                _record_terminal_outcome(settings, job_id)
+                    job_id,
+                    status="failed",
+                    error=f"spawn failed: {type(exc).__name__}: {exc}",
+                ):
+                    with open(log_path, "a") as lf:
+                        lf.write(f"[runner] spawn failed: {type(exc).__name__}: {exc}\n")
+                    _record_terminal_outcome(settings, job_id)
                 return
+            # Coordinate the marker, the process registration, and the
+            # running write: a cancel() that started while the process spawned
+            # either finds the process here and terminates it, or is already
+            # in _CANCELLED by the time the registration completes, so one of
+            # the two is guaranteed to stop the child. The running write itself
+            # is guarded so a cancel that has already won the row cannot be
+            # overwritten and the job left stuck `running`.
             with _PROCESSES_GUARD:
                 _PROCESSES[job_id] = proc
-            db.upsert_job(
+                lost = job_id in _CANCELLED
+            if lost or not db.transition_job(
                 settings.db_path,
-                {
-                    "job_id": job_id,
-                    "kind": job_row["kind"],
-                    "source": job_row["source"],
-                    "name": job_row.get("name"),
-                    "status": "running",
-                    "stage": "running",
-                    "backend_id": job_row.get("backend_id"),
-                    "artifacts": {"log_path": log_path},
-                },
-            )
+                job_id,
+                status="running",
+                stage="running",
+                artifacts={"log_path": log_path},
+            ):
+                # The cancellation owns the terminal record: it won (or is
+                # about to win) the guarded row write and records the outcome.
+                _terminate_proc(proc)
+                _drop_process(job_id)
+                return
             _monitor(settings, job_id, proc, log_path)
         finally:
             _forget_cancelled(job_id)
@@ -353,14 +356,7 @@ def cancel(settings: Settings, job_id: str) -> bool:
     with _PROCESSES_GUARD:
         proc = _PROCESSES.get(job_id)
     if proc is not None:
-        try:
-            proc.terminate()
-            try:
-                proc.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-        except Exception:
-            pass
+        _terminate_proc(proc)
     job = db.get_job(settings.db_path, job_id)
     if job is None:
         _forget_cancelled(job_id)
@@ -374,7 +370,7 @@ def cancel(settings: Settings, job_id: str) -> bool:
     # The UPDATE carries the terminal guard, so a monitor that committed
     # `succeeded`/`failed` after the read above wins instead of being rewritten
     # here: one terminal outcome per job.
-    if not db.mark_job_cancelled(settings.db_path, job_id):
+    if not db.mark_job_terminal(settings.db_path, job_id, status="cancelled", error="cancelled by operator"):
         _forget_cancelled(job_id)
         return False
     # Best-effort backend cancel for ovhai.

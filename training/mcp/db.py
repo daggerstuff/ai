@@ -221,6 +221,7 @@ def transition_job(
     stage: str | None = None,
     error: str | None = None,
     finished_at: str | None = None,
+    artifacts: dict[str, Any] | None = None,
 ) -> bool:
     """Move a job to ``status`` unless an operator already cancelled it.
 
@@ -231,6 +232,9 @@ def transition_job(
     Returns False when the row is already terminal (nothing was written): a
     monitor that read an active row before an operator cancelled, or before
     another terminal write landed, must not revive or rewrite that outcome.
+
+    ``artifacts`` (the job's log path on the ``running`` transition) is written
+    only when the transition wins the guard.
     """
     conn = _conn(db_path)
     cursor = conn.execute(
@@ -240,46 +244,60 @@ def transition_job(
             stage = COALESCE(?, stage),
             error = ?,
             finished_at = COALESCE(?, finished_at),
+            artifacts_json = COALESCE(?, artifacts_json),
             updated_at = ?
-        WHERE job_id = ? AND status NOT IN ("succeeded", "failed", "cancelled")
+        WHERE job_id = ? AND status NOT IN ('succeeded', 'failed', 'cancelled')
         """,
-        (status, stage, error, finished_at, _now(), job_id),
+        (
+            status,
+            stage,
+            error,
+            finished_at,
+            json.dumps(artifacts) if artifacts is not None else None,
+            _now(),
+            job_id,
+        ),
     )
     conn.commit()
     return cursor.rowcount > 0
 
 
-def mark_job_cancelled(db_path: Path, job_id: str) -> bool:
-    """Cancel a job only if it has not already reached a terminal state.
+def mark_job_terminal(db_path: Path, job_id: str, *, status: str, error: str) -> bool:
+    """Write a terminal outcome unless a terminal state already won the row.
 
-    The guard lives in the UPDATE so a cancellation cannot overwrite a result the
-    monitor committed while the request thread was reading the row. Returns False
-    when the job was already over; the caller must not re-record the outcome.
+    The guard lives in the UPDATE so a writer that read the row before a
+    competitor committed cannot overwrite it: ``cancel()`` reads on the MCP
+    request thread while the subprocess monitor commits from its own thread, and
+    whichever lands first is the outcome the job really had. Returns False when
+    the job was already over; the caller must not re-record the outcome.
     """
     conn = _conn(db_path)
     now = _now()
     cursor = conn.execute(
         """
         UPDATE jobs SET
-            status = 'cancelled',
-            stage = 'cancelled',
-            error = 'cancelled by operator',
+            status = ?,
+            stage = ?,
+            error = ?,
             finished_at = ?,
             updated_at = ?
         WHERE job_id = ? AND status NOT IN ('succeeded', 'failed', 'cancelled')
         """,
-        (now, now, job_id),
+        (status, status, error, now, now, job_id),
     )
     conn.commit()
     return cursor.rowcount > 0
 
 
-def fail_orphaned_local_jobs(db_path: Path) -> int:
-    """Fail local jobs left active by a previous server process.
+def fail_orphaned_process_jobs(db_path: Path) -> int:
+    """Fail process-backed jobs left active by a previous server process.
 
-    A local job is a subprocess of this server, so any local row still active when
-    a new process starts belongs to a process that is gone. Left alone it stays
-    `running` forever and consumes the concurrency slot it no longer holds.
+    ``local`` and ``wandb-serverless`` jobs are subprocesses of this server and
+    the runner's live-process registry is in memory, so any such row still
+    active when a new process starts belongs to a process that is gone. Left
+    alone it stays `running` forever and consumes the concurrency slot it no
+    longer holds. Remote-backed rows (ovhai) are left to
+    ``reconcile_lost_backends`` — their work survives a restart.
     """
     conn = _conn(db_path)
     now = _now()
@@ -291,7 +309,8 @@ def fail_orphaned_local_jobs(db_path: Path) -> int:
             error = 'orphaned: server restarted while the job was active',
             finished_at = ?,
             updated_at = ?
-        WHERE source = 'local' AND status IN ('queued', 'submitted', 'running', 'collecting')
+        WHERE source IN ('local', 'wandb-serverless')
+          AND status IN ('queued', 'submitted', 'running', 'collecting')
         """,
         (now, now),
     )

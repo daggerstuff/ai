@@ -1264,3 +1264,140 @@ def test_submit_daily_cap_ignores_imported_rows(server_env):
     planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
     result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")
     assert result["ok"] is True, result
+
+
+# --- PR 619 threads: post-spawn cancel race, stale cancel read, orphans, tokens ---
+
+
+def test_cancel_wins_the_row_while_the_process_spawns(db_path, monkeypatch):
+    """The running write must lose to a cancel that lands during the spawn.
+
+    The worker used to upsert `running` unconditionally after registering the
+    process, so a cancel that had already won the row was overwritten, the
+    process kept running, and the monitor's marker check returned without a
+    terminal state — the job stayed `running` forever while holding a slot.
+    """
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-r2", "kind": "build_release", "source": "local", "name": "r", "status": "queued"},
+    )
+    row = db.get_job(db_path, "job-r2")
+    recorded: list[str] = []
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda _s, job_id: recorded.append(job_id))
+
+    terminated: list[str] = []
+    popened: list[str] = []
+
+    class _Proc:
+        def terminate(self):
+            terminated.append("terminate")
+
+        def wait(self, *_a, **_k):
+            return -15
+
+        def kill(self):
+            terminated.append("kill")
+
+    def fake_popen(*_a, **_k):
+        popened.append("spawned")
+        return _Proc()
+
+    monkeypatch.setattr(runner.subprocess, "Popen", fake_popen)
+    real_transition = db.transition_job
+
+    def racing_transition(path, job_id, **kwargs):
+        if kwargs.get("status") == "running":
+            # The operator's cancel lands after the process is registered but
+            # before the worker writes `running`: it finds the process,
+            # terminates it, and wins the row.
+            assert runner.cancel(settings, job_id) is True
+        return real_transition(path, job_id, **kwargs)
+
+    monkeypatch.setattr(db, "transition_job", racing_transition)
+    monkeypatch.setattr(runner.threading, "Thread", ImmediateThread)
+    runner.submit(settings, "job-r2", row, "python -m training.build_v30_release", "local")
+    job = db.get_job(db_path, "job-r2")
+    assert popened == ["spawned"]
+    assert terminated, "the cancelled job's process must be stopped"
+    assert job["status"] == "cancelled"
+    assert job["error"] == "cancelled by operator"
+    assert job["finished_at"] is not None
+    # One terminal outcome, one provenance record: cancel() recorded it.
+    assert recorded == ["job-r2"]
+
+
+def test_cancel_loses_to_a_terminal_result_committed_after_its_read(db_path, monkeypatch):
+    """A stale read must not let cancel() rewrite a committed result.
+
+    cancel() read `collecting` before the monitor committed `succeeded`; the
+    unconditional upsert used to rewrite that terminal row and record its
+    provenance a second time. The guarded update keeps the monitor's outcome.
+    """
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-stale", "kind": "build_release", "source": "local", "status": "running"},
+    )
+    recorded: list[str] = []
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda _s, job_id: recorded.append(job_id))
+    # The monitor commits the terminal result after cancel() read the row.
+    db.upsert_job(
+        db_path,
+        {
+            "job_id": "job-stale",
+            "kind": "build_release",
+            "source": "local",
+            "status": "succeeded",
+            "finished_at": db.now(),
+        },
+    )
+    stale = dict(db.get_job(db_path, "job-stale"), status="collecting")
+    real_get = db.get_job
+    monkeypatch.setattr(db, "get_job", lambda _path, _job_id: stale)
+    assert runner.cancel(settings, "job-stale") is False
+    monkeypatch.undo()
+    job = real_get(db_path, "job-stale")
+    assert job["status"] == "succeeded"
+    assert recorded == []
+
+
+def test_orphaned_process_rows_fail_at_startup(db_path):
+    """A restart orphans every in-process job row; the startup sweep clears them."""
+    db.upsert_job(db_path, {"job_id": "loc-1", "kind": "curate_dataset", "source": "local", "status": "running"})
+    db.upsert_job(
+        db_path,
+        {"job_id": "ws-1", "kind": "train_sft", "source": "wandb-serverless", "status": "queued"},
+    )
+    db.upsert_job(
+        db_path,
+        {"job_id": "ovh-1", "kind": "eval_paired", "source": "ovhai", "status": "running", "backend_id": "u1"},
+    )
+    db.upsert_job(db_path, {"job_id": "loc-done", "kind": "curate_dataset", "source": "local", "status": "succeeded"})
+    db.upsert_job(db_path, {"job_id": "loc-plan", "kind": "curate_dataset", "source": "local", "status": "planned"})
+    expected_orphans = 2
+    assert db.fail_orphaned_process_jobs(db_path) == expected_orphans
+    failed = db.get_job(db_path, "loc-1")
+    assert failed["status"] == "failed"
+    assert "orphaned" in (failed["error"] or "")
+    assert failed["finished_at"] is not None
+    assert db.get_job(db_path, "ws-1")["status"] == "failed"
+    # Remote-backed rows are the reconciler's business, not the sweep's, and
+    # rows that never launched or already finished are left alone.
+    assert db.get_job(db_path, "ovh-1")["status"] == "running"
+    assert db.get_job(db_path, "loc-done")["status"] == "succeeded"
+    assert db.get_job(db_path, "loc-plan")["status"] == "planned"
+
+
+def test_recipe_inputs_must_be_single_tokens(db_path: Path):
+    """Inputs substitute into reviewed CLI commands: anything that is not one
+    safe token is rejected before the entrypoint is ever resolved."""
+    settings = _FakeSettings(db_path)
+    for bad in ["two tokens", "x; rm -rf /", "$(boom)", "a'b", "--execute", "tag\ntwo"]:
+        with pytest.raises(plan.PlanError, match="single token"):
+            plan.plan_job(settings, "eval-crisis-v2", {"tag": bad}, {})
+    # Non-string values are rejected too, not silently str()ed.
+    with pytest.raises(plan.PlanError, match="single token"):
+        plan.plan_job(settings, "eval-crisis-v2", {"tag": 30}, {})
+    good = plan.plan_job(settings, "eval-crisis-v2", {"tag": "v30-eval-v2"}, {})
+    assert good["command"].endswith("--tag v30-eval-v2 --suite v2")

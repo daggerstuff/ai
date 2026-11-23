@@ -107,6 +107,10 @@ def test_store_terminal_memory_forwards_the_session_and_the_job_facts(monkeypatc
     assert "id" not in client.calls[1]["json"]
     assert client.calls[1]["headers"]["mcp-session-id"] == "session-7"
     assert client.calls[2]["headers"]["mcp-session-id"] == "session-7"
+    # Both follow-ups echo the negotiated protocol version: strict Streamable
+    # HTTP servers reject a request that omits the header with a 400.
+    assert client.calls[1]["headers"]["mcp-protocol-version"] == "2025-06-18"
+    assert client.calls[2]["headers"]["mcp-protocol-version"] == "2025-06-18"
     params = client.calls[2]["json"]["params"]
     assert params["name"] == "manage_memories"
     options = params["arguments"]["params"]["options"]
@@ -156,3 +160,27 @@ def test_store_terminal_memory_never_raises_when_the_transport_fails(monkeypatch
     assert report["stored"] is False
     assert report["error"] == "RuntimeError: connection refused"
     assert report["url"] == foresight.FORESIGHT_DEFAULT_URL
+
+
+def test_the_negotiated_protocol_version_is_forwarded(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The version the server negotiated, not a hardcoded one, is echoed."""
+    client = _install(
+        monkeypatch,
+        _Client(
+            [
+                _Response(
+                    session_id="session-9",
+                    text='{"result": {"protocolVersion": "2025-03-26"}}',
+                ),
+                _Response(),
+                _Response(text='{"result": {"ok": true}}'),
+            ]
+        ),
+    )
+    job = {"job_id": "job-9", "name": "sft", "kind": "train", "status": "failed"}
+
+    report = foresight.store_terminal_memory(_Settings(), job)
+
+    assert report["stored"] is True
+    for call in client.calls[1:]:
+        assert call["headers"]["mcp-protocol-version"] == "2025-03-26"
