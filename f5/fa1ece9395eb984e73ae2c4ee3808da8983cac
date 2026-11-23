@@ -1,0 +1,23 @@
+qa/testing/safety/test_bias_privacy_hooks.py
+  s_7d4811cf1b0ba7::t_a0709a3cba2729 19
+qa/testing/test_input_guard_integration.py
+  s_7d4811cf1b0ba7::t_3755bffb3daa1f 11
+  s_7d4811cf1b0ba7::t_224d2806552919 12
+  s_7d4811cf1b0ba7::t_224d8447fb6cd3 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f5fa1ece9395eb984e73ae2c4ee3808da8983cac",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
