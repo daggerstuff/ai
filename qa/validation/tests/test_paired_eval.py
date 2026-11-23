@@ -1533,6 +1533,9 @@ def test_negatable_terms_are_rejected_when_not_drawn_from_the_terms(tmp_path: Pa
         {"type": "response_contains_any", "terms": ["swallow"], "negatable_terms": [42]},
         {"type": "response_omits", "term": "988", "negatable_terms": ["988"]},
         {"type": "response_contains", "term": "swallow", "negatable_terms": ["swallow"], "bogus": 1},
+        {"type": "response_contains", "term": "swallow", "negatable_terms": []},
+        {"type": "response_contains_any", "terms": 42, "negatable_terms": ["swallow"]},
+        {"type": "response_contains_any", "terms": None, "negatable_terms": ["swallow"]},
     ]
     for index, check in enumerate(bad_checks):
         case_path = _write_case(tmp_path / f"bad-{index}.jsonl", case_with(check))

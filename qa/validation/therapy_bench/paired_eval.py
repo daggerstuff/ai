@@ -690,9 +690,13 @@ def _validate_state_check(check: dict[str, Any]) -> None:
         raise EvaluationInputError("unsupported deterministic state check schema")
     negatable = check.get("negatable_terms")
     if negatable is not None:
-        if not isinstance(negatable, list) or not all(isinstance(term, str) and term for term in negatable):
+        if not isinstance(negatable, list) or not negatable:
+            raise EvaluationInputError("negatable_terms must be a nonempty list of nonempty strings")
+        if not all(isinstance(term, str) and term for term in negatable):
             raise EvaluationInputError("negatable_terms must be a list of nonempty strings")
         terms = check.get("terms", [check.get("term")])
+        if not isinstance(terms, list) or not all(isinstance(term, str) for term in terms):
+            raise EvaluationInputError("state check terms must be a list of strings")
         if not {term.casefold() for term in negatable} <= {term.casefold() for term in terms}:
             raise EvaluationInputError("negatable_terms must be drawn from the check's terms")
     for value in check.values():
