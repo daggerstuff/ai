@@ -154,7 +154,9 @@ RUN_LABEL="${RUN_LABEL:-ovh-v22}"
 for label in $LABELS; do
   quant=""
   if [ "$label" = nf4 ]; then
-    quant="--load-in-4bit"
+    # The 4-bit loader only serves the base in its training dtype; the later
+    # --dtype overrides the fixed bfloat16 in run_split for this label alone.
+    quant="--load-in-4bit --dtype float16"
   fi
   run_split "$ROOT/adapters/${label}" "$label" dev "$quant"
   summarize "$OUT_ROOT/${OUT_PREFIX}eval-${label}-dev"
