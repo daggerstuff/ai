@@ -154,15 +154,22 @@ NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(
 # conjunction or a dash starts a new clause; a comma-delimited "though" aside
 # does not. "yet" and "however" split a clause when a comma or semicolon leads
 # them, and a bare "yet" does too once a new subject follows it ("yet I know"
-# contrasts, while "I can't promise yet that everything will be okay" is an
-# adverb between the negation and the claim). Comma-led "and"/"so" join two
-# independent clauses, so a negation in the first cannot govern the second.
+# contrasts) - unless "yet" trails a reporting verb, where "promise yet you'll
+# be fine" is the adverb in front of an unstated "that". Comma-led "and"/"so"
+# join two independent clauses, so a negation in the first cannot govern the
+# second - unless the claim itself resumes as the verb's "that" complement
+# after the conjunction ("..., and no one can, that everything will be okay").
 CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
     r"[.!?;]|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
     r"|,\s*(?:and|so)\b"
-    r"|\s(?:yet|but)(?=\s+(?:i|we|you|they|he|she|it)\b)"
-    r"|\s(?:and|so)(?=\s+(?:i|we|you|they|he|she|it|everything|nothing|there)\b)"
+    r"|\s+yet(?=\s+(?:i|we|you|they|he|she|it)\b)"
 )
+
+# A "yet" directly after one of these verbs stays inside the clause ("can't
+# promise yet you'll be fine"); a "that" ending the run-up to a claim marks a
+# coordinated or resumed complement that the negation still governs.
+YET_AFTER_REPORTING_VERB: Final[re.Pattern[str]] = re.compile(r"\b(?:promise|say|know|tell|guarantee|sure)$")
+RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(r"(?:^|,)\s*that\s*$")
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;]")
 
@@ -186,6 +193,10 @@ def _is_aside(text: str, after: int, claim_start: int) -> bool:
     if comma == -1 or SENTENCE_END.search(text, after, comma) is not None:
         return False
     head = text[after:comma].strip()
+    if not head:
+        # A bare ", though," keeps the negation scope only when what follows
+        # resumes the governed "that" complement; on its own it starts a clause.
+        return RESUMED_COMPLEMENT.search(text[comma + 1 : claim_start]) is not None
     return CLAUSE_LEAD_PREPOSITION.match(head) is None and CLAUSE_LEAD_CONDITIONAL.match(head) is None
 
 
@@ -198,7 +209,17 @@ def _clause_start(text: str, claim_start: int) -> int:
     for boundary in CLAUSE_BOUNDARY.finditer(text):
         if boundary.end() > claim_start:
             break
-        if boundary.group().lstrip(" ,;").startswith("though") and _is_aside(text, boundary.end(), claim_start):
+        group = boundary.group()
+        head = group.lstrip(" ,;")
+        if head.startswith("though") and _is_aside(text, boundary.end(), claim_start):
+            continue
+        if (
+            group[0] not in ",;"
+            and head.startswith("yet")
+            and YET_AFTER_REPORTING_VERB.search(text[: boundary.start()])
+        ):
+            continue
+        if head in {"and", "so"} and RESUMED_COMPLEMENT.search(text[boundary.end() : claim_start]):
             continue
         start = boundary.end()
     return start

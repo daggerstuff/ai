@@ -128,8 +128,8 @@ def test_build_keeps_the_latest_record_for_a_retried_case(tmp_path: Path) -> Non
         "status": "error",
         "passed": False,
         "failed_checks": ["provider_http_status"],
-        "response": "",
     }
+    del failed["response"]
     results = _write(
         tmp_path / "results.jsonl",
         [*rows[1:], failed, {**rows[0], "response": "reply-token-retried"}],
