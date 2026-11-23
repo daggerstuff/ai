@@ -1,0 +1,48 @@
+cli/auth.py
+  h_07d84030f79d30 9,567-572
+cli/utils.py
+  h_07d84030f79d30 54-56
+dataset_pipeline/orchestration/consolidate_v7.py
+  h_07d84030f79d30 67-68
+monitoring/safety_monitor_integration.py
+  h_07d84030f79d30 35-37,39-57
+pipelines/data_processing/orchestration/consolidate_v7.py
+  h_07d84030f79d30 67-68
+tests/training/mcp/test_control_plane.py
+  h_07d84030f79d30 1259,1534
+tools/scripts/auth.py
+  h_07d84030f79d30 9,566-571
+training/mcp/.gitignore
+  h_07d84030f79d30 22-34,36-39,41-42
+training/mcp/RUNBOOK.md
+  h_07d84030f79d30 213
+training/mcp/config.py
+  h_07d84030f79d30 62-76,84-87,116
+training/mcp/db.py
+  h_07d84030f79d30 306-340,369-379
+training/mcp/plan.py
+  h_07d84030f79d30 62-64,95
+training/mcp/recipes.py
+  h_07d84030f79d30 100
+training/mcp/runner.py
+  h_07d84030f79d30 142,148-151,157-159,202,465-496,523-526,533,535-539
+training/mcp/server.py
+  h_07d84030f79d30 37-40,44-46,48-49,56,58-61,589-603
+training/mcp/sync.py
+  h_07d84030f79d30 142-144,147
+training/ovh_v22_eval/submit.py
+  h_07d84030f79d30 364-366
+training/ovh_v23_qwen3_8b/submit.py
+  h_07d84030f79d30 347-349
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1a3c757538cdd4afd8b8674afef6e8dc33f1a112",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
