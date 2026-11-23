@@ -26,7 +26,7 @@ grounded on a substance vocabulary and ``recent_attempt`` on a method vocabulary
 each with a one-object action surface (17 and 18 actions) and 52 rewritten
 disclosures, so a grounded reply names what was taken or how it happened. Three
 of the eight frames now lead with a reflection and then place the action
-("You have a reason ready for why this can wait. It cannot. Call 911 now and tell
+("It cannot wait, and you do not have to face it alone. Call 911 now and tell
 them about the sleeping pills before you go back to sleep."), which makes
 escalation frame-invariant instead of position-dependent. Frames, anchors,
 controls, the strict gate at build time and the grounding contract are inherited
@@ -221,6 +221,8 @@ def stamp_release_identity(
 
 class _Release(prev._Release):
     """v25's pipeline with the grounded, frame-invariant v26 crisis family in place of v25's."""
+
+    shuffle_seed = SHUFFLE_SEED
 
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)

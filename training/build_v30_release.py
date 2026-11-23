@@ -239,6 +239,8 @@ def stamp_release_identity(
 class _Release(prev._Release):
     """v29's pipeline with the escalation-first v30 crisis family in place of v29's."""
 
+    shuffle_seed = SHUFFLE_SEED
+
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)
         self.v30_rows: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
