@@ -187,17 +187,23 @@ _STANCE_SUBJECT: Final[str] = r"\b(?:i|we|you|they|he|she|it)\b\s+(?:do\s+|did\s
 _STANCE_VERB: Final[str] = r"(?:know|think|believe|promise|guarantee)\b"
 _STANCE_IM: Final[str] = r"i'm\s+(?:sure|certain|confident)\b"
 AFFIRMATIVE_GOVERNER: Final[re.Pattern[str]] = re.compile(
-    r"\s*" + _CORRECTION_MARKER + _STANCE_SUBJECT + _STANCE_VERB
-    + r"|\s*" + _CORRECTION_MARKER + _STANCE_IM
+    r"\s*" + _CORRECTION_MARKER + _STANCE_SUBJECT + _STANCE_VERB + r"|\s*" + _CORRECTION_MARKER + _STANCE_IM
 )
 # Inside an interrupter, only a governer that starts its own comma-delimited
 # segment corrects the stance ("..., I know, ..."); one buried in a subordinate
 # clause ("given what I know ...") cannot take the claim over.
 CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
-    r"(?:^|,)\s*" + _CORRECTION_MARKER + _STANCE_SUBJECT + _STANCE_VERB
-    + r"|(?:^|,)\s*" + _CORRECTION_MARKER + _STANCE_IM
+    r"(?:^|,)\s*"
+    + _CORRECTION_MARKER
+    + _STANCE_SUBJECT
+    + _STANCE_VERB
+    + r"|(?:^|,)\s*"
+    + _CORRECTION_MARKER
+    + _STANCE_IM
 )
-RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(r"(?:^|,|\b(?:and|or|but|nor)\b)\s*(?:that|if|whether)\s*$")
+RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
+    r"(?:^|,|\b(?:and|or|but|nor)\b)\s*(?:that|if|whether)\b(?:\s*,[^,]{0,40},)?\s*,?\s*$"
+)
 COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
     r"(?:'t|not|never)\s+(?:be\s+|really\s+)?(?:promise|say|know|tell|guarantee|sure)\b"
     r".*\b(?:that|both|if|whether)\b"
@@ -237,6 +243,9 @@ SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):|:(?!\d
 _ABBREVIATIONS: Final[tuple[str, ...]] = ("e.g.", "i.e.", "etc.", "vs.", "approx.")
 
 
+_ELLIPSIS_MIN_RUN: Final = 3
+
+
 def _inside_ellipsis(text: str, idx: int) -> bool:
     """Whether ``text[idx]`` is one of three or more consecutive periods."""
     run_start = idx
@@ -245,7 +254,7 @@ def _inside_ellipsis(text: str, idx: int) -> bool:
     run_end = idx
     while run_end + 1 < len(text) and text[run_end + 1] == ".":
         run_end += 1
-    return run_end - run_start + 1 >= 3
+    return run_end - run_start + 1 >= _ELLIPSIS_MIN_RUN
 
 
 def _abbreviation_ends_sentence(text: str, final: int) -> bool:
@@ -291,6 +300,7 @@ def _aside_sentence_end(text: str, start: int, end: int) -> int | None:
             continue
         return idx
     return None
+
 
 # A subordinate clause reads as an aside whatever its subject; a prepositional
 # phrase inside a contrast ("though with support,") is the new clause itself.
@@ -342,10 +352,17 @@ def _strip_asides(text: str, start: int, end: int, asides: list[tuple[int, int]]
     for begin, span_end in asides:
         lo, hi = max(begin, start), min(span_end, end)
         if lo < hi:
+            keep_break = _CLAUSE_AFTER_ASIDE.match(text, hi) is not None
             while lo > start and text[lo - 1] in ", ":
+                if text[lo - 1] == "," and keep_break:
+                    break
                 lo -= 1
                 if text[lo] == ",":
                     break
+            if keep_break and text[lo : lo + 1] == ",":
+                # The aside separated two independent clauses, so its leading
+                # comma is the splice's own break and stays in the run-up.
+                lo += 1
             spans.append((lo, hi))
     if not spans:
         return text[start:end]
@@ -359,6 +376,11 @@ def _strip_asides(text: str, start: int, end: int, asides: list[tuple[int, int]]
     return " ".join(pieces)
 
 
+_CLAUSE_AFTER_ASIDE: Final[re.Pattern[str]] = re.compile(
+    r",?\s*(?:\w+\s+){0,4}?(?:is|are|was|were|will|would|has|have|had|can|could|do|does|did|should|must|may|might)\b"
+)
+
+
 def _pair_override(segment: str) -> bool:
     """Return whether a determiner-led "both" pair spans the current "and"."""
     pair = CORRELATIVE_BOTH.search(segment)
@@ -367,6 +389,21 @@ def _pair_override(segment: str) -> bool:
     inner = segment[pair.end() :]
     nested = PAIR_CONJUNCT_AND.search(inner)
     return nested is None or CLAUSE_SHAPE.search(inner[: nested.start()]) is not None
+
+
+def _merged_conjunction(text: str, start: int, span: tuple[int, int], claim_start: int, claim_end: int) -> bool:
+    """Return whether an "and" continues the complement the cue governs.
+
+    The conjunction merges into the complement when a reporting verb already
+    took its coordination, unless the second conjunct is an emphatic assertion
+    of its own or an affirmative governor takes the claim over.
+    """
+    at, after = span
+    if text[at:after].lstrip(" ,;") != "and" or COMPLEMENT_COORDINATION.search(text[start:at]) is None:
+        return False
+    override = _pair_override(text[start:at])
+    emphatic = EMPHATIC_ASSERTION.match(text[after:claim_start]) is None
+    return (override and emphatic) or AFFIRMATIVE_GOVERNER.match(text[after:claim_end]) is None
 
 
 def _clause_start(text: str, claim_start: int, claim_end: int | None = None) -> tuple[int, list[tuple[int, int]]]:
@@ -422,13 +459,8 @@ def _clause_start(text: str, claim_start: int, claim_end: int | None = None) -> 
             and AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_end]) is None
         ):
             continue
-        if bare and head == "and" and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
-            continuation = text[boundary.end() : claim_start]
-            override = _pair_override(text[start : boundary.start()])
-            if (override and EMPHATIC_ASSERTION.match(continuation) is None) or (
-                AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_end]) is None
-            ):
-                continue
+        if bare and _merged_conjunction(text, start, boundary.span(), claim_start, claim_end):
+            continue
         if not bare and head in {"and", "so"}:
             segment = text[boundary.end() : claim_start]
             resumed = RESUMED_COMPLEMENT.search(segment)

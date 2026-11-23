@@ -255,6 +255,12 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
         ("I can't promise\u2014recovery takes time. Everything will be okay\u2014really.", False),
         # A bare negation cannot cross a bare comma into an asserted claim.
         ("Nothing is wrong with you, you'll be okay.", False),
+        # A comma-delimited parenthetical between the marker and the claim
+        # leaves the disclaimer governing it.
+        ("I can't promise that, with time, everything will be okay.", True),
+        # A `though` aside that separates two independent clauses keeps the
+        # clause break, so an earlier negation cannot reach the assurance.
+        ("You're not alone, though I know it feels that way, everything will be okay.", False),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:
