@@ -1,0 +1,21 @@
+qa/validation/therapy_bench/generate_crisis_capability_v2.py
+  s_7d4811cf1b0ba7::t_0b281f2e6b2ecb 159-161,281-292,663
+qa/validation/therapy_bench/paired_eval.py
+  s_7d4811cf1b0ba7::t_549741ad5fb83b 240-255,1360,1398-1399
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f858523a2745baee8ea8a9ab4fcc39875c10dda3",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
