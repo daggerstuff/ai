@@ -320,19 +320,22 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
                         stdout=lf,
                         stderr=subprocess.STDOUT,
                     )
-            except OSError as exc:
+            except Exception as exc:
                 # A spawn failure must land the job in a terminal state: this
                 # runs on a daemon thread, so an escaping exception would leave
                 # the row stuck at `submitted` forever with no operator signal.
-                # The write is guarded, so a cancel that won the row meanwhile
-                # keeps its own outcome and its single provenance record.
+                # Exception, not just OSError: Popen raises ValueError for a
+                # command carrying an embedded NUL, and that must strand the
+                # row just as little. The write is guarded, so a cancel that
+                # won the row meanwhile keeps its own outcome and its single
+                # provenance record.
                 if db.mark_job_terminal(
                     settings.db_path,
                     job_id,
                     status="failed",
                     error=f"spawn failed: {type(exc).__name__}: {exc}",
                 ):
-                    with open(log_path, "a") as lf:
+                    with contextlib.suppress(OSError), open(log_path, "a") as lf:
                         lf.write(f"[runner] spawn failed: {type(exc).__name__}: {exc}\n")
                     _record_terminal_outcome(settings, job_id)
                 return

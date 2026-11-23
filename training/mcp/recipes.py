@@ -11,6 +11,7 @@ an advisor can propose a recipe and a human can open the PR that lands it
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -99,9 +100,18 @@ def validate_recipe_entry(entry: Any, known_ids: set[str] | None = None) -> list
         errors.append(f"unknown cost_class {cost_class!r} (expected one of {sorted(COST_CLASSES)})")
     if "est_cost_usd" in entry:
         try:
-            float(entry["est_cost_usd"])
+            est_cost = float(entry["est_cost_usd"])
         except TypeError, ValueError:
             errors.append(f"est_cost_usd must be numeric, got {entry['est_cost_usd']!r}")
+        else:
+            # NaN compares false against every cap, so it would silently pass
+            # the monthly spend gate; a negative cost makes the cap meaningless.
+            if not math.isfinite(est_cost) or est_cost < 0:
+                errors.append(f"est_cost_usd must be a finite non-negative number, got {entry['est_cost_usd']!r}")
+    for field_name in ("inputs", "outputs", "invariants"):
+        field_value = entry.get(field_name)
+        if field_value is not None and not isinstance(field_value, dict):
+            errors.append(f"{field_name} must be a mapping")
     overrides = entry.get("overrides") or {}
     if not isinstance(overrides, dict):
         errors.append("overrides must be a mapping")

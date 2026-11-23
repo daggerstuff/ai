@@ -329,8 +329,16 @@ def admit_job_under_cap(
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path), timeout=30)
     try:
+        # The same setup every other registry call applies, so a first-ever
+        # admission does not leave a world-readable, non-WAL registry behind.
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA foreign_keys=ON")
         conn.executescript(SCHEMA)
         _migrate(conn)
+        _harden(db_path)
+        _harden(db_path.parent)
+        for sidecar in (db_path.with_name(db_path.name + "-wal"), db_path.with_name(db_path.name + "-shm")):
+            _harden(sidecar)
         conn.isolation_level = None
         conn.execute("BEGIN IMMEDIATE")
         placeholders = ", ".join("?" for _ in in_flight)

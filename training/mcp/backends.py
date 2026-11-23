@@ -291,8 +291,20 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
         "results_rows": len(parsed),
     }
     by_arm: dict[str, dict[str, int]] = {}
-    graded = any(_row_passed(row) is not None for row in parsed)
+    # A resumed run appends retried cases to the same file, and the harness's
+    # own reader (_read_completed) is last-record-wins: counting the superseded
+    # error rows too would depress the rate the retry actually earned.
+    keyed: dict[tuple[Any, str], dict[str, Any]] = {}
+    unkeyed: list[dict[str, Any]] = []
     for row in parsed:
+        case_id = row.get("case_id")
+        if case_id is None:
+            unkeyed.append(row)
+        else:
+            keyed[(case_id, str(row.get("arm_id", "unknown")))] = row
+    counted_rows = [*keyed.values(), *unkeyed]
+    graded = any(_row_passed(row) is not None for row in counted_rows)
+    for row in counted_rows:
         # Every row counts in its arm's total, graded or not: a case that
         # produced no verdict failed its run as surely as a graded failure,
         # and skipping those rows let 10 passes out of 50 attempts read as a

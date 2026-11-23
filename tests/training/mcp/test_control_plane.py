@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -1730,3 +1731,83 @@ def test_a_locked_default_rejects_equal_values_of_the_wrong_type(db_path, monkey
     monkeypatch.setattr(recipes, "load_recipes", lambda: [recipe])
     with pytest.raises(plan.PlanError, match="is locked"):
         plan.plan_job(_FakeSettings(db_path), "locked-probe", {}, {"flag": 0})
+
+
+def test_a_retried_case_counts_once_last_record_wins():
+    """A resumed run's duplicate record is the retry, not a second failure."""
+    body = "\n".join(
+        [
+            json.dumps({"case_id": "c1", "arm_id": "sft", "status": "error", "response": None}),
+            json.dumps(
+                {
+                    "case_id": "c1",
+                    "arm_id": "sft",
+                    "status": "success",
+                    "response": "ok",
+                    "state_metrics": [{"passed": True}],
+                }
+            ),
+            json.dumps(
+                {
+                    "case_id": "c2",
+                    "arm_id": "sft",
+                    "status": "success",
+                    "response": "ok",
+                    "state_metrics": [{"passed": True}],
+                }
+            ),
+        ]
+    ).encode()
+    parsed = backends._parse_results_body(body)
+    assert parsed["arm_pass_rates"]["sft"] == {"passed": 2, "total": 2, "rate": 1.0}
+
+
+def test_draft_validation_rejects_non_mapping_fields_and_non_finite_costs():
+    errors = recipes.validate_recipe_entry(
+        {
+            **VALID_ENTRY,
+            "inputs": ["tag"],
+            "outputs": "outputs/",
+            "invariants": [True],
+            "est_cost_usd": "nan",
+        }
+    )
+    assert any("inputs must be a mapping" in e for e in errors)
+    assert any("outputs must be a mapping" in e for e in errors)
+    assert any("invariants must be a mapping" in e for e in errors)
+    assert any("est_cost_usd" in e and "finite" in e for e in errors)
+
+
+def test_a_value_error_during_spawn_lands_in_a_terminal_state(db_path, monkeypatch):
+    """Popen raises ValueError for an embedded NUL; that must not strand the row."""
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-nul", "kind": "build_release", "source": "local", "name": "r", "status": "queued"},
+    )
+    row = db.get_job(db_path, "job-nul")
+    recorded: list[str] = []
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda _s, job_id: recorded.append(job_id))
+
+    def boom(*_a, **_k):
+        raise ValueError("embedded null byte")
+
+    monkeypatch.setattr(runner.subprocess, "Popen", boom)
+    monkeypatch.setattr(runner.threading, "Thread", ImmediateThread)
+    runner.submit(settings, "job-nul", row, "python -m training.build_v30_release", "local")
+    final = db.get_job(db_path, "job-nul")
+    assert final["status"] == "failed"
+    assert "spawn failed" in (final["error"] or "")
+    assert recorded == ["job-nul"]
+
+
+def test_admission_initializes_the_registry_like_every_other_call(db_path):
+    assert db.admit_job_under_cap(
+        db_path,
+        {"job_id": "job-first", "kind": "eval_paired", "source": "local", "status": "queued"},
+        in_flight=("queued",),
+        cap=0,
+    )
+    assert (os.stat(db_path).st_mode & 0o777) == 0o600
+    journal = sqlite3.connect(str(db_path)).execute("PRAGMA journal_mode").fetchone()[0]
+    assert journal == "wal"
