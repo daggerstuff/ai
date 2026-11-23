@@ -39,7 +39,6 @@ dependencies = [
 "kaggle>=2.2.2",
 "kernels>=0.12.0,<0.13",
 "mcp>=2.3.0",
-"mem0ai>=1.0.3",
 "mobi>=0.1,<1.0",
 "modal>=1.5.2",
 "motor>=3.6.0",

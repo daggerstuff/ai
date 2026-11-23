@@ -8,7 +8,7 @@ shared-memory best practices:
 - PII filtering patterns for HIPAA compliance
 - Inference mode configuration
 
-The current implementation is local-service-first and does not depend on mem0.
+The current implementation is local-service-first and has no external memory-provider dependency.
 """
 
 import re
