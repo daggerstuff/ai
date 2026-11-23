@@ -19,7 +19,12 @@ import typer
 from pydantic import BaseModel, ConfigDict
 from transformers import AutoTokenizer
 
-from training.export_tinker_release import Datum, build_tokens
+from training.export_tinker_release import (
+    MIN_DATUM_TOKENS,
+    Datum,
+    TokenLimits,
+    trim_to_budget,
+)
 from training.strict_crisis_gate import ESCALATION_TERMS
 
 GROUPS: Final = {
@@ -90,6 +95,15 @@ class Dataset(BaseModel):
     max_tokens: int
     end_token: str
     template_kwargs: dict[str, str | bool | int | float] = {}
+    max_final_exchange_tokens: int | None = None
+
+
+class AmbiguousDigest(BaseModel):
+    """A digest more candidate rows share than the export holds copies of."""
+
+    model_config = ConfigDict(frozen=True)
+    lines: tuple[int, ...]
+    exported_copies: int
 
 
 class ExportReview(BaseModel):
@@ -99,8 +113,40 @@ class ExportReview(BaseModel):
     dataset_sha256: str
     candidate_selected_rows: int
     present_selected_lines: tuple[int, ...]
+    trimmed_target_lines: tuple[int, ...]
+    ambiguous_digests: tuple[AmbiguousDigest, ...]
     excluded_by_length: int
     unmatched_selected_lines: tuple[int, ...]
+
+
+def _attribute(
+    exported: Counter[str], candidates: dict[int, tuple[str, bool]]
+) -> tuple[list[int], list[int], list[AmbiguousDigest], list[int]]:
+    """Attribute exported copies to candidate rows, or report them ambiguous.
+
+    A digest shared by more candidate rows than the export holds copies cannot
+    be tied to a particular source line, so those lines are reported as
+    ambiguous, with the copy count the export verifiably holds, rather than
+    credited to whichever row was read first.
+    """
+    by_digest: dict[str, list[int]] = {}
+    for line_number, (digest, _) in candidates.items():
+        by_digest.setdefault(digest, []).append(line_number)
+    present: list[int] = []
+    trimmed: list[int] = []
+    ambiguous: list[AmbiguousDigest] = []
+    unmatched: list[int] = []
+    for digest, lines in by_digest.items():
+        available = exported[digest]
+        if available <= 0:
+            unmatched.extend(lines)
+        elif available < len(lines):
+            ambiguous.append(AmbiguousDigest(lines=tuple(sorted(lines)), exported_copies=available))
+        else:
+            exported[digest] -= len(lines)
+            for line_number in lines:
+                (trimmed if candidates[line_number][1] else present).append(line_number)
+    return present, trimmed, ambiguous, unmatched
 
 
 def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
@@ -114,11 +160,14 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
     checksum = hashlib.sha256(payload).hexdigest()
     if checksum != dataset.sha256:
         raise ExportIdentityError(dataset.path)
-    exported = {hashlib.sha256(line).hexdigest() for line in payload.splitlines() if line.strip()}
+    exported = Counter(hashlib.sha256(line).hexdigest() for line in payload.splitlines() if line.strip())
     tokenizer = AutoTokenizer.from_pretrained(dataset.tokenizer, fast=True, local_files_only=True)
     wanted = {finding.line for finding in report.findings}
-    present: list[int] = []
+    findings_by_line: dict[int, list[Finding]] = {}
+    for finding in report.findings:
+        findings_by_line.setdefault(finding.line, []).append(finding)
     unmatched: list[int] = []
+    candidates: dict[int, tuple[str, bool]] = {}
     excluded = 0
     with source.open("rb") as handle:
         for line_number, raw in enumerate(handle, start=1):
@@ -126,24 +175,44 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
                 continue
             conversation = Conversation.model_validate_json(raw)
             messages = [message.model_dump() for message in conversation.messages]
+            dropped = 0
             if messages[0]["role"] == "assistant":
                 messages = messages[1:]
-            ids, weights = build_tokens(
-                tokenizer, messages, end_token=dataset.end_token, template_kwargs=dataset.template_kwargs
+                dropped = 1
+            retained = len(messages)
+            messages, ids, weights, trimmed = trim_to_budget(
+                tokenizer,
+                messages,
+                dataset.max_tokens,
+                end_token=dataset.end_token,
+                template_kwargs=dataset.template_kwargs,
             )
-            datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=weights[1:])
-            if len(ids) > dataset.max_tokens:
-                excluded += 1
-            elif hashlib.sha256(datum.line().encode()).hexdigest() in exported:
-                present.append(line_number)
-            else:
+            dropped += retained - len(messages)
+            flagged = findings_by_line.get(line_number, [])
+            targets_lost = bool(flagged) and all(finding.assistant_turn < dropped for finding in flagged)
+            targets = weights[1:]
+            if len(ids) < MIN_DATUM_TOKENS or not any(targets):
                 unmatched.append(line_number)
+                continue
+            stored_final = dataset.max_final_exchange_tokens
+            limits = TokenLimits(
+                max_tokens=dataset.max_tokens,
+                final_exchange_tokens=dataset.max_tokens if stored_final is None else stored_final,
+            )
+            if len(ids) > limits.budget(trimmed=trimmed, message_count=len(messages)):
+                excluded += 1
+                continue
+            datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets)
+            candidates[line_number] = (hashlib.sha256(datum.line().encode()).hexdigest(), targets_lost)
+    present, trimmed_targets, ambiguous, unmatched_digests = _attribute(exported, candidates)
     return ExportReview(
         dataset_sha256=checksum,
         candidate_selected_rows=len(wanted),
-        present_selected_lines=tuple(present),
+        present_selected_lines=tuple(sorted(present)),
+        trimmed_target_lines=tuple(sorted(trimmed_targets)),
+        ambiguous_digests=tuple(sorted(ambiguous, key=lambda group: group.lines)),
         excluded_by_length=excluded,
-        unmatched_selected_lines=tuple(unmatched),
+        unmatched_selected_lines=tuple(sorted([*unmatched, *unmatched_digests])),
     )
 
 
@@ -213,6 +282,8 @@ def main(source: Path, out: Path, dataset: Path | None = None) -> None:
         out.with_suffix(".export.json").write_text(presence.model_dump_json(indent=2) + "\n")
         typer.echo(
             f"{len(presence.present_selected_lines)} candidate rows matched the exact export; "
+            f"{len(presence.trimmed_target_lines)} lost their flagged reply to trimming; "
+            f"{sum(len(group.lines) for group in presence.ambiguous_digests)} share a datum with another candidate; "
             f"{presence.excluded_by_length} exceed length; {len(presence.unmatched_selected_lines)} unmatched"
         )
 

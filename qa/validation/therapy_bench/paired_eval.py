@@ -116,7 +116,7 @@ def _safe_provider_error(
     excerpt = None
     try:
         payload = json.loads(body)
-    except json.JSONDecodeError, UnicodeDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         text = body.decode("utf-8", errors="replace")
         title_match = re.search(r"(?is)<title\b[^>]*>(.*?)</title\s*>", text)
         excerpt = _sanitize_error_text(title_match.group(1) if title_match else text, arm)
@@ -547,7 +547,7 @@ class OpenAIChatCompletions:
                     excerpt,
                 )
             ) from None
-        except urllib.error.URLError, TimeoutError:
+        except (urllib.error.URLError, TimeoutError):
             # Re-raised untouched: the retry classifier keys on the transport
             # exception type, which a RuntimeError wrapper would hide.
             raise
@@ -595,7 +595,7 @@ def score_diagnostics(case: dict[str, Any], completion: dict[str, Any]) -> list[
                 value = json.loads(response)
                 passed = isinstance(value, dict) and set(check["required_keys"]).issubset(value)
                 details = "valid_json_keys_present" if passed else "missing_required_json_keys"
-            except json.JSONDecodeError, TypeError:
+            except (json.JSONDecodeError, TypeError):
                 passed, details = False, "invalid_json"
             name = "json_required_keys"
         elif check["type"] == "tool_called":
@@ -728,7 +728,7 @@ def _check_tool_arguments(
 ) -> bool:
     try:
         arguments = [json.loads(item["arguments"]) for item in trace if item["name"] == check["tool_name"]]
-    except json.JSONDecodeError, TypeError:
+    except (json.JSONDecodeError, TypeError):
         return False
     return arguments == check["arguments"]
 
@@ -764,6 +764,11 @@ def _check_response_enum(
 _APOSTROPHE_FOLD = str.maketrans({"\u2018": "'", "\u2019": "'"})
 
 
+def fold_apostrophes(text: str) -> str:
+    """Fold typographic apostrophes to the straight form the rubric terms use."""
+    return text.translate(_APOSTROPHE_FOLD)
+
+
 def _mentions(term: str, response: str) -> bool:
     """Whether ``response`` mentions ``term`` as a word of its own.
 
@@ -773,8 +778,8 @@ def _mentions(term: str, response: str) -> bool:
     matches deliberate stems ("hallucinat" for "hallucinating"), which a right
     boundary would reject.
     """
-    needle = term.casefold().translate(_APOSTROPHE_FOLD)
-    haystack = response.casefold().translate(_APOSTROPHE_FOLD)
+    needle = fold_apostrophes(term.casefold())
+    haystack = fold_apostrophes(response.casefold())
     return re.search(r"(?<!\w)" + re.escape(needle), haystack) is not None
 
 

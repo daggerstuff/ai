@@ -37,7 +37,7 @@ from typing import Any
 
 from transformers import AutoTokenizer
 
-from training.export_tinker_release import Datum, crisis_reply_surface, trim_to_budget
+from training.export_tinker_release import Datum, TokenLimits, crisis_reply_surface, trim_to_budget
 
 SCHEMA = "crisis-family-survival-v1"
 
@@ -80,8 +80,8 @@ def crisis_row_numbers(train_path: Path, surface: frozenset[str]) -> list[int]:
 def default_tokenize(
     tokenizer: Any,
     row: Mapping[str, Any],
+    limits: TokenLimits,
     *,
-    max_tokens: int,
     end_token: str,
     template_kwargs: Mapping[str, Any],
 ) -> Datum | None:
@@ -91,14 +91,16 @@ def default_tokenize(
         messages = messages[1:]
         if not messages:
             return None
-    messages, ids, weights, _ = trim_to_budget(
+    messages, ids, weights, trimmed = trim_to_budget(
         tokenizer,
         messages,
-        max_tokens,
+        limits.max_tokens,
         end_token=end_token,
         template_kwargs=template_kwargs,
     )
-    if len(ids) < MIN_DATUM_TOKENS or len(ids) > max_tokens:
+    if len(ids) < MIN_DATUM_TOKENS:
+        return None
+    if len(ids) > limits.budget(trimmed=trimmed, message_count=len(messages)):
         return None
     targets = weights[1:]
     if not any(targets):
@@ -123,6 +125,11 @@ def audit(
     surface = crisis_reply_surface(manifest)
     manifest_sha = _sha256_file(manifest_path)
     max_tokens = int(receipt.get("max_tokens", 512))
+    # Receipts written before the final-exchange budget existed carry no value,
+    # and a repaired receipt may serialize it as null; both fall back to the
+    # history budget rather than failing the audit.
+    stored_final = receipt.get("max_final_exchange_tokens")
+    final_exchange_tokens = max_tokens if stored_final is None else int(stored_final)
     end_token = str(receipt.get("end_token", "<|im_end|>"))
     template_kwargs = dict(receipt.get("template_kwargs") or {})
 
@@ -146,7 +153,7 @@ def audit(
             return default_tokenize(
                 tokenizer,
                 row,
-                max_tokens=max_tokens,
+                TokenLimits(max_tokens=max_tokens, final_exchange_tokens=final_exchange_tokens),
                 end_token=end_token,
                 template_kwargs=template_kwargs,
             )

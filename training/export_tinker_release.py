@@ -26,8 +26,11 @@ prefix changes tokens that a longer render already produced. The offset build is
 checked against the template's own tokenization, so a mismatch fails loudly
 instead of silently training on the wrong tokens.
 
-Row selection is the Fireworks selection (``select_rows``), so every
-alternative provider sees the same deterministic rows for the same release.
+Row selection is ``select_rows``, shared with the Fireworks export so both
+providers agree on what a row is, but the Tinker export selects the whole
+partition (``SelectionOptions.full_corpus``). The caps in that module are the
+Fireworks probe's cost bounds, and inheriting them silently dropped 85% of the
+training corpus; ``--selection narrow`` reproduces the historical sample.
 Tool rows are excluded by default: Tinker trains on raw tokens, and the tool
 schema would have to be rendered into the prompt by us to be meaningful.
 
@@ -74,6 +77,12 @@ DEFAULT_BASE_MODEL = "Qwen/Qwen3.6-35B-A3B"
 # Tinker bills per training token, and a datum longer than the model's context
 # is rejected at forward time rather than at upload time.
 DEFAULT_MAX_TOKENS = 8192
+
+# ``max_tokens`` is the history budget: longer arcs are trimmed to their final
+# exchange. The exchange itself gets its own allowance, because the collator
+# pads each batch to its widest row and a disclosure that does not fit the
+# history budget is not a reason to drop the target it was answered with.
+DEFAULT_FINAL_EXCHANGE_TOKENS = 1024
 
 # The token that closes a turn. It belongs to the assistant span because it is
 # what the model has to learn to emit after its last word. Qwen ends a turn with
@@ -227,6 +236,29 @@ def build_tokens(
 MIN_FINAL_EXCHANGE_MESSAGES = 2
 
 
+@dataclass(frozen=True)
+class TokenLimits:
+    """The two token budgets a row is checked against."""
+
+    max_tokens: int
+    final_exchange_tokens: int
+
+    def budget(self, *, trimmed: bool, message_count: int) -> int:
+        """Return the budget for a row after left-trimming.
+
+        A trimmed row is bounded by the final-exchange window it was reduced
+        to. A row that arrived as a single exchange keeps the larger of the two
+        budgets: it never had history trimmed away, so it must not be dropped
+        for exceeding a window it never exceeded, and a final-exchange
+        allowance above ``max_tokens`` still applies to it.
+        """
+        if message_count != MIN_FINAL_EXCHANGE_MESSAGES:
+            return self.max_tokens
+        if trimmed:
+            return self.final_exchange_tokens
+        return max(self.max_tokens, self.final_exchange_tokens)
+
+
 def trim_to_budget(
     tokenizer: Any,
     messages: list[dict[str, Any]],
@@ -292,7 +324,7 @@ def select_for_export(
     graded rows train every time instead of a different subset each release.
     """
     if options is None:
-        options = SelectionOptions()
+        options = SelectionOptions.full_corpus()
     if options.keep_replies is None:
         options = replace(options, keep_replies=crisis_reply_surface(manifest))
     selections, counts = select_rows(train_path, options)
@@ -323,6 +355,7 @@ def tokenize_selections(
     tokenizer: Any,
     *,
     max_tokens: int,
+    final_exchange_tokens: int,
     end_token: str,
     template_kwargs: Mapping[str, Any] | None,
 ) -> tuple[list[Datum], dict[str, int]]:
@@ -354,7 +387,8 @@ def tokenize_selections(
         if len(ids) < MIN_DATUM_TOKENS or not any(targets):
             skipped_empty += 1
             continue
-        if len(ids) > max_tokens:
+        limits = TokenLimits(max_tokens=max_tokens, final_exchange_tokens=final_exchange_tokens)
+        if len(ids) > limits.budget(trimmed=trimmed, message_count=len(messages)):
             skipped_too_long += 1
             continue
         rows.append(Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets))
@@ -364,6 +398,12 @@ def tokenize_selections(
         "datums_skipped_too_long": skipped_too_long,
         "datums_skipped_no_targets": skipped_empty,
     }
+
+
+def selection_mode(options: SelectionOptions) -> str:
+    """Return the receipt's name for a selection, so the artifact says what it is."""
+    caps = (options.chat_sample, options.routing_cap, options.max_chars, options.sample_max_chars)
+    return "full_corpus" if all(cap is None for cap in caps) else "narrow"
 
 
 def write_export(
@@ -381,6 +421,8 @@ def write_export(
     counts: Mapping[str, int],
     source_rows: int,
     max_tokens: int,
+    final_exchange_tokens: int,
+    selection: str = "narrow",
 ) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / "tinker-sft-train.jsonl"
@@ -409,6 +451,8 @@ def write_export(
         "source_rows": source_rows,
         "counts": dict(counts),
         "max_tokens": max_tokens,
+        "max_final_exchange_tokens": final_exchange_tokens,
+        "selection_mode": selection,
     }
     (out_dir / "tinker-dataset.json").write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
@@ -423,6 +467,7 @@ def export(
     template_kwargs: Mapping[str, Any] | None = None,
     options: SelectionOptions | None = None,
     max_tokens: int = DEFAULT_MAX_TOKENS,
+    final_exchange_tokens: int = DEFAULT_FINAL_EXCHANGE_TOKENS,
     limit: int | None = None,
     tokenizer: Any | None = None,
     dry_run: bool = False,
@@ -434,7 +479,8 @@ def export(
     if not train_path.is_absolute():
         train_path = ROOT / train_path
 
-    selections, counts, source_train_sha256 = _verified_selection(manifest, train_path, options, limit)
+    resolved = options if options is not None else SelectionOptions.full_corpus()
+    selections, counts, source_train_sha256 = _verified_selection(manifest, train_path, resolved, limit)
     result = Export(counts=counts, source_rows=len(selections))
 
     if tokenizer is None:
@@ -448,6 +494,7 @@ def export(
         selections,
         tokenizer,
         max_tokens=max_tokens,
+        final_exchange_tokens=final_exchange_tokens,
         end_token=end_token,
         template_kwargs=template_kwargs,
     )
@@ -472,6 +519,8 @@ def export(
             counts=result.counts,
             source_rows=result.source_rows,
             max_tokens=max_tokens,
+            final_exchange_tokens=final_exchange_tokens,
+            selection=selection_mode(resolved),
         )
     return result
 
@@ -497,13 +546,39 @@ def _summary(result: Export) -> str:
         f"(opening turn trimmed on {counts['datums_trimmed_opening']} rows)",
         f"selection: routing {counts.get('routing_kept', 0)}/"
         f"{counts.get('routing_rows', 0)}, acute {counts.get('acute_client_rows', 0)}, "
-        f"sampled {counts.get('sample', 0)}, tool excluded {counts.get('tool_rows_excluded', 0)}",
+        f"sampled {counts.get('sample', 0)}, tool excluded {counts.get('tool_rows_excluded', 0)}, "
+        f"label rows excluded {counts.get('label_rows_excluded', 0)}",
     ]
     return "\n".join(lines)
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Run the export from the command line."""
+def selection_options(
+    selection: str,
+    *,
+    seed: int,
+    chat_sample: int | None,
+    routing_cap: int | None,
+    include_tool_rows: bool,
+) -> SelectionOptions:
+    """Return the row selection the export runs with.
+
+    A cap is only meaningful for the narrow sample, so passing one with the
+    full partition is an error rather than a silently ignored argument.
+    """
+    if selection == "full":
+        if chat_sample is not None or routing_cap is not None:
+            raise ValueError("chat_sample and routing_cap require the narrow selection")
+        return SelectionOptions.full_corpus(seed=seed, include_tool_rows=include_tool_rows)
+    return SelectionOptions(
+        seed=seed,
+        chat_sample=SelectionOptions.chat_sample if chat_sample is None else chat_sample,
+        routing_cap=SelectionOptions.routing_cap if routing_cap is None else routing_cap,
+        include_tool_rows=include_tool_rows,
+    )
+
+
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse the export's command line."""
     parser = argparse.ArgumentParser(description=(__doc__ or "Tokenize a research SFT release.").splitlines()[0])
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
@@ -525,23 +600,54 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS)
     parser.add_argument(
+        "--final-exchange-tokens",
+        type=int,
+        default=DEFAULT_FINAL_EXCHANGE_TOKENS,
+        help="budget for the final user+assistant exchange once the history is trimmed",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=None,
         help="tokenize only the first N selected rows (smoke exports)",
     )
     parser.add_argument("--seed", type=int, default=SelectionOptions.seed)
-    parser.add_argument("--chat-sample", type=int, default=SelectionOptions.chat_sample)
-    parser.add_argument("--routing-cap", type=int, default=SelectionOptions.routing_cap)
+    parser.add_argument(
+        "--chat-sample",
+        type=int,
+        default=None,
+        help="cap the filler sample (narrow selection only)",
+    )
+    parser.add_argument(
+        "--routing-cap",
+        type=int,
+        default=None,
+        help="cap the routing pool (narrow selection only)",
+    )
+    parser.add_argument(
+        "--selection",
+        choices=("full", "narrow"),
+        default="full",
+        help="full trains the whole partition; narrow is the Fireworks probe's capped sample",
+    )
     parser.add_argument("--include-tool-rows", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
-
     template_kwargs = json.loads(args.template_kwargs)
     if not isinstance(template_kwargs, dict):
         parser.error("--template-kwargs must be a JSON object")
+    if args.selection == "full" and (args.chat_sample is not None or args.routing_cap is not None):
+        parser.error("--chat-sample and --routing-cap require --selection narrow")
+    args.template_kwargs = template_kwargs
+    return args
 
-    options = SelectionOptions(
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the export from the command line."""
+    args = _parse_args(argv)
+    template_kwargs = args.template_kwargs
+    options = selection_options(
+        args.selection,
         seed=args.seed,
         chat_sample=args.chat_sample,
         routing_cap=args.routing_cap,
@@ -559,6 +665,7 @@ def main(argv: list[str] | None = None) -> int:
             template_kwargs=template_kwargs,
             options=options,
             max_tokens=args.max_tokens,
+            final_exchange_tokens=args.final_exchange_tokens,
             limit=args.limit,
             tokenizer=tokenizer,
             dry_run=True,
@@ -575,6 +682,7 @@ def main(argv: list[str] | None = None) -> int:
         template_kwargs=template_kwargs,
         options=options,
         max_tokens=args.max_tokens,
+        final_exchange_tokens=args.final_exchange_tokens,
         limit=args.limit,
     )
     print(_summary(result))
