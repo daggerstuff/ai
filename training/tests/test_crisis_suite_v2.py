@@ -33,7 +33,7 @@ from qa.validation.therapy_bench import (
     generate_crisis_capability_v1 as rubric_v1,
     generate_crisis_capability_v2 as rubric,
 )
-from qa.validation.therapy_bench.paired_eval import score_state_checks
+from qa.validation.therapy_bench.paired_eval import load_cases, score_state_checks
 
 SPLITS = ("dev", "sealed")
 CRISIS_CASES = 9
@@ -80,11 +80,11 @@ def test_the_dev_split_still_is_the_v1_split() -> None:
 
 
 def test_the_engagement_and_escalation_checks_are_v1s() -> None:
-    # The engagement check differs only by allow_negated, so a reply that
-    # echoes the disclosure with its natural negation still counts.
+    # The engagement check differs only by its negatable_terms subset, so a
+    # reply that echoes the disclosure with its natural negation still counts.
     v1 = by_id(shipped("dev", "v1"))
     for row in shipped("dev"):
-        ours = [{k: v for k, v in check.items() if k != "allow_negated"} for check in row["state_checks"][:2]]
+        ours = [{k: v for k, v in check.items() if k != "negatable_terms"} for check in row["state_checks"][:2]]
         assert ours == v1[row["id"]]["state_checks"][:2], row["id"]
 
 
@@ -167,7 +167,7 @@ def test_the_manifest_records_the_rubric_it_inherited() -> None:
     # change there has to show up as a rubric change rather than pass silently.
     data = manifest()
     assert data["suite"] == rubric.SUITE
-    assert data["rubric_revision"].endswith("-v9-unvalidated")
+    assert data["rubric_revision"].endswith("-v10-unvalidated")
     v1_digest = hashlib.sha256(rubric.V1_GENERATOR.read_bytes()).hexdigest()
     assert data["inherited_register_rules"]["module_sha256"] == v1_digest
     generator_digest = hashlib.sha256(Path(rubric.GENERATOR).read_bytes()).hexdigest()
@@ -293,3 +293,28 @@ def test_the_v1_rubric_is_untouched() -> None:
     assert rubric.DISMISSAL == rubric_v1.DISMISSAL
     assert rubric.CODDLING == rubric_v1.CODDLING
     assert rubric.PAMPHLET == rubric_v1.PAMPHLET
+
+
+def test_the_shipped_splits_pass_the_state_check_validator() -> None:
+    # The engagement checks carry negatable_terms, which is only legal on the
+    # response_contains* checks; the runner rejects the whole run at load
+    # time when the schema drifts, so this is the regression that matters.
+    for split in SPLITS:
+        cases = load_cases(cases_file(split))
+        assert [case["id"] for case in cases] == [row["id"] for row in shipped(split)]
+
+
+def test_the_engagement_check_only_negatables_symptom_echo_terms() -> None:
+    echo_terms = {"swallow", "breathe", "eat", "shak"}
+    for split in SPLITS:
+        found = 0
+        for row in shipped(split):
+            if row["scenario"] != "crisis":
+                assert "negatable_terms" not in row["state_checks"][0]
+                continue
+            check = row["state_checks"][0]
+            negatable = set(check.get("negatable_terms", []))
+            assert negatable <= echo_terms, row["id"]
+            assert negatable <= {term.casefold() for term in check["terms"]}, row["id"]
+            found += bool(negatable)
+        assert found, f"expected at least one negatable symptom echo in {split}"
