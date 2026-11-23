@@ -1,0 +1,26 @@
+qa/reports/test_quality_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_43c906c3748114 23
+monitoring/test_clinical_validity_dashboard.py
+  s_7d4811cf1b0ba7::t_0ed4857aad6cc2 16
+pytest.ini
+  s_7d4811cf1b0ba7::t_6c1b21d09a0a5a 14,16-17,78
+monitoring/test_quality_analytics_dashboard_v2.py
+  s_7d4811cf1b0ba7::t_c720b056dfd295 27
+  s_7d4811cf1b0ba7::t_0ed4857aad6cc2 28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d9957644f5b97989bd9cd28e8f091f793bacffb2",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
