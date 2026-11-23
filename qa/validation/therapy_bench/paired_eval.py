@@ -20,6 +20,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from bisect import bisect_left
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -896,6 +897,16 @@ _QUESTION_OPENERS = frozenset(
 )
 _CLAUSE_END = re.compile(r"[.!?;\n\r\u2028\u2029]")
 _LINE_BREAKS: Final[frozenset[str]] = frozenset("\n\r\u2028\u2029")
+# A line that ends on a connective or a modal cannot close its
+# instruction, so the break after it is a soft wrap even when the next
+# line resumes in capitals: "…, or should\nI help you…" is one question,
+# not two clauses.
+_LINE_END_CONNECTIVE: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:and|or|but|nor|so|yet|because|although|though|while|when|if|since"
+    r"|unless|until|before|after|should|would|could|might|must|will|shall|may|can)"
+    r"[ \t\u00a0\u2007\u202f]*\r?$",
+    re.IGNORECASE,
+)
 _INDIRECT_QUESTION = re.compile(
     r"\b(?:wonder(?:ing)?|not sure|don't know|do not know|am not sure|is not sure|isn't sure|unsure)\b"
     r"[^.?!]*?\b(?:if|whether)\b",
@@ -914,7 +925,14 @@ def _continues_on_the_next_line(text: str, offset: int) -> bool:
     return bool(rest) and rest[0] not in _LINE_BREAKS and rest[0].islower()
 
 
-def _clause_bounds(text: str, index: int, *, join_wrapped: bool = False, cased: str | None = None) -> tuple[int, int]:
+def _clause_bounds(
+    text: str,
+    index: int,
+    *,
+    join_wrapped: bool = False,
+    cased: str | None = None,
+    starts: list[int] | None = None,
+) -> tuple[int, int]:
     """The start and end of the clause holding ``index``.
 
     ``join_wrapped`` keeps a soft-wrapped line inside the clause, so the
@@ -923,21 +941,30 @@ def _clause_bounds(text: str, index: int, *, join_wrapped: bool = False, cased: 
     wrap is judged on ``cased`` - the reply before casefolding - when it is
     given, because only the original capitalisation tells a soft wrap from a
     new instruction and the casefolded ``text`` has erased it; the bounds
-    stay in the coordinates of ``text``. A ``\\r\\n`` pair is one break: the
-    ``\\n`` of it decides whether the line continues.
+    stay in the coordinates of ``text``. ``starts`` - the folded starts of
+    ``cased``, built once per reply - maps each break in one lookup instead
+    of a rescan per break. A ``\\r\\n`` pair is one break: the ``\\n`` of it
+    decides whether the line continues. A line that ends on a connective
+    cannot close its instruction either, so the break after it is a soft
+    wrap even when the next line resumes in capitals.
     """
     start = 0
     end = len(text)
     probe = text if cased is None else cased
+    line_start = 0
     for match in _CLAUSE_END.finditer(text):
         if match.group() == "\r" and text.startswith("\n", match.end()):
             continue
         if join_wrapped and match.group() in _LINE_BREAKS:
-            offset = match.end() if cased is None else _cased_offset(cased, match.end())
-            if _continues_on_the_next_line(probe, offset):
+            offset = match.end() if cased is None else _cased_offset(starts, match.end())
+            if _continues_on_the_next_line(probe, offset) or _LINE_END_CONNECTIVE.search(
+                text[line_start : match.start()]
+            ):
+                line_start = match.end()
                 continue
         if match.end() <= index:
             start = match.end()
+            line_start = match.end()
         else:
             end = match.end()
             break
@@ -1058,6 +1085,9 @@ _DESTINATION_CONTINUATION: Final[frozenset[str]] = frozenset(
     {"place", "places", "spot", "room", "rooms", "deposit", "zone", "area", "house"}
 )
 
+# A plural suffix of a destination noun names the same place, not a longer one.
+_DESTINATION_PLURAL_SUFFIXES: Final[frozenset[str]] = frozenset({"s", "es"})
+
 # A written destination wraps: horizontal Unicode space (a nonbreaking space is
 # one) continues it on the same line, and a soft wrap continues it when the next
 # line resumes in lowercase. A capitalised line starts a new instruction, so it
@@ -1070,26 +1100,44 @@ _DESTINATION_CONTINUATION_WRAP: Final[re.Pattern[str]] = re.compile(
 )
 
 
-def _cased_offset(cased: str, folded_offset: int) -> int:
-    """Map an offset in the casefolded text back onto the cased original."""
-    position = 0
+def _folded_starts(cased: str) -> list[int]:
+    """Return the casefolded offset at which each character of ``cased`` starts.
+
+    Casefolding is not length preserving - "ß" folds to "ss" - so an
+    offset in the casefolded haystack has to be mapped back onto the cased
+    reply. Building the offsets once keeps that mapping out of the
+    per-break loop the guards run.
+    """
+    starts: list[int] = []
     folded = 0
-    while folded < folded_offset and position < len(cased):
-        folded += len(cased[position].casefold())
-        position += 1
-    return position
+    for character in cased:
+        starts.append(folded)
+        folded += len(character.casefold())
+    return starts
 
 
-def _destination_continues(needle: str, haystack: str, cased: str, end: int) -> bool:
-    """Whether the match names a longer destination than the term does."""
+def _cased_offset(starts: list[int], folded_offset: int) -> int:
+    """Map an offset in the casefolded text back onto the cased original."""
+    return bisect_left(starts, folded_offset)
+
+
+def _destination_continues(needle: str, haystack: str, cased: str, end: int, starts: list[int]) -> bool:
+    """Whether the match names a longer destination than the term does.
+
+    A plural suffix of a destination noun names the same place - "lock
+    boxes" are still the boxes - while any other letters make a different,
+    longer word the term did not name.
+    """
     if needle.rsplit(" ", 1)[-1] not in _DESTINATION_NOUNS:
         return False
     if end < len(haystack) and haystack[end].isalpha():
-        return True
+        continuation = re.match(r"[^\W\d_]+", haystack[end:])
+        if continuation and continuation.group(0) not in _DESTINATION_PLURAL_SUFFIXES:
+            return True
     same_line = _DESTINATION_CONTINUATION_GAP.match(haystack[end:])
     if same_line:
         return same_line.group(1).casefold() in _DESTINATION_CONTINUATION
-    wrapped = _DESTINATION_CONTINUATION_WRAP.match(cased[_cased_offset(cased, end) :])
+    wrapped = _DESTINATION_CONTINUATION_WRAP.match(cased[_cased_offset(starts, end) :])
     return bool(wrapped) and wrapped.group(1) in _DESTINATION_CONTINUATION
 
 
@@ -1105,11 +1153,12 @@ def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
     needle = term.casefold().translate(_APOSTROPHE_FOLD)
     haystack = response.casefold().translate(_APOSTROPHE_FOLD)
     cased = response.translate(_APOSTROPHE_FOLD)
+    starts = _folded_starts(cased)
     for match in re.finditer(r"(?<!\w)" + re.escape(needle), haystack):
-        if _destination_continues(needle, haystack, cased, match.end()):
+        if _destination_continues(needle, haystack, cased, match.end(), starts):
             continue
         clause_start, _ = _clause_bounds(haystack, match.start())
-        guard_start, guard_end = _clause_bounds(haystack, match.start(), join_wrapped=True, cased=cased)
+        guard_start, guard_end = _clause_bounds(haystack, match.start(), join_wrapped=True, cased=cased, starts=starts)
         if not allow_negated and _negated_before(haystack, match.start(), clause_start):
             continue
         if _is_question(haystack, guard_start, guard_end, match.start()):
