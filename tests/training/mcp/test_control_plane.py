@@ -1881,3 +1881,62 @@ def test_timeout_strings_parse_to_seconds():
     assert runner._timeout_seconds({"timeout": ""}) is None
     assert runner._timeout_seconds({}) is None
     assert runner._timeout_seconds({"timeout": "soon"}) is None
+
+
+def test_the_gate_fails_an_incomplete_run():
+    """A truncated run with passing rates must not pass the promotion gate."""
+    summary = {
+        "runs": {
+            "r1": {
+                "arm_pass_rates": {
+                    "sft": {"passed": 5, "total": 5, "rate": 1.0},
+                    "base": {"passed": 1, "total": 2, "rate": 0.5},
+                },
+                "manifest": {"status": "incomplete"},
+            }
+        }
+    }
+    verdict = backends.evaluate_gate(summary)
+    assert verdict["passed"] is False
+    assert any("sample sizes differ" in reason for reason in verdict["reasons"])
+    assert any("not complete" in reason for reason in verdict["reasons"])
+
+
+def test_the_gate_passes_a_complete_balanced_run():
+    summary = {
+        "runs": {
+            "r1": {
+                "arm_pass_rates": {
+                    "sft": {"passed": 4, "total": 5, "rate": 0.8},
+                    "base": {"passed": 1, "total": 5, "rate": 0.2},
+                },
+                "manifest": {"status": "complete"},
+            }
+        }
+    }
+    verdict = backends.evaluate_gate(summary, min_delta=0.5, min_pass_rate=0.5)
+    assert verdict["passed"] is True
+
+
+def test_an_ovhai_row_records_its_remote_job_name(db_path, monkeypatch, tmp_path):
+    """The launcher names its remote job in the printed report; keep it."""
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-ovh", "kind": "eval_paired", "source": "ovhai", "name": "r", "status": "running"},
+    )
+    log = tmp_path / "job-ovh.log"
+    log.write_text('{\n  "job_name": "v22-eval-t1",\n  "executed": true\n}\n', encoding="utf-8")
+
+    class _Proc:
+        returncode = 0
+
+        def wait(self, *_args, **_kwargs):
+            return 0
+
+    monkeypatch.setattr(runner.time, "sleep", lambda _s: None)
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda *_a, **_k: None)
+    runner._monitor(settings, "job-ovh", _Proc(), str(log))
+    job = db.get_job(db_path, "job-ovh")
+    assert job["backend_id"] == "v22-eval-t1"
+    assert job["status"] == "succeeded"

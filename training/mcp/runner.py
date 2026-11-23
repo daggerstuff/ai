@@ -137,11 +137,29 @@ def _timeout_seconds(spec: dict[str, Any] | None) -> float | None:
     return float(match.group(1)) * _TIMEOUT_UNITS[match.group(2)] if match else None
 
 
+_OVHAI_JOB_NAME = re.compile(r'"job_name":\s*"([^"]+)"')
+
+
+def _ovhai_job_name(log_path: str) -> str | None:
+    """The remote job name the launcher printed, if the log carries one.
+
+    The ovh eval launcher prints its report JSON - including the remote job's
+    ``--name`` - to the redirected stdout, so the log is the one place the
+    remote identity is capturable.
+    """
+    try:
+        text = Path(log_path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    match = _OVHAI_JOB_NAME.search(text)
+    return match.group(1).strip() if match else None
+
+
 def _monitor(
     settings: Settings,
     job_id: str,
     proc: subprocess.Popen[bytes],
-    _log_path: str,
+    log_path: str,
     timeout_seconds: float | None = None,
 ) -> None:
     timed_out = False
@@ -170,6 +188,13 @@ def _monitor(
     if _is_cancelled(job_id) or job.get("status") == "cancelled":
         _drop_process(job_id)
         return
+    if job.get("source") == "ovhai" and not job.get("backend_id"):
+        # Record the remote job's name while the row is still active, so the
+        # registry (and a cancel that lands in time) can name the remote job
+        # the launcher started.
+        backend_id = _ovhai_job_name(log_path)
+        if backend_id:
+            db.upsert_job(settings.db_path, {**job, "backend_id": backend_id})
     # Determine terminal status.
     if rc == 0:
         new_status = "succeeded"
