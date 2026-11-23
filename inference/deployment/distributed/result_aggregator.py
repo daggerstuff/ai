@@ -611,6 +611,7 @@ def main():
         if args.output:
             if report_content.startswith(MISSING_BATCH_NOTICE):
                 sys.stderr.write(report_content + "\n")
+                sys.exit(1)
         else:
             sys.stdout.write(report_content + "\n")
 

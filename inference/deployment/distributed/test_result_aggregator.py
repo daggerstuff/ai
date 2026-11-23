@@ -7,6 +7,7 @@ import contextlib
 import io
 import shutil
 import tempfile
+import pytest
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -74,7 +75,9 @@ class TestReportCommand(unittest.TestCase):
         with mock.patch("sys.argv", ["result_aggregator", "--db-path", self.db_path, "report", "missing-batch",
                                      "--output", str(output_file)]), contextlib.redirect_stdout(stdout), \
                 contextlib.redirect_stderr(stderr):
-            main()
+            with pytest.raises(SystemExit) as exit_info:
+                main()
+        assert exit_info.value.code == 1
         assert stdout.getvalue() == ""
         assert "No data found for batch: missing-batch" in stderr.getvalue()
         assert not output_file.exists()
