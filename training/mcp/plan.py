@@ -40,7 +40,7 @@ def _validate_inputs(recipe: recipes.Recipe, inputs: dict[str, Any]) -> list[str
             # would launch work under a wrong assumption (the suite-version bug
             # class), so the plan is rejected instead.
             raise PlanError(f"unknown input '{name}' is not accepted by recipe {recipe.id}")
-        if not isinstance(value, str) or not _INPUT_TOKEN.match(value):
+        if not isinstance(value, str) or _INPUT_TOKEN.fullmatch(value) is None:
             raise PlanError(
                 f"input '{name}' must be a single token of letters, digits and ._-/@+=: "
                 "spaces, quotes and shell characters are rejected"

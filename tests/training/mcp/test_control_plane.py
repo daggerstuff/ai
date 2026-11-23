@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import threading
 from dataclasses import replace
@@ -1416,7 +1417,7 @@ def test_recipe_inputs_must_be_single_tokens(db_path: Path):
     """Inputs substitute into reviewed CLI commands: anything that is not one
     safe token is rejected before the entrypoint is ever resolved."""
     settings = _FakeSettings(db_path)
-    for bad in ["two tokens", "x; rm -rf /", "$(boom)", "a'b", "--execute", "tag\ntwo"]:
+    for bad in ["two tokens", "x; rm -rf /", "$(boom)", "a'b", "--execute", "tag\ntwo", "tag\n"]:
         with pytest.raises(plan.PlanError, match="single token"):
             plan.plan_job(settings, "eval-crisis-v2", {"tag": bad}, {})
     # Non-string values are rejected too, not silently str()ed.
@@ -1562,3 +1563,27 @@ def test_a_full_page_listing_does_not_mark_jobs_lost(db_path, monkeypatch):
     assert db.get_job(db_path, "wand-gone")["status"] == "failed"
     assert "ovhai" not in result["reconcile"]["checked_sources"]
     assert result["reconcile"]["checked_sources"] == ["wandb"]
+
+
+def test_a_killed_process_is_reaped():
+    """The terminate-kill path returns without _monitor, so it must wait."""
+    calls: list[str] = []
+
+    class _Proc:
+        waited = False
+
+        def terminate(self):
+            calls.append("terminate")
+
+        def wait(self, *_args, **_kwargs):
+            calls.append("wait")
+            if not self.waited:
+                self.waited = True
+                raise subprocess.TimeoutExpired(cmd="job", timeout=10)
+            return 0
+
+        def kill(self):
+            calls.append("kill")
+
+    runner._terminate_proc(_Proc())
+    assert calls == ["terminate", "wait", "kill", "wait"]

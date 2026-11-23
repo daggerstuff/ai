@@ -212,6 +212,10 @@ def _terminate_proc(proc: subprocess.Popen[bytes]) -> None:
             proc.wait(timeout=10)
         except subprocess.TimeoutExpired:
             proc.kill()
+            # A killed child still has to be reaped: the cancel and race
+            # paths return without _monitor, so an unreaped process would
+            # linger as a zombie.
+            proc.wait()
     except Exception:
         pass
 
