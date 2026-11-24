@@ -1,0 +1,52 @@
+infrastructure/distributed/checkpoint_utils.py
+  s_7d4811cf1b0ba7::t_60ecfb5c541880 19
+pkg_mera/platform/rare_disease/__init__.py
+  s_7d4811cf1b0ba7::t_a387f8f6cd35d2 28-30,34-37
+pytest.ini
+  s_7d4811cf1b0ba7::t_dddeb205f7fb77 21,24
+infrastructure/distributed/resume_orchestrator.py
+  s_7d4811cf1b0ba7::t_60ecfb5c541880 18,23
+infrastructure/distributed/test_quality_validation_cache.py
+  s_7d4811cf1b0ba7::t_60ecfb5c541880 19
+pkg_mera/platform/tests/test_mental_ift_orchestrator.py
+  s_7d4811cf1b0ba7::t_de2064db1d860c 50-63
+infrastructure/distributed/state_persistence.py
+  s_7d4811cf1b0ba7::t_60ecfb5c541880 23
+pkg_mera/platform/rare_disease/agents/literature_matcher.py
+  s_7d4811cf1b0ba7::t_a387f8f6cd35d2 8
+tools/utilities/platform/patient_psi/__init__.py
+  s_7d4811cf1b0ba7::t_b8f2d6db31772c 8
+infrastructure/distributed/checkpoint_cleanup_optimizer.py
+  s_7d4811cf1b0ba7::t_60ecfb5c541880 19
+infrastructure/distributed/test_auto_resume.py
+  s_7d4811cf1b0ba7::t_60ecfb5c541880 25-26
+  s_7d4811cf1b0ba7::t_cfabb6b409ec39 17
+tools/utilities/patient_psi/__init__.py
+  s_7d4811cf1b0ba7::t_b8f2d6db31772c 8
+infrastructure/distributed/test_health_and_recovery.py
+  s_7d4811cf1b0ba7::t_5b3757acdb4859 17,22
+pkg_mera/platform/rare_disease/agents/test_interpreter.py
+  s_7d4811cf1b0ba7::t_5b3757acdb4859 6
+infrastructure/distributed/test_checkpoint_system.py
+  s_7d4811cf1b0ba7::t_cfabb6b409ec39 15,18
+pkg_mera/platform/rare_disease/agents/symptom_analyzer.py
+  s_7d4811cf1b0ba7::t_a387f8f6cd35d2 6
+infrastructure/distributed/auto_resume_engine.py
+  s_7d4811cf1b0ba7::t_60ecfb5c541880 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15f810edc1b8c9e758044f8c342986bf3d5bbae4",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
