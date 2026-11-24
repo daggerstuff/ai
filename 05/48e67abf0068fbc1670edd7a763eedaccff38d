@@ -1,0 +1,29 @@
+api/techdeck_integration/communication/error_recovery.py
+  s_7d4811cf1b0ba7::t_45029b6479ad99 20,90,96,100,573-575
+inference/api/techdeck_integration/communication/error_recovery.py
+  s_7d4811cf1b0ba7::t_45029b6479ad99 23,93,99,103,576-578
+api/techdeck_integration/communication/tests/test_pipeline_communication.py
+  s_7d4811cf1b0ba7::t_5928dd53813b99 58-60
+api/techdeck_integration/communication/pipeline_coordinator.py
+  s_7d4811cf1b0ba7::t_45029b6479ad99 326
+inference/api/techdeck_integration/communication/tests/test_pipeline_communication.py
+  s_7d4811cf1b0ba7::t_5928dd53813b99 70-72
+inference/api/techdeck_integration/communication/pipeline_coordinator.py
+  s_7d4811cf1b0ba7::t_45029b6479ad99 326
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0548e67abf0068fbc1670edd7a763eedaccff38d",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
