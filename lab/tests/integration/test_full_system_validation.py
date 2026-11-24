@@ -505,6 +505,21 @@ class FullSystemValidator:
 
 
 @pytest.mark.asyncio
+def _api_reachable() -> bool:
+    """Return True when the API under test answers on its base URL."""
+
+    base_url = os.getenv("PIXELATED_API_BASE_URL", "http://localhost:8000")
+    try:
+        httpx.get(f"{base_url}/health", timeout=1)
+    except httpx.HTTPError:
+        return False
+    return True
+
+
+@pytest.mark.skipif(
+    not _api_reachable(),
+    reason="integration suite: needs a running API server (PIXELATED_API_BASE_URL)",
+)
 async def test_full_system_validation():
     """Main test function for full system validation."""
     validator = FullSystemValidator()

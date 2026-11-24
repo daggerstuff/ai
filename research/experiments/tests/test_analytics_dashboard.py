@@ -1,75 +1,62 @@
-#!/usr/bin/env python3
-"""
-Test suite for analytics_dashboard
-Generated test structure for production readiness validation.
-"""
-
-import unittest
-from unittest.mock import patch
+"""Tests for the analytics dashboard: metric collection and reporting."""
 
 import pytest
 
-# Import the module being tested
-try:
-    from ai.tools.utilities.pipelines.analytics_dashboard import AnalyticsDashboard
-except ImportError:
-    try:
-        from ai.models.pixel_core.validation.analytics_dashboard import (
-            AnalyticsDashboard,
-        )
-    except ImportError:
-        try:
-            from ai.tools.utilities.pipelines.analytics_dashboard import AnalyticsDashboard
-        except ImportError:
-            # Create a mock class for testing
-            class AnalyticsDashboard:
-                def __init__(self):
-                    pass
-
-                def process(self, data):
-                    return data
+from ai.tools.utilities.pipelines.analytics_dashboard import AnalyticsDashboard
 
 
-class TestAnalyticsDashboard(unittest.TestCase):
-    """Test suite for AnalyticsDashboard class."""
-
-    def setUp(self):
-        """Set up test fixtures."""
-        self.module = AnalyticsDashboard()
-        self.test_data = {"test": "data"}
-
-    def test_initialization(self):
-        """Test module initialization."""
-        assert self.module is not None
-
-    def test_basic_functionality(self):
-        """Test basic module functionality."""
-        result = self.module.process(self.test_data)
-        assert result is not None
-
-    def test_error_handling(self):
-        """Test error handling."""
-        with pytest.raises(Exception):
-            self.module.process(None)
-
-    @patch("builtins.print")
-    def test_logging(self, _mock_print):
-        """Test logging functionality."""
-        self.module.process(self.test_data)
-        # Add specific logging tests here
+@pytest.fixture
+def dashboard() -> AnalyticsDashboard:
+    return AnalyticsDashboard()
 
 
-class TestAnalyticsDashboardIntegration(unittest.TestCase):
-    """Integration tests for AnalyticsDashboard."""
+def test_collect_metrics_records_a_sample(dashboard):
+    result = dashboard.collect_metrics("response_time", {"response_time": 0.4})
 
-    def setUp(self):
-        """Set up integration test fixtures."""
-        self.module = AnalyticsDashboard()
-
-    def test_integration_workflow(self):
-        """Test complete integration workflow."""
-        # Add integration tests here
+    assert result["success"] is True
+    assert result["metric_type"] == "response_time"
+    assert result["metrics_collected"] == 1
+    assert result["active_alerts"] == []
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_collect_metrics_flags_a_threshold_breach(dashboard):
+    result = dashboard.collect_metrics("response_time", {"response_time": 2.5})
+
+    assert result["success"] is True
+    assert result["active_alerts"]
+    assert "response_time" in result["active_alerts"][0]
+
+
+def test_collect_metrics_rejects_bad_input(dashboard):
+    assert dashboard.collect_metrics("", {"response_time": 1.0})["success"] is False
+    assert dashboard.collect_metrics("response_time", {})["success"] is False
+
+
+def test_report_requires_metrics(dashboard):
+    report = dashboard.generate_performance_report()
+
+    assert report["success"] is False
+    assert report["report"] is None
+
+
+def test_report_summarises_collected_metrics(dashboard):
+    dashboard.collect_metrics("response_time", {"response_time": 0.4, "latency": 12})
+    dashboard.collect_metrics("error_rate", {"error_rate": 0.01, "latency": 8})
+
+    report = dashboard.generate_performance_report()
+
+    assert report["success"] is True
+    payload = report["report"]
+    assert payload["summary"]["latency"] == pytest.approx(10.0)
+    assert len(payload["data"]) == 2
+
+
+def test_export_requires_a_report(dashboard):
+    assert dashboard.export_report()["success"] is False
+
+    dashboard.collect_metrics("response_time", {"response_time": 0.4})
+    dashboard.generate_performance_report()
+    exported = dashboard.export_report("json")
+
+    assert exported["success"] is True
+    assert exported["records_exported"] == 1

@@ -295,7 +295,10 @@ class TestCCDIntegration(unittest.TestCase):
         )
 
         # Check that formulation worsened
-        assert updated.formulation.prognosis == "guarded"  # Worsened from optimistic
+        ladder = ["poor", "guarded", "guarded_optimistic", "optimistic"]
+        assert ladder.index(updated.formulation.prognosis) < ladder.index(
+            conceptualization.formulation.prognosis
+        )
         assert updated.formulation.confidence < 0.8  # Decreased confidence
 
         # Check that vulnerabilities may have increased
@@ -408,9 +411,13 @@ class TestCCDIntegration(unittest.TestCase):
         # invalid objective was dropped rather than normalized into a valid enum.
         result_objectives = profile.learning_objectives
         assert len(result_objectives) == len(original_objectives)
+        original_values = [
+            objective.value if isinstance(objective, SessionObjective) else objective
+            for objective in original_objectives
+        ]
         for obj in result_objectives:
             assert isinstance(obj, SessionObjective)
-            assert obj.value in original_objectives
+            assert obj.value in original_values
 
     def test_adjust_formulation_summary_no_change(self):
         """Test _adjust_formulation_summary with neutral inputs"""

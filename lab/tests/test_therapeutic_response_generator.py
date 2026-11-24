@@ -40,7 +40,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.module = TherapeuticResponseGenerator()
-        self.test_data = {"test": "data"}
+        self.test_data = {"text": "I have been feeling overwhelmed at work."}
 
     def test_initialization(self):
         """Test module initialization."""

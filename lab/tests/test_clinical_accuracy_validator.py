@@ -40,7 +40,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.module = ClinicalAccuracyValidator()
-        self.test_data = {"test": "data"}
+        self.test_data = {"text": "I have been feeling overwhelmed at work."}
 
     def test_initialization(self):
         """Test module initialization."""
