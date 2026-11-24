@@ -1,0 +1,50 @@
+sourcing/journal/api/config.py
+  s_7d4811cf1b0ba7::t_cc10927a66958b 69
+  s_7d4811cf1b0ba7::t_e77d09fe56e93c 11,50-62
+  s_7d4811cf1b0ba7::t_16d0943984c2b8 68
+  s_7d4811cf1b0ba7::t_3a54ec8baa18d4 63
+api/techdeck_integration/communication/tests/conftest.py
+  s_7d4811cf1b0ba7::t_f6bde4139efb31 671
+inference/api/techdeck_integration/communication/tests/conftest.py
+  s_7d4811cf1b0ba7::t_f6bde4139efb31 677
+api/techdeck_integration/communication/tests/test_pipeline_communication.py
+  s_7d4811cf1b0ba7::t_f5db7deae6672d 31
+dataset_pipeline/extractors/test_streamer.py
+  s_7d4811cf1b0ba7::t_fcb5eb8276cfde 1
+sourcing/research_system/tests/unit/test_config.py
+  s_7d4811cf1b0ba7::t_fcb5eb8276cfde 6
+inference/api/techdeck_integration/communication/tests/test_pipeline_communication.py
+  s_7d4811cf1b0ba7::t_f5db7deae6672d 43
+pipelines/data_processing/journal/api/config.py
+  s_7d4811cf1b0ba7::t_16d0943984c2b8 54
+  s_7d4811cf1b0ba7::t_cc10927a66958b 55
+api/tests/test_pal_inference_api.py
+  s_7d4811cf1b0ba7::t_fcb5eb8276cfde 19
+  s_7d4811cf1b0ba7::t_f5db7deae6672d 17-18
+tools/scripts/test_full_segment.py
+  s_7d4811cf1b0ba7::t_fcb5eb8276cfde 10
+training/export_fireworks_release.py
+  s_7d4811cf1b0ba7::t_04980e127d0674 262-263
+  s_7d4811cf1b0ba7::t_f2b7d134cfc8d6 270,274
+  s_7d4811cf1b0ba7::t_f1bb6bd3543206 278
+  s_7d4811cf1b0ba7::t_d50ca78a434ead 281-282,285-287
+  s_7d4811cf1b0ba7::t_875e643e9392fa 259-261,264,277,279-280,283-284
+sourcing/research_system/tests/unit/test_models.py
+  s_7d4811cf1b0ba7::t_fcb5eb8276cfde 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cd0acf23958d40bb8b909f686b28a288f597edda",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
