@@ -4,19 +4,9 @@ Test suite for the Intelligent Multi-Pattern Prompt Generation Agent
 Validates the agent against the critical issues found in session savepoint.
 """
 
-import sys
-from pathlib import Path
-
-sys.path.append(str(Path(__file__).parent))
-sys.path.append(str(Path(__file__).parent.parent.parent / "prompts" / "agents"))
-
-
 import contextlib
 
-try:
-    from intelligent_prompt_agent import MultiPatternAgent
-except ImportError:
-    from prompts.agents.intelligent_prompt_agent import MultiPatternAgent
+from ai.prompts.agents.intelligent_prompt_agent import MultiPatternAgent
 
 
 def test_interview_extraction():
