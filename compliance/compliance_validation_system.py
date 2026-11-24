@@ -602,7 +602,11 @@ class ComplianceValidationSystem:
                 "compliant_controls": metrics["compliance_levels"]["compliant"],
                 "partially_compliant_controls": metrics["compliance_levels"]["partially_compliant"],
                 "non_compliant_controls": metrics["compliance_levels"]["non_compliant"],
-                "compliance_percentage": (metrics["compliance_levels"]["compliant"] / metrics["total_controls"]) * 100,
+                "compliance_percentage": (
+                    (metrics["compliance_levels"]["compliant"] / metrics["total_controls"]) * 100
+                    if metrics["total_controls"]
+                    else 0.0
+                ),
             },
             "production_requirements": {
                 "overall_score_required": 90.0,
