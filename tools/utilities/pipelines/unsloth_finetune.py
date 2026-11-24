@@ -12,10 +12,9 @@ from typing import Any
 class TrainingSafetyMonitor:
     """Audit trail for the training-run lifecycle.
 
-    The chat-safety monitor in ``ai.qa.reports.safety_monitor_integration``
-    tracks live sessions, alerts and clinical contacts; it has no notion of a
-    training run, so it cannot serve as this hook. This records the two
-    lifecycle events the pipeline emits and keeps them inspectable.
+    The chat-safety monitors track live sessions and clinical contacts; they
+    have no notion of a training run. This records the two lifecycle events the
+    pipeline emits and keeps them inspectable.
     """
 
     def __init__(self, *, logger: logging.Logger | None = None) -> None:
@@ -152,4 +151,4 @@ def finetune_with_unsloth(
         raise
 
 
-__all__ = ["TrainingSafetyMonitor", "UnslothFinetune", "finetune_with_unsloth", "load_training_config", "unsloth"]
+__all__ = ["UnslothFinetune", "finetune_with_unsloth", "load_training_config", "unsloth"]

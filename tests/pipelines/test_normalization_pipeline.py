@@ -34,6 +34,13 @@ def _write_jsonl(path: Path, records: list[dict]) -> None:
     )
 
 
+def _write_jsonl(path: Path, records: list[dict]) -> None:
+    path.write_text(
+        "".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records),
+        encoding="utf-8",
+    )
+
+
 def test_data_normalizer_canonicalizes_record_shape() -> None:
     normalizer = DataNormalizer(enforce_license=True, enforce_phi_scan=True)
 

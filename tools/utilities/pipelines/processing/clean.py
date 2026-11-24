@@ -178,8 +178,8 @@ def clean_and_deduplicate(
     if cfg.get("force_lower", True):
         working = normalize_text_columns(working, text_columns)
 
-    # Redact sensitive text patterns from every free-text field, including
-    # columns the caller did not nominate as text: PII turns up anywhere.
+    # Redact sensitive text patterns from every free-text field: PII turns up
+    # in columns the caller never nominated as text.
     free_text_columns = {c for c in working.columns if _is_text_series(working[c])}
     redacted_tokens = _count_pii_tokens(working, free_text_columns)
     working = redact_pii_in_text_fields(working, free_text_columns | text_columns, logger=log)
@@ -188,18 +188,25 @@ def clean_and_deduplicate(
         redacted_tokens,
         len(free_text_columns | text_columns),
     )
-
-    # Redaction markers are upper-case by contract, so re-normalize the text
-    # columns the caller asked to normalize and keep the output lower-case.
     if cfg.get("force_lower", True) and text_columns:
         working = normalize_text_columns(working, text_columns)
 
     # Remove PII columns by name heuristics.
     if remove_pii_columns:
         pii_cols = find_pii_columns(working.columns)
-        # Keep required columns if any get accidentally matched (safety-first override).
-        pii_cols = pii_cols.difference(set(required_columns))
-        working = remove_pii(working, pii_cols, logger=log)
+        required_set = set(required_columns)
+        # Required columns that match PII patterns can't be dropped,
+        # but MUST be redacted to prevent PII leakage.
+        required_pii_cols = pii_cols & required_set
+        if required_pii_cols:
+            working = redact_pii_in_text_fields(working, required_pii_cols, logger=log)
+            log.warning(
+                "Required columns %s match PII patterns; applied regex redaction instead of column removal",
+                sorted(required_pii_cols),
+            )
+        # Drop non-required PII columns.
+        droppable = pii_cols.difference(required_set)
+        working = remove_pii(working, droppable, logger=log)
 
     # Remove duplicate rows on dedup columns while preserving order.
     normalized_dedup = dedup_columns if dedup_columns else working.columns.tolist()

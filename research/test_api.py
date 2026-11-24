@@ -1,4 +1,4 @@
-"""Integration tests for ai/research/api.py — PIX-510 Task 4."""
+"""Integration tests for ai/memory/api.py — PIX-510 Task 4."""
 
 from __future__ import annotations
 

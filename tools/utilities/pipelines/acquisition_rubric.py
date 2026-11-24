@@ -237,7 +237,7 @@ class AcquisitionRubric:
         if source.license_id in APPROVED_LICENSES:
             qualifying.append(f"license {source.license_id} is approved")
         elif source.license_id in EXCEPTION_LICENSES:
-            blocking.append(f"license {source.license_id} needs a granted exception before intake")
+            blocking.append(f"license {source.license_id} requires an explicit exception grant before intake")
         else:
             blocking.append(f"license {source.license_id} is not approved and not exception-eligible")
 
@@ -430,7 +430,7 @@ class AcquisitionRubric:
                     GateResult(
                         "pilot",
                         GateDecision.BLOCK,
-                        f"pilot source_id mismatch: report covers {pilot.source_id}, intake is {intake.source_id}",
+                        f"source_id mismatch: pilot={pilot.source_id} != intake={intake.source_id}",
                     )
                 )
                 return gates
@@ -452,8 +452,7 @@ class AcquisitionRubric:
                     GateResult(
                         "curation_exit",
                         GateDecision.BLOCK,
-                        f"curation exit source_id mismatch: report covers "
-                        f"{curation_exit.source_id}, intake is {intake.source_id}",
+                        f"source_id mismatch: curation_exit={curation_exit.source_id} != intake={intake.source_id}",
                     )
                 )
                 return gates
@@ -475,7 +474,9 @@ def _run_cli() -> None:
 
     score_p = sub.add_parser("score", help="Calculate overall score for 4 dimensions")
     for _dim in ("therapeutic_relevance", "data_structure_quality", "training_integration", "ethical_accessibility"):
-        score_p.add_argument("--data-structure-quality", type=int, required=True, help="data structure quality (1-10)")
+        score_p.add_argument(
+            f"--{_dim.replace('_', '-')}", type=int, required=True, help=f"{_dim.replace('_', ' ')} (1-10)"
+        )
 
     intake_p = sub.add_parser("intake", help="Evaluate Gate 0 intake for a source")
     intake_p.add_argument("--source-id", required=True)

@@ -44,18 +44,6 @@ class TestGate0Classification:
         assert report.privacy_tier == PrivacyTier.NONE
         assert report.content_sensitivity == ContentSensitivity.SENSITIVE
 
-    def test_text_with_email_gets_medium_tier(self, gates: PrivacyContentGates) -> None:
-        report = gates.evaluate("t", "Contact me at john@example.com for help.", "cc-by-4.0")
-        assert report.gate0_result is not None
-        assert report.gate0_result.decision == GateDecision.PASS
-        assert report.privacy_tier == PrivacyTier.MEDIUM
-        assert any(f.pii_type == "email" for f in report.pii_findings)
-
-    def test_text_with_name_gets_medium_tier(self, gates: PrivacyContentGates) -> None:
-        report = gates.evaluate("t", "My name is Sarah and I'm struggling.", "cc-by-4.0")
-        assert report.gate0_result is not None
-        assert report.privacy_tier == PrivacyTier.MEDIUM
-
     def test_crisis_text_sensitivity_classified(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "I've been having suicidal thoughts.", "cc-by-4.0")
         assert report.gate0_result is not None

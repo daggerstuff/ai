@@ -1,4 +1,4 @@
-"""Tests for ai/research/reprioritization_engine.py — lightweight evidence-based ordering."""
+"""Tests for ai/memory/reprioritization_engine.py — lightweight evidence-based ordering."""
 
 from __future__ import annotations
 

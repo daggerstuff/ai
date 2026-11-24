@@ -1,4 +1,4 @@
-"""Unit tests for ai/research/emotion_classifier.py — PIX-510 Task 3."""
+"""Unit tests for ai/memory/emotion_classifier.py — PIX-510 Task 3."""
 
 from __future__ import annotations
 

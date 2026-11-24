@@ -137,30 +137,35 @@ STAGE_QUALITY_THRESHOLDS: dict[str, dict[str, float]] = {
     "stage1_foundation": {
         "empathy_floor": 0.70,
         "clinical_floor": 0.30,
+        "safety_floor": 1.0,
         "safety_floor": 0.70,
         "dedup_retention_min": 0.50,
     },
     "stage2_therapeutic_expertise": {
         "empathy_floor": 0.75,
         "clinical_floor": 0.50,
+        "safety_floor": 1.0,
         "safety_floor": 0.75,
         "dedup_retention_min": 0.50,
     },
     "stage3_edge_stress_test": {
         "empathy_floor": 0.60,
         "clinical_floor": 0.40,
+        "safety_floor": 1.0,
         "safety_floor": 0.65,
         "dedup_retention_min": 0.40,
     },
     "stage4_voice_persona": {
         "empathy_floor": 0.80,
         "clinical_floor": 0.35,
+        "safety_floor": 1.0,
         "safety_floor": 0.75,
         "dedup_retention_min": 0.60,
     },
     "supplementary": {
         "empathy_floor": 0.50,
         "clinical_floor": 0.20,
+        "safety_floor": 1.0,
         "safety_floor": 0.20,
         "dedup_retention_min": 0.30,
     },
@@ -195,10 +200,14 @@ class TrainingReadinessGates:
             gate_audit={"gate0": "pass", "gate1": "pass", ...},
         )
         if result.can_promote:
-            print("Package is training-ready")
+            logger.info("Package is training-ready")
         else:
-            print(result.get_failure_summary())
+            logger.info(result.get_failure_summary())
     """
+
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     def __init__(self) -> None:
         self._gate_results: list[GateResult] = []

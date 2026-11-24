@@ -1,4 +1,4 @@
-"""Unit tests for ai/research/importance_scorer.py — PIX-510 Task 2."""
+"""Unit tests for ai/memory/importance_scorer.py — PIX-510 Task 2."""
 
 from __future__ import annotations
 

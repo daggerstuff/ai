@@ -157,8 +157,12 @@ class DatasetPackager:
             metrics={...},
         )
         if bundle.is_promotable:
-            print(f"Package ready for promotion: {bundle.manifest.name}")
+            logger.info(f"Package ready for promotion: {bundle.manifest.name}")
     """
+
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     def __init__(self, output_dir: str = "datasets/") -> None:
         """Initialize packager.
@@ -216,8 +220,8 @@ class DatasetPackager:
             stage_thresholds=stage_thresholds,
         )
 
-        # Create package directory
-        stage_dir = self.output_dir / stage_id
+        # Create package directory (versioned by package_id to avoid collisions)
+        stage_dir = self.output_dir / stage_id / package_id
         stage_dir.mkdir(parents=True, exist_ok=True)
 
         # Write data.jsonl
@@ -244,6 +248,11 @@ class DatasetPackager:
         manifest_path = stage_dir / "manifest.json"
         with open(manifest_path, "w") as f:
             json.dump(manifest.to_dict(), f, indent=2)
+
+        # Remove any stale promotion token from a previous run
+        stale_token = stage_dir / "promotion_token.json"
+        if stale_token.exists():
+            stale_token.unlink()
 
         # Write promotion_token.json if promotable
         promotion_token_path = None
@@ -297,7 +306,7 @@ def create_training_package(
             output_dir="datasets/",
         )
         if bundle.is_promotable:
-            print(f"Ready: {bundle.manifest.name}")
+            logger.info(f"Ready: {bundle.manifest.name}")
     """
     packager = DatasetPackager(output_dir=output_dir)
     return packager.create_package(

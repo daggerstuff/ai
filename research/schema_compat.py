@@ -4,12 +4,12 @@ Schema compatibility layer between TS and Python memory types.
 Provides bidirectional conversion between:
   - ``foresight.schema.UnifiedMemory`` (canonical Python Pydantic, mirrors
     ``@pixelated/memory-schema`` TypeScript types)
-  - ``ai.research.schema.MemoryBlock``         (legacy Python Pydantic — kept
+  - ``ai.memory.schema.MemoryBlock``         (legacy Python Pydantic — kept
     in sync via this module)
 
 TS canonical:    packages/memory-schema/src/types.ts
 Python MCP:       foresight/schema.py
-Python legacy:    ai/research/schema.py
+Python legacy:    ai/memory/schema.py
 """
 
 from __future__ import annotations
@@ -96,7 +96,7 @@ def to_legacy_block(
     """
     Convert a canonical UnifiedMemory into a legacy MemoryBlock.
 
-    Used when passing memory to legacy ``ai/research/`` components that expect
+    Used when passing memory to legacy ``ai/memory/`` components that expect
     MemoryBlock. Supports both UnifiedMemory instances and dicts (e.g. from
     TS JSON serialization).
     """
@@ -166,7 +166,7 @@ def from_legacy_block(legacy: LegacyMemoryBlock) -> UnifiedMemory:
     Convert a legacy MemoryBlock into a canonical UnifiedMemory.
 
     This is the primary entry point for the MCP server's Python-side code
-    (``ai/research/``) to interoperate with the unified schema used by
+    (``ai/memory/``) to interoperate with the unified schema used by
     ``foresight``.
     """
     imp = legacy.importance or LegacyMemoryImportance(

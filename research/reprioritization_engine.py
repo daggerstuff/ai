@@ -1,4 +1,4 @@
-"""Lightweight evidence-based reprioritization engine for ai/research integration.
+"""Lightweight evidence-based reprioritization engine for ai/memory integration.
 
 Provides a simple ReprioritizationEngine that accepts evaluation evidence
 and produces a reprioritized task order. This is distinct from the full-featured

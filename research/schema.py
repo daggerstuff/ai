@@ -3,7 +3,7 @@ PIX-510: Sprint 1 - Memory Schema & Unification
 Canonical memory block schema for therapeutic AI system.
 
 Python dataclass mirror of src/types/memory.ts — keep in sync.
-JSON Schema: ai/research/schema.json
+JSON Schema: ai/memory/schema.json
 """
 
 from __future__ import annotations
