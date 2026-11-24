@@ -1,0 +1,27 @@
+tests/memory/test_reprioritization_engine.py
+  s_7d4811cf1b0ba7::t_b0296a31f0449d 1-39
+tests/memory/test_emotion_classifier.py
+  s_7d4811cf1b0ba7::t_b0296a31f0449d 1-202
+tests/memory/test_inventory.py
+  s_7d4811cf1b0ba7::t_b0296a31f0449d 1-42
+tests/memory/test_dream_memory_store.py
+  s_7d4811cf1b0ba7::t_b0296a31f0449d 1-439
+tests/memory/test_importance_scorer.py
+  s_7d4811cf1b0ba7::t_b0296a31f0449d 1-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f1f8d22f219d1af351e0edbc2cd6787aee92d7dd",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
