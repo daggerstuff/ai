@@ -103,6 +103,7 @@ def _build_orchestrator(
             timestamp=datetime(2025, 1, 1, 10, 0, 0),
             activity_type="session_start",
             description="Session created",
+            outcome="completed",
         )
     ]
     error_log = [{"timestamp": "2025-01-01T10:10:00Z", "message": "none"}]

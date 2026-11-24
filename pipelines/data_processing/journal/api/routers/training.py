@@ -14,7 +14,7 @@ from ai.pipelines.data_processing.journal.api.dependencies import (
     get_training_pipeline_service,
     require_permission_dependency,
 )
-from ai.pipelines.data_processing.journal.api.models.responses import ErrorResponse
+from ai.pipelines.data_processing.journal.api.models.common import ErrorResponse
 from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )

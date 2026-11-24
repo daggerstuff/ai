@@ -394,14 +394,12 @@ class ProgressVisualization:
 
     def generate_progress_chart_data(
         self,
-        _session: ResearchSession,
         progress_history: list[ResearchProgress],
     ) -> dict[str, Any]:
         """
         Generate progress chart data (for use with charting libraries).
 
         Args:
-            session: Research session information
             progress_history: List of progress snapshots
 
         Returns:
@@ -560,7 +558,7 @@ class ProgressVisualization:
         current_progress = progress_history[-1] if progress_history else ResearchProgress()
 
         # Generate chart data
-        chart_data = self.generate_progress_chart_data(session, progress_history)
+        chart_data = self.generate_progress_chart_data(progress_history)
 
         # Create HTML content
         html_content = f"""<!DOCTYPE html>

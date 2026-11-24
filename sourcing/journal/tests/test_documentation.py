@@ -176,7 +176,6 @@ class TestReportGenerator:
         )
 
         report_path = generator.generate_weekly_report(
-            session=sample_research_session,
             progress=progress,
             week_number=1,
         )
@@ -313,7 +312,6 @@ class TestProgressVisualization:
         ]
 
         chart_data = viz.generate_progress_chart_data(
-            session=sample_research_session,
             progress_history=progress_history,
         )
 
@@ -466,7 +464,6 @@ Old status
 
         updater.update_status_summary(
             progress=progress,
-            session=sample_research_session,
             weekly_report=weekly_report,
         )
 

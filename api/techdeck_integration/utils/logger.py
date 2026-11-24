@@ -12,7 +12,7 @@ import logging
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from typing import Any
 
@@ -89,7 +89,7 @@ class HIPAACompliantFormatter(logging.Formatter):
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(datetime.UTC).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 class JSONFormatter(logging.Formatter):
@@ -421,12 +421,12 @@ class PerformanceTimer:
 
     def __enter__(self):
         """Start timing."""
-        self.start_time = datetime.now(datetime.UTC)
+        self.start_time = datetime.now(UTC)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Stop timing and log metric."""
-        self.end_time = datetime.now(datetime.UTC)
+        self.end_time = datetime.now(UTC)
         duration = (self.end_time - self.start_time).total_seconds() * 1000  # Convert to milliseconds
 
         # Add duration to tags

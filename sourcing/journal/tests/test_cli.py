@@ -197,8 +197,8 @@ log_directory: /tmp/logs
 class TestInteractiveMode:
     """Tests for interactive mode."""
 
-    @patch("ai.sourcing.journal.cli.interactive.Prompt.ask")
-    @patch("ai.sourcing.journal.cli.interactive.console")
+    @patch("ai.pipelines.data_processing.journal.cli.interactive.Prompt.ask")
+    @patch("ai.pipelines.data_processing.journal.cli.interactive.console")
     def test_prompt_for_session_config(self, _mock_console, mock_prompt):
         """Test prompting for session configuration."""
 
@@ -219,7 +219,7 @@ class TestInteractiveMode:
         assert "target_sources" in config
         assert "search_keywords" in config
 
-    @patch("ai.sourcing.journal.cli.interactive.Prompt.ask")
+    @patch("ai.pipelines.data_processing.journal.cli.interactive.Prompt.ask")
     def test_interactive_mode_handles_cancellation(self, mock_prompt):
         """Test that interactive mode handles user cancellation."""
 

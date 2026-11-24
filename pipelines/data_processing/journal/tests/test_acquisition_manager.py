@@ -204,7 +204,7 @@ class TestAccessAcquisitionManager:
         pending_requests = manager.list_access_requests(status="pending")
         assert len(pending_requests) == 2
 
-    def test_get_pending_follow_ups(self, manager, _sample_source):
+    def test_get_pending_follow_ups(self, manager):
         """Test getting pending follow-ups."""
         # Create an old request
         old_request = AccessRequest(
@@ -229,7 +229,7 @@ class TestAccessAcquisitionManager:
         assert "Summary" in report
 
     @patch("ai.pipelines.data_processing.journal.acquisition.acquisition_manager.requests.Session")
-    def test_download_dataset_direct(self, mock_session, manager, sample_source, _tmp_path):
+    def test_download_dataset_direct(self, mock_session, manager, sample_source):
         """Test direct dataset download."""
         # Mock HTTP response
         mock_response = Mock()
@@ -304,7 +304,7 @@ class TestAccessAcquisitionManager:
         assert sample_source.source_type in str(organized_path)
         assert str(datetime.now(UTC).year) in str(organized_path)
 
-    def test_download_progress_tracking(self, _manager, sample_source):
+    def test_download_progress_tracking(self, sample_source):
         """Test download progress tracking."""
         progress = DownloadProgress(
             source_id=sample_source.source_id,
@@ -321,7 +321,7 @@ class TestAccessAcquisitionManager:
         progress.update(1024, total_bytes=1024)
         assert progress.status == "completed"
 
-    def test_download_progress_error(self, _manager, sample_source):
+    def test_download_progress_error(self, sample_source):
         """Test download progress error handling."""
         progress = DownloadProgress(
             source_id=sample_source.source_id,

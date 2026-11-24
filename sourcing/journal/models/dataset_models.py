@@ -201,6 +201,7 @@ class TransformationSpec:
     input_format: str
     output_format: str
     transformation_logic: str
+    validation_rules: list[str] = field(default_factory=list)
 
     VALID_TYPES = ["format_conversion", "field_mapping", "cleaning", "validation"]
 

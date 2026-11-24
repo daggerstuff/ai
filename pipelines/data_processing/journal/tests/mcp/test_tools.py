@@ -79,7 +79,7 @@ class _EvaluationServiceStub:
     def initiate_evaluation(
         self,
         session_id: str,
-        _source_ids: list[str] | None = None,
+        source_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         return {"session_id": session_id, "evaluations": self.evaluations}
 
@@ -110,7 +110,7 @@ class _IntegrationServiceStub:
     def initiate_integration(
         self,
         session_id: str,
-        _source_ids: list[str] | None = None,
+        source_ids: list[str] | None = None,
         target_format: str = "chatml",
     ) -> dict[str, Any]:
         return {

@@ -14,7 +14,7 @@ from ai.sourcing.journal.api.dependencies import (
     get_training_pipeline_service,
     require_permission_dependency,
 )
-from ai.sourcing.journal.api.models.responses import ErrorResponse
+from ai.sourcing.journal.api.models.common import ErrorResponse
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )

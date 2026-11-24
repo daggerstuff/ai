@@ -205,7 +205,6 @@ class TestReportGeneration:
         )
 
         report_path = generator.generate_weekly_report(
-            session=sample_research_session,
             progress=progress,
             week_number=1,
         )

@@ -369,7 +369,7 @@ class TestResearchOrchestrator:
         assert elapsed >= 0.3
         assert len(state.sources) == len(sample_sources)
 
-    def test_fallback_strategy_for_discovery_failure(self, _sample_sources):
+    def test_fallback_strategy_for_discovery_failure(self):
         class FailingDiscoveryService:
             def discover_sources(self, _session):
                 raise RuntimeError("Discovery service unavailable")
@@ -404,7 +404,7 @@ class TestResearchOrchestrator:
         ]
         assert len(fallback_activities) > 0
 
-    def test_fallback_disabled_raises_on_discovery_failure(self, _sample_sources):
+    def test_fallback_disabled_raises_on_discovery_failure(self):
         class FailingDiscoveryService:
             def discover_sources(self, _session):
                 raise RuntimeError("Discovery service unavailable")

@@ -310,7 +310,7 @@ class ResearchLogger:
                 return  # Don't check age if we just rotated
 
             # Check file age
-            file_age = datetime.now(UTC) - datetime.fromtimestamp(self._current_log_file.stat().st_mtime)
+            file_age = datetime.now(UTC) - datetime.fromtimestamp(self._current_log_file.stat().st_mtime, UTC)
             if file_age.days >= self.rotation_interval_days:
                 self._rotate_log()
         except (OSError, AttributeError) as e:

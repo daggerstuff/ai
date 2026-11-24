@@ -320,10 +320,12 @@ class PipelineCoordinator:
         # Initialize core services
         self.event_bus = EventBus(redis_client, self.config.get("event_bus", {}))
         self.state_manager = StateManager(redis_client, self.config.get("state_manager", {}))
-        self.progress_tracker = ProgressTracker(redis_client, self.config.get("progress_tracker", {}))
+        self.progress_tracker = ProgressTracker(
+            redis_client, self.event_bus, self.state_manager, self.config.get("progress_tracker", {})
+        )
         self.error_recovery = ErrorRecoveryManager(self.config.get("error_recovery", {}))
         self.bias_integration = BiasDetectionIntegration(self.config.get("bias_detection", {}))
-        self.performance_monitor = PerformanceMonitor(self.config.get("performance_monitor", {}))
+        self.performance_monitor = PerformanceMonitor(redis_client, self.config.get("performance_monitor", {}))
 
         # Initialize stage coordinators
         self.stage_coordinators = self._initialize_stage_coordinators()
@@ -497,10 +499,10 @@ class PipelineCoordinator:
                 # Attempt recovery if possible
                 recovery_result = await self.error_recovery.attempt_stage_recovery(context, stage_name, e)
 
-                if recovery_result["recovered"]:
+                if recovery_result.recovered:
                     # Use recovered result
-                    stage_results[stage_name] = recovery_result["result"]
-                    context.stage_results[stage_name] = recovery_result["result"]
+                    stage_results[stage_name] = recovery_result.result_data
+                    context.stage_results[stage_name] = recovery_result.result_data
                 else:
                     # Re-raise if not recoverable
                     raise

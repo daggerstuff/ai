@@ -573,7 +573,7 @@ class ErrorRecoveryManager:
         """Publish recovery event for monitoring and alerting."""
         try:
             event = EventMessage(
-                event_type=EventType.RECOVERY_ATTEMPT.value,
+                event_type=EventType.RECOVERY_INITIATED.value,
                 execution_id=context.execution_id,
                 stage=stage_name,
                 payload={

@@ -168,7 +168,6 @@ class ReportGenerator:
     def generate_weekly_report(
         self,
         weekly_report: WeeklyReport | None = None,
-        _session: ResearchSession | None = None,
         progress: dict | None = None,
         week_number: int | None = None,
         output_path: Path | None = None,
@@ -178,7 +177,6 @@ class ReportGenerator:
 
         Args:
             weekly_report: WeeklyReport data (optional)
-            session: ResearchSession (optional, used if weekly_report not provided)
             progress: Progress metrics dict (optional, used if weekly_report not provided)
             week_number: Week number (optional, used if weekly_report not provided)
             output_path: Optional output path (auto-generated if not provided)

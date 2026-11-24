@@ -31,36 +31,79 @@ from ai.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.api.techdeck_integration.utils.validation import sanitize_input
 
 
+def make_redis_mock() -> Mock:
+    """Build a RedisClient mock backed by an in-memory store.
+
+    The state manager persists through ``setex`` and reads back through
+    ``get``, so a bare ``Mock`` reports every pipeline state as missing.
+    """
+    store: dict[str, str] = {}
+    client = Mock(spec=RedisClient)
+    client.publish_message = Mock(return_value=1)
+
+    async def _setex(key: str, _ttl: int, value: str) -> bool:
+        store[key] = value
+        return True
+
+    async def _set(key: str, value: str) -> bool:
+        store[key] = value
+        return True
+
+    async def _get(key: str) -> str | None:
+        return store.get(key)
+
+    async def _delete(key: str) -> int:
+        return 1 if store.pop(key, None) is not None else 0
+
+    async def _keys(_pattern: str = "*") -> list[str]:
+        return list(store)
+
+    client.setex = AsyncMock(side_effect=_setex)
+    client.set = AsyncMock(side_effect=_set)
+    client.get = AsyncMock(side_effect=_get)
+    client.delete = AsyncMock(side_effect=_delete)
+    client.keys = AsyncMock(side_effect=_keys)
+    client.expire = AsyncMock(return_value=True)
+    client.hget = AsyncMock(return_value=None)
+    client.hset = AsyncMock(return_value=1)
+    client.hgetall = AsyncMock(return_value={})
+    client.lpush = AsyncMock(return_value=1)
+    client.lrange = AsyncMock(return_value=[])
+    client.subscribe = AsyncMock()
+    client.unsubscribe = AsyncMock()
+    return client
+
+
+
 class TestEventBus:
     """Test cases for EventBus functionality."""
 
     @pytest.fixture
     async def event_bus(self):
         """Create EventBus instance for testing."""
-        redis_client = Mock(spec=RedisClient)
-        redis_client.publish = AsyncMock(return_value=1)
+        redis_client = make_redis_mock()
         redis_client.subscribe = AsyncMock()
         redis_client.unsubscribe = AsyncMock()
 
         config = {"connection_pool": {"max_connections": 10}, "event_ttl": 3600, "guaranteed_delivery": True}
 
-        event_bus = EventBus(redis_client, config)
-        yield event_bus
-
-        # Cleanup
-        await event_bus.shutdown()
+        return EventBus(redis_client, config)
 
     @pytest.mark.asyncio
     async def test_event_publishing(self, event_bus):
         """Test basic event publishing functionality."""
-        event = await event_bus.create_event(
-            event_type=EventType.REQUEST_INITIATED.value, execution_id="test_execution_123", payload={"test": "data"}
+        event = EventMessage(
+            event_type=EventType.REQUEST_INITIATED.value,
+            execution_id="test_execution_123",
+            payload={"test": "data"},
+            timestamp=datetime.now(UTC).isoformat(),
+            source="test",
         )
 
         result = await event_bus.publish_event(event)
 
         assert result is True
-        event_bus.redis_client.publish.assert_called_once()
+        event_bus.redis_client.publish_message.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_event_subscribing(self, event_bus):
@@ -104,7 +147,7 @@ class TestEventBus:
 
         assert result is True
         # Check that publish was called with sanitized data
-        call_args = event_bus.redis_client.publish.call_args
+        call_args = event_bus.redis_client.publish_message.call_args
         published_data = json.loads(call_args[0][1])
 
         # Verify HIPAA compliance - no sensitive data in logs
@@ -117,10 +160,7 @@ class TestPipelineCoordinator:
     @pytest.fixture
     async def coordinator(self):
         """Create PipelineCoordinator instance for testing."""
-        redis_client = Mock(spec=RedisClient)
-        redis_client.get = AsyncMock(return_value=None)
-        redis_client.setex = AsyncMock(return_value=True)
-        redis_client.keys = AsyncMock(return_value=[])
+        redis_client = make_redis_mock()
 
         config = {
             "state_manager": {"state_ttl_seconds": 3600},
@@ -199,8 +239,7 @@ class TestPerformanceRequirements:
     @pytest.mark.asyncio
     async def test_event_bus_performance(self):
         """Test event bus operations complete within 50ms."""
-        redis_client = Mock(spec=RedisClient)
-        redis_client.publish = AsyncMock(return_value=1)
+        redis_client = make_redis_mock()
 
         event_bus = EventBus(redis_client)
 
@@ -237,7 +276,7 @@ class TestPerformanceRequirements:
     @pytest.mark.asyncio
     async def test_state_update_performance(self):
         """Test state update operations complete within 50ms."""
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.setex = AsyncMock(return_value=True)
         redis_client.get = AsyncMock(return_value=None)
 
@@ -272,7 +311,7 @@ class TestHIPAACompliance:
     @pytest.mark.asyncio
     async def test_data_sanitization(self):
         """Test that sensitive data is properly sanitized."""
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.setex = AsyncMock(return_value=True)
 
         event_bus = EventBus(redis_client)
@@ -302,7 +341,7 @@ class TestHIPAACompliance:
     @pytest.mark.asyncio
     async def test_audit_trail_compliance(self):
         """Test audit trail generation for compliance."""
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.setex = AsyncMock(return_value=True)
         redis_client.get = AsyncMock(return_value=None)
 
@@ -337,7 +376,7 @@ class TestHIPAACompliance:
         """Test that encryption is applied to sensitive data."""
         # This would test actual encryption in a real implementation
         # For now, we verify the encryption flag is set
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.setex = AsyncMock(return_value=True)
 
         state_manager = StateManager(redis_client, {"encryption_enabled": True})
@@ -493,7 +532,7 @@ class TestPerformanceMonitoring:
     @pytest.fixture
     async def performance_monitor(self):
         """Create PerformanceMonitor instance for testing."""
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.setex = AsyncMock(return_value=True)
         redis_client.keys = AsyncMock(return_value=[])
 
@@ -562,11 +601,11 @@ class TestIntegrationScenarios:
     async def test_complete_pipeline_flow(self):
         """Test complete pipeline flow with all components."""
         # Mock Redis client
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.get = AsyncMock(return_value=None)
         redis_client.setex = AsyncMock(return_value=True)
         redis_client.keys = AsyncMock(return_value=[])
-        redis_client.publish = AsyncMock(return_value=1)
+        redis_client.publish_message = Mock(return_value=1)
 
         # Initialize all components
         event_bus = EventBus(redis_client)
@@ -617,7 +656,7 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_concurrent_pipeline_executions(self):
         """Test multiple concurrent pipeline executions."""
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.get = AsyncMock(return_value=None)
         redis_client.setex = AsyncMock(return_value=True)
         redis_client.keys = AsyncMock(return_value=[])
@@ -655,7 +694,7 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_error_propagation_and_recovery(self):
         """Test error propagation and recovery across components."""
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.get = AsyncMock(return_value=None)
         redis_client.setex = AsyncMock(return_value=True)
         redis_client.keys = AsyncMock(return_value=[])
@@ -710,7 +749,7 @@ class TestSecurityAndCompliance:
         # This would test actual rate limiting in a real implementation
         # For now, we verify the rate limiting configuration exists
 
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
 
         # Verify rate limiting is configured
 
@@ -724,15 +763,15 @@ class TestSecurityAndCompliance:
             event_type=EventType.REQUEST_INITIATED.value,
             execution_id="rate_limit_test",
             payload={"test": "data"},
-            metadata={"timestamp": datetime.now(UTC).isoformat()},
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
-        assert "timestamp" in event.metadata
+        assert event.timestamp
 
     @pytest.mark.asyncio
     async def test_audit_logging_compliance(self):
         """Test audit logging compliance with HIPAA requirements."""
-        redis_client = Mock(spec=RedisClient)
+        redis_client = make_redis_mock()
         redis_client.setex = AsyncMock(return_value=True)
         redis_client.get = AsyncMock(return_value=None)
 
@@ -771,11 +810,11 @@ class TestSecurityAndCompliance:
 @pytest.mark.asyncio
 async def test_pipeline_stress_scenario():
     """Stress test the pipeline with high load."""
-    redis_client = Mock(spec=RedisClient)
+    redis_client = make_redis_mock()
     redis_client.get = AsyncMock(return_value=None)
     redis_client.setex = AsyncMock(return_value=True)
     redis_client.keys = AsyncMock(return_value=[])
-    redis_client.publish = AsyncMock(return_value=1)
+    redis_client.publish_message = Mock(return_value=1)
 
     coordinator = PipelineCoordinator(redis_client)
 

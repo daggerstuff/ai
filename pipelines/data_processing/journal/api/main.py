@@ -20,7 +20,7 @@ from ai.pipelines.data_processing.journal.api.middleware.error_handler import (
 from ai.pipelines.data_processing.journal.api.middleware.logging import LoggingMiddleware
 from ai.pipelines.data_processing.journal.api.middleware.rate_limit import RateLimitMiddleware
 from ai.pipelines.data_processing.journal.api.routers import api_router
-from ai.pipelines.data_processing.journal.api.websocket import websocket_router
+from ai.pipelines.data_processing.journal.api.websocket.routes import router as websocket_router
 
 # Configure logging
 logging.basicConfig(

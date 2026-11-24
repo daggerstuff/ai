@@ -60,6 +60,8 @@ def mock_redis_client():
     client.lpush = AsyncMock(return_value=1)
     client.lrange = AsyncMock(return_value=[])
     client.expire = AsyncMock(return_value=True)
+    client.publish_message = Mock(return_value=1)
+    client.subscribe_to_channel = Mock(return_value=None)
 
     return client
 

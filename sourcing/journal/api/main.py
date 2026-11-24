@@ -20,7 +20,7 @@ from ai.sourcing.journal.api.middleware.error_handler import (
 from ai.sourcing.journal.api.middleware.logging import LoggingMiddleware
 from ai.sourcing.journal.api.middleware.rate_limit import RateLimitMiddleware
 from ai.sourcing.journal.api.routers import api_router
-from ai.sourcing.journal.api.websocket import websocket_router
+from ai.sourcing.journal.api.websocket.routes import router as websocket_router
 
 # Configure logging
 logging.basicConfig(
