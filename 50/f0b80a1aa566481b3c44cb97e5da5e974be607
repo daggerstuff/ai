@@ -1,0 +1,26 @@
+api/techdeck_integration/communication/event_bus.py
+  s_7d4811cf1b0ba7::t_eb88039d8af20e 232-233
+inference/api/techdeck_integration/communication/event_bus.py
+  s_7d4811cf1b0ba7::t_eb88039d8af20e 232-233
+compliance/test_compliance_validation_system.py
+  s_7d4811cf1b0ba7::t_ca72bc370c5d26 57,59
+  s_7d4811cf1b0ba7::t_f6b559959b4db2 1,3,7-11,14-16,19-27,30-32,34-37,39-40,43-45,47-51,54-56,58,60-61,64-68
+compliance/compliance_validation_system.py
+  s_7d4811cf1b0ba7::t_739140c998e68a 605-609
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "50f0b80a1aa566481b3c44cb97e5da5e974be607",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
