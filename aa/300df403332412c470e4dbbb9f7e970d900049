@@ -1,0 +1,21 @@
+research/experiments/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_19acfd112bdbff 273
+  s_7d4811cf1b0ba7::t_09ec94d3aa0d8f 217
+  s_7d4811cf1b0ba7::t_5d7d848d95b9a3 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aa300df403332412c470e4dbbb9f7e970d900049",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
