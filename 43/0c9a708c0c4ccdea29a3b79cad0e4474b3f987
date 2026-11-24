@@ -1,0 +1,43 @@
+research/experiments/tests/test_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_df920851b215dc 1,5-62
+tests/test_ccd_integration.py
+  s_7d4811cf1b0ba7::t_14fa7846fd2ee4 298-301,414-417,420
+lab/tests/api_tests/test_api_comprehensive.py
+  s_7d4811cf1b0ba7::t_97d5877d8cf7ae 108-123
+qa/testing/legacy_tests/pkg_mera/test_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_df920851b215dc 1-62
+tests/test_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_df920851b215dc 1,5-62
+lab/tests/test_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_97d5877d8cf7ae 1,5-62
+lab/tests/integration/test_full_system_validation.py
+  s_7d4811cf1b0ba7::t_97d5877d8cf7ae 508-522
+lab/tests/api/test_api_comprehensive.py
+  s_7d4811cf1b0ba7::t_97d5877d8cf7ae 28-43
+lab/tests/test_therapeutic_response_generator.py
+  s_7d4811cf1b0ba7::t_97d5877d8cf7ae 43
+tests/integration/test_full_system_validation.py
+  s_7d4811cf1b0ba7::t_053f631ac7e588 30-41,520-523
+tools/utilities/pipelines/processing/pii_scrubber.py
+  s_7d4811cf1b0ba7::t_9fb51131940d49 13,56-58,137-149,164-166,222,287,290,296-301,304-309
+lab/tests/test_clinical_accuracy_validator.py
+  s_7d4811cf1b0ba7::t_97d5877d8cf7ae 43
+uv.lock
+  s_7d4811cf1b0ba7::t_41453aad59ea84 5336-5356
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "430c9a708c0c4ccdea29a3b79cad0e4474b3f987",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
