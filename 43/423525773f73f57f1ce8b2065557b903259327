@@ -1,0 +1,21 @@
+infrastructure/distributed/auto_resume_engine.py
+  s_7d4811cf1b0ba7::t_b3f5e385a8f41f 20
+infrastructure/distributed/checkpoint_utils.py
+  s_7d4811cf1b0ba7::t_b3f5e385a8f41f 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "43423525773f73f57f1ce8b2065557b903259327",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
