@@ -1,0 +1,28 @@
+memory/reverie_types.py
+  s_7d4811cf1b0ba7::t_0d6a367def2f03 2-10,12,15-146,148-150,152-155
+  s_7d4811cf1b0ba7::t_cd13d664dd5822 1
+tests/dataset_pipeline/processing/test_data_augmentation.py
+  s_7d4811cf1b0ba7::t_f7748761e6c3ef 51
+research/experiments/tests/dataset_pipeline/processing/test_data_augmentation.py
+  s_7d4811cf1b0ba7::t_f7748761e6c3ef 51
+qa/testing/legacy_tests/dataset_pipeline/processing/test_data_augmentation.py
+  s_7d4811cf1b0ba7::t_f7748761e6c3ef 51
+lab/tests/dataset_pipeline/processing/test_data_augmentation.py
+  s_7d4811cf1b0ba7::t_f7748761e6c3ef 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2000d1684c5babc77a6501d02a102abbb5bb89f7",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
