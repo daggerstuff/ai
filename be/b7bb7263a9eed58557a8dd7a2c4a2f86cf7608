@@ -1,0 +1,133 @@
+memory/local_foresight_query_executor.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/reverie/latent_surfacer.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/therapeutic_concept_hierarchy.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/letta_code_client.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/emotion_classifier.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_memory_update.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/base.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/reflection_bootstrap.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_memory_record_service.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/local_foresight_protocol_adapter.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/local_foresight_manager.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/consolidation/rules.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/reflection_response_parser.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/foresight_gemini/memory_ingestion_config.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_document_service.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/letta_tool_permissions.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/foresight_nvidia/memory_ingestion_config.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/memory_sync_service.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/reflection/reflexion.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/unified_client.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/letta_crisis_handler.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/null_memory.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/dream_memory_store.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/reverie/soft_injector.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/reverie_types.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/dream_manager.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/foresight_provider.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_query_builders.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/letta_provider.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/dual_storage_provider.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/letta_pii_middleware.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/hierarchy_aware_memory.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_search.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10-12
+memory/local_memory_adapter.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/local_memory_compat_mixin.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/consolidation/forgetting.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_repository.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/foresight_local_domain.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/local_memory_domain.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/foresight_nvidia/rate_limiter.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/nvidia_llm_callback.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_memory_query_service.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/foresight_local_adapter.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_document_store.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/reflection_memory.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/reflection_types.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/consolidation_rules.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/local_foresight_db.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/local_foresight_schema.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/local_foresight_queries.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/local_memory_settings.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/letta_client.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/reflection/action_pipeline.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/reflection_memory_mapper.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/reflection_subagent.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/hierarchical_contrastive_learning.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+memory/manager_factory.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-6,8,10,12
+memory/consolidation/dedup.py
+  s_7d4811cf1b0ba7::t_8f4e65a7f51319 1,3-5,8,10,12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "beb7bb7263a9eed58557a8dd7a2c4a2f86cf7608",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
