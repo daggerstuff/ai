@@ -4,6 +4,7 @@ Quality Validation Result Analysis System
 Analyzes quality validation results and provides detailed insights
 """
 
+import importlib
 import json
 import sqlite3
 import warnings
@@ -12,9 +13,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 
 try:
     from .linear_backlog_action_builder import (
@@ -370,6 +369,9 @@ class QualityValidationAnalyzer:
         try:
             if not analyses:
                 return viz_files
+
+            plt = importlib.import_module("matplotlib.pyplot")
+            sns = importlib.import_module("seaborn")
 
             # Set style
             plt.style.use("default")

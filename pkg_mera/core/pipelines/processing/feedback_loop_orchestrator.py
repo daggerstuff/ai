@@ -1,40 +1,12 @@
-"""Feedback loop coordination used by production training pipelines."""
+"""Compatibility alias for the live implementation.
 
-from __future__ import annotations
+``ai.pkg_mera`` exists to keep legacy import paths working; this module
+delegates to ai.tools.utilities.pipelines.processing.feedback_loop_orchestrator so there is one
+implementation and one module identity behind both paths.
+"""
 
-from dataclasses import dataclass
-from datetime import UTC, datetime
+import sys
 
+from ai.tools.utilities.pipelines.processing import feedback_loop_orchestrator as _impl
 
-@dataclass
-class FeedbackEvent:
-    name: str
-    payload: dict
-    created_at: str
-
-
-class FeedbackLoopOrchestrator:
-    """Small helper for collecting and replaying feedback artifacts."""
-
-    def __init__(self) -> None:
-        self._events: list[FeedbackEvent] = []
-
-    def record(self, name: str, payload: dict) -> None:
-        self._events.append(
-            FeedbackEvent(
-                name=name,
-                payload=payload,
-                created_at=datetime.now(tz=UTC).isoformat(),
-            )
-        )
-
-    def snapshot(self) -> list[FeedbackEvent]:
-        """Return a copy of current feedback events."""
-
-        return list(self._events)
-
-    def clear(self) -> None:
-        self._events.clear()
-
-
-__all__ = ["FeedbackEvent", "FeedbackLoopOrchestrator"]
+sys.modules[__name__] = _impl

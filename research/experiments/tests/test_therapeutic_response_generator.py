@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.tools.utilities.pipelines.therapeutic_response_generator import (
+    from ai.pkg_mera.core.pipelines.therapeutic_response_generator import (
         TherapeuticResponseGenerator,
     )
 except ImportError:
@@ -21,7 +21,7 @@ except ImportError:
         )
     except ImportError:
         try:
-            from ai.tools.utilities.pipelines.therapeutic_response_generator import (
+            from ai.inference.therapeutic_response_generator import (
                 TherapeuticResponseGenerator,
             )
         except ImportError:
@@ -40,7 +40,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.module = TherapeuticResponseGenerator()
-        self.test_data = {"test": "data"}
+        self.test_data = {"text": "I have been feeling overwhelmed at work."}
 
     def test_initialization(self):
         """Test module initialization."""

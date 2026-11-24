@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -133,7 +134,7 @@ class AnalyticsDashboard:
 
         aggregate = self._aggregate_numeric_fields(all_records)
         summary = ReportSummary(
-            report_id=f"rpt-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}",
+            report_id=f"rpt-{uuid.uuid4().hex[:12]}",
             metric_type="all",
             time_period=time_period,
             created_at=datetime.now(UTC).isoformat(),

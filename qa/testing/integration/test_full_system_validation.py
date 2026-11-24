@@ -27,6 +27,18 @@ sys.path.insert(0, str(project_root))
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+def _api_reachable() -> bool:
+    """Return True when the API under test answers on its base URL."""
+
+    base_url = os.getenv("PIXELATED_API_BASE_URL", "http://localhost:8000")
+    try:
+        httpx.get(f"{base_url}/health", timeout=1)
+    except httpx.HTTPError:
+        return False
+    return True
+
+
 # Test configuration
 DATASET_SIZE_TARGET = 4_200_000  # 4.2M conversations
 TEST_BATCH_SIZE = 10000
@@ -505,6 +517,10 @@ class FullSystemValidator:
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(
+    not _api_reachable(),
+    reason="integration suite: needs a running API server (PIXELATED_API_BASE_URL)",
+)
 async def test_full_system_validation():
     """Main test function for full system validation."""
     validator = FullSystemValidator()

@@ -40,22 +40,16 @@ class TestDataAugmentation(unittest.TestCase):
         assert augmented != text or "difficult" in augmented or "challenging" in augmented
 
     def test_noise_injection(self) -> None:
-        """Test injection of filler words and spelling variations."""
+        """Injection inserts a filler word and punctuation on a landed roll."""
         text = "I am a therapist. I want to help you."
+        self.augmenter.random = lambda: 0.0
 
-        # Since noise injection has a 0.3 random chance per pattern,
-        # we try a few times to ensure we catch an augmentation
-        for _ in range(10):
-            augmented = self.augmenter.inject_noise(text)
-            if augmented != text:
-                break
+        augmented = self.augmenter.inject_noise(text)
 
-        assert text != augmented, "Noise injection should have changed the text in 10 attempts"
-
-        # Check for expected noise patterns if possible
+        assert augmented != text
         lowered = augmented.lower()
-        has_noise = any(noise in lowered for noise in ["um", "uh", "you know", "like", "therapyst"])
-        assert has_noise or any(punc in augmented for punc in ["...", "!", "?"])
+        assert any(noise in lowered for noise in ["um", "uh", "you know", "like", "therapyst"])
+        assert "..." in augmented
 
     def test_safety_guardrails_preservation(self) -> None:
         """Test that critical crisis keywords are preserved during augmentation."""

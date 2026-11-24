@@ -1,29 +1,12 @@
-"""Minimal production-minded Youtube processor wrapper."""
+"""Compatibility alias for the live implementation.
 
-from __future__ import annotations
+``ai.pkg_mera`` exists to keep legacy import paths working; this module
+delegates to ai.tools.utilities.pipelines.youtube_processor so there is one
+implementation and one module identity behind both paths.
+"""
 
-from typing import Any
+import sys
 
-from .youtube_rag_system import YouTubeRAGSystem
+from ai.tools.utilities.pipelines import youtube_processor as _impl
 
-
-class YoutubeProcessor:
-    """Process YouTube-derived payloads through a small RAG + formatting flow."""
-
-    def __init__(self, rag_system: YouTubeRAGSystem | None = None) -> None:
-        self.rag_system = rag_system or YouTubeRAGSystem()
-
-    def process(self, payload: dict[str, Any]) -> dict[str, Any]:
-        if not isinstance(payload, dict):
-            raise TypeError("payload must be a dict")
-
-        query = payload.get("query") or payload.get("text") or ""
-        response = self.rag_system.answer(str(query))
-        return {
-            "status": "ok",
-            "query": str(query),
-            "response": response,
-        }
-
-
-__all__ = ["YoutubeProcessor"]
+sys.modules[__name__] = _impl

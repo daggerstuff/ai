@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.tools.utilities.pipelines.clinical_accuracy_validator import (
+    from ai.pkg_mera.core.pipelines.clinical_accuracy_validator import (
         ClinicalAccuracyValidator,
     )
 except ImportError:
@@ -21,7 +21,7 @@ except ImportError:
         )
     except ImportError:
         try:
-            from ai.tools.utilities.pipelines.clinical_accuracy_validator import (
+            from ai.inference.clinical_accuracy_validator import (
                 ClinicalAccuracyValidator,
             )
         except ImportError:
@@ -40,7 +40,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.module = ClinicalAccuracyValidator()
-        self.test_data = {"test": "data"}
+        self.test_data = {"text": "I have been feeling overwhelmed at work."}
 
     def test_initialization(self):
         """Test module initialization."""

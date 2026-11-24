@@ -1,39 +1,12 @@
-"""Tokenization helpers for ChatML records."""
+"""Compatibility alias for the live implementation.
 
-from __future__ import annotations
+``ai.pkg_mera`` exists to keep legacy import paths working; this module
+delegates to ai.tools.utilities.pipelines.processing.chatml_tokenizer so there is one
+implementation and one module identity behind both paths.
+"""
 
-from dataclasses import dataclass
-from typing import Any
+import sys
 
+from ai.tools.utilities.pipelines.processing import chatml_tokenizer as _impl
 
-@dataclass
-class TokenizedRecord:
-    tokens: list[str]
-    char_count: int
-    record: dict[str, Any]
-
-
-def tokenize_dataset(records: list[dict[str, Any]], *, tokeniser: Any | None = None) -> list[TokenizedRecord]:
-    """Tokenize converted ChatML records.
-
-    This is intentionally lightweight and safe to run without optional tokenizer
-    dependencies. If a tokenizer is provided it is used as-is; otherwise a simple
-    whitespace tokenizer is applied.
-    """
-
-    output: list[TokenizedRecord] = []
-
-    for record in records:
-        text_chunks = [
-            str(part.get("content", "")) for part in record.get("chatml_messages", []) if isinstance(part, dict)
-        ]
-        text = "\n".join(text_chunks)
-
-        tokens = list(tokeniser(text)) if tokeniser is not None and callable(tokeniser) else text.split()
-
-        output.append(TokenizedRecord(tokens=tokens, char_count=len(text), record=record))
-
-    return output
-
-
-__all__ = ["TokenizedRecord", "tokenize_dataset"]
+sys.modules[__name__] = _impl

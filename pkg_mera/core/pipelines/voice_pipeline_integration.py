@@ -1,39 +1,12 @@
-"""Voice pipeline integration façade."""
+"""Compatibility alias for the live implementation.
 
-from __future__ import annotations
+``ai.pkg_mera`` exists to keep legacy import paths working; this module
+delegates to ai.tools.utilities.pipelines.voice_pipeline_integration so there is one
+implementation and one module identity behind both paths.
+"""
 
-from dataclasses import dataclass
-from typing import Any
+import sys
 
-from .processing.transcript_ingestor import TranscriptIngestor
+from ai.tools.utilities.pipelines import voice_pipeline_integration as _impl
 
-
-@dataclass
-class VoicePipelineResult:
-    success: bool
-    transcript: str
-    metadata: dict[str, Any]
-
-
-class VoicePipelineIntegration:
-    """Integrate STT + cleaning + quality checks in a single flow."""
-
-    def __init__(self, ingestor: TranscriptIngestor | None = None) -> None:
-        self.ingestor = ingestor or TranscriptIngestor()
-
-    def process(self, audio_path: str, *, strict: bool = True) -> VoicePipelineResult:
-        result = self.ingestor.process_audio(audio_path)
-        if not result.success:
-            return VoicePipelineResult(False, "", {"error": result.error_message})
-
-        transcript = str(result.full_text)
-        if strict and not transcript.strip():
-            return VoicePipelineResult(False, transcript, {"error": "empty_transcript"})
-
-        return VoicePipelineResult(True, transcript, {"char_count": len(transcript), "audio_path": audio_path})
-
-    def process_batch(self, audio_paths: list[str], *, strict: bool = True) -> list[VoicePipelineResult]:
-        return [self.process(path, strict=strict) for path in audio_paths]
-
-
-__all__ = ["VoicePipelineIntegration", "VoicePipelineResult"]
+sys.modules[__name__] = _impl

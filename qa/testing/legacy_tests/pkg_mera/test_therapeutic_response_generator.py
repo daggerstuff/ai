@@ -9,36 +9,10 @@ from unittest.mock import patch
 
 import pytest
 
-# Import the module being tested
-try:
-    from ai.tools.utilities.pipelines.therapeutic_response_generator import (
-        TherapeuticResponseGenerator,
-    )
-except ImportError:
-    try:
-        from ai.models.pixel_core.validation.therapeutic_response_generator import (
-            TherapeuticResponseGenerator,
-        )
-    except ImportError:
-        try:
-            from ai.tools.utilities.pipelines.therapeutic_response_generator import (
-                TherapeuticResponseGenerator,
-            )
-        except ImportError:
-            try:
-                from core.pipelines.therapeutic_response_generator import (
-                    TherapeuticResponseGenerator,
-                )
-            except ImportError:
-                # Create a mock class for testing
-                class TherapeuticResponseGenerator:
-                    def __init__(self):
-                        pass
-
-                    def process(self, data):
-                        if data is None:
-                            raise ValueError("Input cannot be None")
-                        return data
+from ai.tools.utilities.pipelines.therapeutic_response_generator import (
+    ResponsePackage,
+    TherapeuticResponseGenerator,
+)
 
 
 class TestTherapeuticResponseGenerator(unittest.TestCase):
@@ -54,9 +28,11 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         assert self.module is not None
 
     def test_basic_functionality(self):
-        """Test basic module functionality."""
+        """The generator returns a composed response package."""
         result = self.module.process(self.test_data)
-        assert result is not None
+        assert isinstance(result, ResponsePackage)
+        assert result.response
+        assert result.crisis_action
 
     def test_error_handling(self):
         """Test error handling."""

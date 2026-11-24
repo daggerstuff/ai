@@ -1,21 +1,12 @@
-"""Processing quality validator compatibility shim with production defaults."""
+"""Compatibility alias for the live implementation.
 
-from __future__ import annotations
+``ai.pkg_mera`` exists to keep legacy import paths working; this module
+delegates to ai.tools.utilities.pipelines.processing.quality_validator so there is one
+implementation and one module identity behind both paths.
+"""
 
-from typing import Any
+import sys
 
-from ai.pkg_mera.core.pipelines.quality.quality_validator import (
-    QualityResult,
-    QualityValidator as _CoreQualityValidator,
-)
+from ai.tools.utilities.pipelines.processing import quality_validator as _impl
 
-
-class QualityValidator(_CoreQualityValidator):
-    """Adapter around the canonical :mod:`ai.pkg_mera.core.pipelines.quality.quality_validator`."""
-
-    def __init__(self, config: dict[str, Any] | None = None) -> None:
-        # Keep compatibility with legacy constructor style that accepted no arguments.
-        super().__init__(config=config)
-
-
-__all__ = ["QualityResult", "QualityValidator"]
+sys.modules[__name__] = _impl

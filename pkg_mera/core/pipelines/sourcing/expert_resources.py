@@ -1,33 +1,12 @@
-"""Expert resource metadata accessors."""
+"""Compatibility alias for the live implementation.
 
-from __future__ import annotations
+``ai.pkg_mera`` exists to keep legacy import paths working; this module
+delegates to ai.tools.utilities.pipelines.sourcing.expert_resources so there is one
+implementation and one module identity behind both paths.
+"""
 
-from dataclasses import dataclass
-from typing import Any
+import sys
 
+from ai.tools.utilities.pipelines.sourcing import expert_resources as _impl
 
-@dataclass
-class Expert:
-    name: str
-    specialties: list[str]
-    contact: str | None = None
-
-
-class ExpertResources:
-    """Lookup static and user-defined expert resources."""
-
-    def __init__(self, catalog: list[Expert] | None = None) -> None:
-        self.catalog = catalog or []
-
-    def register(self, expert: Expert) -> None:
-        self.catalog.append(expert)
-
-    def find_by_specialty(self, specialty: str) -> list[Expert]:
-        query = specialty.lower()
-        return [e for e in self.catalog if any(query == s.lower() for s in e.specialties)]
-
-    def to_records(self) -> list[dict[str, Any]]:
-        return [e.__dict__ for e in self.catalog]
-
-
-__all__ = ["Expert", "ExpertResources"]
+sys.modules[__name__] = _impl
