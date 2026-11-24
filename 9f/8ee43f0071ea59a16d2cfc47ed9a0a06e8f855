@@ -1,0 +1,19 @@
+research/experiments/test_defense_endpoint.py
+  s_7d4811cf1b0ba7::t_5f7905ba432812 1-2,6-7,10,16,18-34,36-40,42,44-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9f8ee43f0071ea59a16d2cfc47ed9a0a06e8f855",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
