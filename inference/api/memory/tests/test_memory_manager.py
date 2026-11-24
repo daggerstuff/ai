@@ -23,6 +23,22 @@ def fake_client():
     return client
 
 
+@pytest.fixture(autouse=True)
+def local_memory_store(tmp_path):
+    """Point the local dream memory store at a temporary database."""
+    db_path = str(tmp_path / "memory.db")
+    with patch.dict(
+        "os.environ",
+        {
+            "FORESIGHT_LOCAL_DB_PATH": db_path,
+            "HINDSIGHT_LOCAL_DB_PATH": db_path,
+            "MEMORY_PROVIDER": "local",
+        },
+        clear=False,
+    ):
+        yield
+
+
 @pytest.fixture
 def memory_manager(fake_client):
     """MemoryManager instance with a fake client and no MongoDB."""

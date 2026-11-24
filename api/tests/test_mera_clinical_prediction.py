@@ -15,22 +15,28 @@ sys.modules["pixel.models.pixel_base_model"] = _PIXEL_BASE_MOD
 sys.modules["pixel.models"] = types.ModuleType("pixel.models")
 sys.modules["pixel"] = types.ModuleType("pixel")
 
-# Mock inference_wrapper
 _inference_wrapper = types.ModuleType("inference_wrapper")
 _inference_wrapper.DEFAULT_LATENCY_BUDGET_SECONDS = 30.0
 _inference_wrapper.JsonLeakageError = Exception
 _inference_wrapper.LatencyExceededError = Exception
 _inference_wrapper.SelectionParseError = Exception
 _inference_wrapper.PalInferenceWrapper = object
-sys.modules["inference_wrapper"] = _inference_wrapper
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from ai.api.pixel_inference_service import (
-    ClinicalPredictionRequest,
-    ClinicalPredictionResponse,
-    MeraClinicalPredictionEngine,
-)
+_saved_inference_wrapper = sys.modules.get("inference_wrapper")
+sys.modules["inference_wrapper"] = _inference_wrapper
+try:
+    from ai.api.pixel_inference_service import (
+        ClinicalPredictionRequest,
+        ClinicalPredictionResponse,
+        MeraClinicalPredictionEngine,
+    )
+finally:
+    if _saved_inference_wrapper is None:
+        sys.modules.pop("inference_wrapper", None)
+    else:
+        sys.modules["inference_wrapper"] = _saved_inference_wrapper
 
 
 class TestMeraClinicalPredictionEngine:

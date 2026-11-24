@@ -229,8 +229,14 @@ class EventBus:
 
             # Publish with retry logic if guaranteed delivery is enabled
             if guaranteed_delivery:
-                return await self._publish_with_retry(channel, event_json, event)
-            return await self._publish_single_attempt(channel, event_json, event)
+                published = await self._publish_with_retry(channel, event_json, event)
+            else:
+                published = await self._publish_single_attempt(channel, event_json, event)
+
+            for handler in self.handlers.get(event.event_type, []):
+                await handler.handle(event)
+
+            return published
 
         except Exception as e:
             self.logger.error(f"Failed to publish event {event.event_type}: {e}")

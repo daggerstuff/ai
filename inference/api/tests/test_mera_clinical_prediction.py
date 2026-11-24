@@ -22,15 +22,21 @@ _inference_wrapper.JsonLeakageError = Exception
 _inference_wrapper.LatencyExceededError = Exception
 _inference_wrapper.SelectionParseError = Exception
 _inference_wrapper.PalInferenceWrapper = object
-sys.modules["inference_wrapper"] = _inference_wrapper
-
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from ai.inference.api.pixel_inference_service import (
-    ClinicalPredictionRequest,
-    ClinicalPredictionResponse,
-    MeraClinicalPredictionEngine,
-)
+_saved_inference_wrapper = sys.modules.get("inference_wrapper")
+sys.modules["inference_wrapper"] = _inference_wrapper
+try:
+    from ai.inference.api.pixel_inference_service import (
+        ClinicalPredictionRequest,
+        ClinicalPredictionResponse,
+        MeraClinicalPredictionEngine,
+    )
+finally:
+    if _saved_inference_wrapper is None:
+        sys.modules.pop("inference_wrapper", None)
+    else:
+        sys.modules["inference_wrapper"] = _saved_inference_wrapper
 
 
 class TestMeraClinicalPredictionEngine:

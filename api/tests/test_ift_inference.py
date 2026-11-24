@@ -21,7 +21,9 @@ def test_build_task_prompt():
         MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value,
         "I'm feeling anxious.",
     )
-    assert "system" in prompt.lower() or "<|system|>" in prompt
+    assert prompt.startswith("### Instruction:")
+    assert "### Input:" in prompt
+    assert prompt.rstrip().endswith("### Response:")
     assert "I'm feeling anxious." in prompt
 
 

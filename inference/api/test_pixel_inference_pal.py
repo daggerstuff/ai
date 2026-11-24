@@ -142,10 +142,9 @@ def client() -> TestClient:
         },
         clear=False,
     ):
-        import pixel_inference_service as svc
+        svc = importlib.import_module("ai.inference.api.pal_inference_service")
 
         svc.pal_wrapper = None
-        importlib.reload(svc)
         with TestClient(svc.app) as tc:
             yield tc
 
@@ -274,12 +273,10 @@ class TestHealthPalIntegration:
         resp = client.get("/health")
         assert resp.status_code == 200
         data = resp.json()
-        assert "pal" in data
-        assert "wrapper_initialized" in data["pal"]
-        assert "n_candidate_personas" in data["pal"]
-        assert "latency_budget_seconds" in data["pal"]
-        assert data["pal"]["wrapper_initialized"] is True
-        assert data["pal"]["n_candidate_personas"] >= 1
+        assert data["status"] == "healthy"
+        assert data["wrapper_initialized"] is True
+        assert data["n_candidate_personas"] >= 1
+        assert data["latency_budget_seconds"] > 0.0
 
 
 # ---------------------------------------------------------------------------

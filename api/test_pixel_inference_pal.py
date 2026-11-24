@@ -88,46 +88,9 @@ class _MockTorch:
     no_grad = _MockTorchNoGrad
 
 
-# Build the mock module hierarchy
-_TORCH_PROXY_MOD = type(sys)("torch_proxy")
-_TORCH_PROXY_MOD.torch = _MockTorch()
-_TORCH_PROXY_MOD.__name__ = "ai.utils.torch_proxy"
-
-_AI_UTILS_MOD = type(sys)("utils")
-_AI_UTILS_MOD.torch_proxy = _TORCH_PROXY_MOD
-_AI_UTILS_MOD.__name__ = "ai.utils"
-
-_AI_MOD = type(sys)("ai")
-_AI_MOD.utils = _AI_UTILS_MOD
-_AI_MOD.__name__ = "ai"
-
-
-class _MockMemoryManager:
-    async def trigger_dream_cycle(self, user_id: str) -> dict[str, object]:
-        return {"dream_id": "mock", "themes": [], "patterns": []}
-
-
-def _mock_get_memory_manager() -> _MockMemoryManager:
-    return _MockMemoryManager()
-
-
-def _mock_init_sentry(*_args: object, **_kwargs: object) -> None:
-    pass
-
-
-_AI_API_MEMORY_MOD = type(sys)("memory")
-_AI_API_MEMORY_MOD.get_memory_manager = _mock_get_memory_manager
-_AI_API_MEMORY_MOD.__name__ = "ai.api.memory"
-
-_AI_API_SENTRY_MOD = type(sys)("sentry_logging")
-_AI_API_SENTRY_MOD.initialize_sentry_logging = _mock_init_sentry
-_AI_API_SENTRY_MOD.__name__ = "ai.api.sentry_logging"
-
-_AI_API_MOD = type(sys)("api")
-_AI_API_MOD.memory = _AI_API_MEMORY_MOD
-_AI_API_MOD.sentry_logging = _AI_API_SENTRY_MOD
-_AI_API_MOD.__name__ = "ai.api"
-
+# Only the ``pixel`` package is genuinely external; the ``ai.*`` submodules are
+# real and importable, so they must not be replaced here — a fake
+# ``sys.modules["ai"]`` shadows the real package for every later test module.
 _PIXEL_BASE_MOD = type(sys)("pixel_base_model")
 _PIXEL_BASE_MOD.PixelBaseModel = _MockPixelBaseModel
 _PIXEL_BASE_MOD.__name__ = "pixel.models.pixel_base_model"
@@ -140,17 +103,10 @@ _PIXEL_MOD = type(sys)("pixel")
 _PIXEL_MOD.models = _PIXEL_MODELS_MOD
 _PIXEL_MOD.__name__ = "pixel"
 
-# Register all mocks in sys.modules before any import attempts
 for mod_name, mod_val in [
     ("pixel", _PIXEL_MOD),
     ("pixel.models", _PIXEL_MODELS_MOD),
     ("pixel.models.pixel_base_model", _PIXEL_BASE_MOD),
-    ("ai", _AI_MOD),
-    ("ai.utils", _AI_UTILS_MOD),
-    ("ai.utils.torch_proxy", _TORCH_PROXY_MOD),
-    ("ai.api", _AI_API_MOD),
-    ("ai.api.memory", _AI_API_MEMORY_MOD),
-    ("ai.api.sentry_logging", _AI_API_SENTRY_MOD),
 ]:
     sys.modules[mod_name] = mod_val
 
@@ -184,10 +140,9 @@ def client() -> TestClient:
         },
         clear=False,
     ):
-        import pixel_inference_service as svc
+        svc = importlib.import_module("ai.api.pal_inference_service")
 
         svc.pal_wrapper = None
-        importlib.reload(svc)
         with TestClient(svc.app) as tc:
             yield tc
 
@@ -316,12 +271,10 @@ class TestHealthPalIntegration:
         resp = client.get("/health")
         assert resp.status_code == 200
         data = resp.json()
-        assert "pal" in data
-        assert "wrapper_initialized" in data["pal"]
-        assert "n_candidate_personas" in data["pal"]
-        assert "latency_budget_seconds" in data["pal"]
-        assert data["pal"]["wrapper_initialized"] is True
-        assert data["pal"]["n_candidate_personas"] >= 1
+        assert data["status"] == "healthy"
+        assert data["wrapper_initialized"] is True
+        assert data["n_candidate_personas"] >= 1
+        assert data["latency_budget_seconds"] > 0.0
 
 
 # ---------------------------------------------------------------------------
