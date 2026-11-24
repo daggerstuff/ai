@@ -1,0 +1,52 @@
+inference/api/test_pixel_inference_pal.py
+  s_7d4811cf1b0ba7::t_3f16e972f6a371 145
+  s_7d4811cf1b0ba7::t_1babf251710193 276-279
+api/tests/test_ift_inference.py
+  s_7d4811cf1b0ba7::t_dc9de4542eb3da 24-25
+  s_7d4811cf1b0ba7::t_96b77ea14738a5 26
+inference/api/tests/test_mera_clinical_prediction.py
+  s_7d4811cf1b0ba7::t_629c1c10b7d97c 27-39
+api/tests/test_mera_clinical_prediction.py
+  s_7d4811cf1b0ba7::t_763fdae997d019 27-39
+api/test_pixel_inference.py
+  s_7d4811cf1b0ba7::t_3f16e972f6a371 409
+  s_7d4811cf1b0ba7::t_1babf251710193 504-507
+api/embedding_agent/tests/test_service.py
+  s_7d4811cf1b0ba7::t_dc9de4542eb3da 284
+api/memory/tests/test_memory_manager.py
+  s_7d4811cf1b0ba7::t_ea1e6a97b70a2e 26-41
+inference/api/memory/tests/test_memory_manager.py
+  s_7d4811cf1b0ba7::t_9699bde8d7b0d2 26-41
+inference/api/test_pixel_inference.py
+  s_7d4811cf1b0ba7::t_3f16e972f6a371 409
+  s_7d4811cf1b0ba7::t_1babf251710193 504-507
+inference/api/embedding_agent/tests/test_service.py
+  s_7d4811cf1b0ba7::t_dc9de4542eb3da 284
+api/techdeck_integration/communication/event_bus.py
+  s_7d4811cf1b0ba7::t_f607d2bf6f7202 232-239
+inference/api/techdeck_integration/communication/event_bus.py
+  s_7d4811cf1b0ba7::t_f607d2bf6f7202 232-239
+inference/api/tests/test_ift_inference.py
+  s_7d4811cf1b0ba7::t_96b77ea14738a5 26
+  s_7d4811cf1b0ba7::t_dc9de4542eb3da 24-25
+api/test_pixel_inference_pal.py
+  s_7d4811cf1b0ba7::t_3f16e972f6a371 143
+  s_7d4811cf1b0ba7::t_209c8216130253 91-93
+  s_7d4811cf1b0ba7::t_1babf251710193 274-277
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1ff8bd4f7e64e3c5a4fbd90aa50c0bef310a4f35",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
