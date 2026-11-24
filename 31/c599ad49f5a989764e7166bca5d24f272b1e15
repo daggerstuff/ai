@@ -1,0 +1,42 @@
+inference/deployment/distributed/test_checkpoint_system.py
+  s_7d4811cf1b0ba7::t_98db92ac5795e0 15,18
+inference/deployment/distributed/checkpoint_cleanup_optimizer.py
+  s_7d4811cf1b0ba7::t_3239da7c359eeb 19
+inference/deployment/distributed/test_auto_resume.py
+  s_7d4811cf1b0ba7::t_b1036206c6fd43 17,25-26
+inference/deployment/distributed/auto_resume_engine.py
+  s_7d4811cf1b0ba7::t_3239da7c359eeb 20
+inference/deployment/distributed/resume_orchestrator.py
+  s_7d4811cf1b0ba7::t_3239da7c359eeb 18,23
+training/ovh_v22_qwen3_8b/run_ovh.py
+  s_7d4811cf1b0ba7::t_da218677e095af 15
+  s_7d4811cf1b0ba7::t_709a67aa7142be 30-31,130
+pytest.ini
+  s_7d4811cf1b0ba7::t_6bf1a4a748ddb8 2
+  s_7d4811cf1b0ba7::t_9c4bfa546fbce5 21-24
+  s_7d4811cf1b0ba7::t_df77e2abdb2113 15-18,20
+research/experiments/tests/comprehensive_test_suite.py
+  s_7d4811cf1b0ba7::t_6837decb652bc5 33-37
+inference/deployment/distributed/checkpoint_utils.py
+  s_7d4811cf1b0ba7::t_3239da7c359eeb 19
+inference/deployment/distributed/state_persistence.py
+  s_7d4811cf1b0ba7::t_3239da7c359eeb 23
+inference/deployment/distributed/test_health_and_recovery.py
+  s_7d4811cf1b0ba7::t_1f21896d0a63e2 10,15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "31c599ad49f5a989764e7166bca5d24f272b1e15",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
