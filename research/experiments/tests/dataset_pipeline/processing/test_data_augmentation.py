@@ -48,7 +48,7 @@ class TestDataAugmentation(unittest.TestCase):
 
         assert augmented != text
         lowered = augmented.lower()
-        assert any(noise in lowered for noise in ["um", "uh", "you know", "like", "therapyst"])
+        assert any(pattern.lower() in lowered for pattern in self.augmenter._NOISE_PATTERNS)
         assert "..." in augmented
 
     def test_safety_guardrails_preservation(self) -> None:
