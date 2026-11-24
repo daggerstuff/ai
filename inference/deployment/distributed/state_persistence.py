@@ -20,7 +20,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from checkpoint_system import CheckpointManager
+from ai.inference.deployment.distributed.checkpoint_system import CheckpointManager
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 

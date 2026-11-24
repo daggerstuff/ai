@@ -14,7 +14,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any, Dict
 
-from auto_resume_engine import (
+from ai.inference.deployment.distributed.auto_resume_engine import (
     AutoResumeEngine,
     InterruptionContext,
     InterruptionType,
@@ -22,8 +22,8 @@ from auto_resume_engine import (
     ResumeConfiguration,
     ResumeStrategy,
 )
-from checkpoint_system import CheckpointManager
-from resume_orchestrator import (
+from ai.inference.deployment.distributed.checkpoint_system import CheckpointManager
+from ai.inference.deployment.distributed.resume_orchestrator import (
     DependencyType,
     ProcessPriority,
     ResumeOrchestrator,

@@ -12,6 +12,7 @@ this job mounts at /workspace.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import math
 import os
@@ -25,6 +26,8 @@ from datasets import Dataset
 from peft import LoraConfig, get_peft_model
 from train import TrapezoidTrainer, build_collator, verify_export
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+
+WANDB_OK = bool(os.environ.get("WANDB_API_KEY")) and importlib.util.find_spec("wandb") is not None
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/workspace/data"))
 OUT_DIR = Path(os.environ.get("OUT_DIR", "/workspace/out"))
@@ -124,7 +127,7 @@ def main() -> None:
         max_grad_norm=1.0,
         seed=SEED,
         data_seed=SEED,
-        report_to=[],
+        report_to=["wandb"] if WANDB_OK else [],
         remove_unused_columns=False,
         dataloader_num_workers=4,
     )

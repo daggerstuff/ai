@@ -4,22 +4,15 @@ Unit tests for Health Check and Disaster Recovery Systems
 """
 
 import asyncio
-
-# Add parent directory to path for imports
-import sys
 import unittest
 from datetime import UTC, datetime
-from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent.parent))
-
-
-from distributed_processing.disaster_recovery import (
+from ai.inference.deployment.distributed.disaster_recovery import (
     DisasterRecoveryManager,
     DisasterType,
     RecoveryStatus,
 )
-from distributed_processing.health_check import (
+from ai.inference.deployment.distributed.health_check import (
     ComponentType,
     HealthCheckManager,
     HealthCheckResult,

@@ -15,12 +15,12 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from auto_resume_engine import (
+from ai.inference.deployment.distributed.auto_resume_engine import (
     AutoResumeEngine,
     InterruptionContext,
     ResumeConfiguration,
 )
-from checkpoint_system import CheckpointManager
+from ai.inference.deployment.distributed.checkpoint_system import CheckpointManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

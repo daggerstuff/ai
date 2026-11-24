@@ -30,9 +30,11 @@ warnings.simplefilter("default")
 
 # Import existing test modules
 
-from test_integration_end_to_end import run_integration_tests
-from test_performance_large_datasets import run_performance_tests
-from test_processing_components import run_all_tests as run_unit_tests
+from ai.research.experiments.tests.test_integration_end_to_end import run_integration_tests
+from ai.research.experiments.tests.test_performance_large_datasets import run_performance_tests
+from ai.research.experiments.tests.test_processing_components import (
+    run_all_tests as run_unit_tests,
+)
 
 
 class TestQualityValidation(unittest.TestCase):

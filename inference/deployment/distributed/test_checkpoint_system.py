@@ -12,10 +12,10 @@ import tempfile
 import time
 from datetime import UTC, datetime
 
-from checkpoint_system import (
+from ai.inference.deployment.distributed.checkpoint_system import (
     CheckpointType,
 )
-from checkpoint_utils import (
+from ai.inference.deployment.distributed.checkpoint_utils import (
     CheckpointConfig,
     CheckpointOptimizer,
     setup_checkpoint_system,
