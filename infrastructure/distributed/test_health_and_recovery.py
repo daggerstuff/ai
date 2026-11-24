@@ -14,12 +14,12 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 
-from distributed_processing.disaster_recovery import (
+from ai.infrastructure.distributed.disaster_recovery import (
     DisasterRecoveryManager,
     DisasterType,
     RecoveryStatus,
 )
-from distributed_processing.health_check import (
+from ai.infrastructure.distributed.health_check import (
     ComponentType,
     HealthCheckManager,
     HealthCheckResult,

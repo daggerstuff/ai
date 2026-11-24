@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 
-from quality_validation_cache import CachedQualityValidator, QualityValidationCache
+from ai.infrastructure.distributed.quality_validation_cache import CachedQualityValidator, QualityValidationCache
 
 
 class TestQualityValidationCache(unittest.TestCase):

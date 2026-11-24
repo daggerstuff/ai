@@ -20,7 +20,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from checkpoint_system import CheckpointManager
+from ai.infrastructure.distributed.checkpoint_system import CheckpointManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -25,16 +25,16 @@ a swappable :class:`~rare_disease.types.LanguageModelCallable`.  Production
 deployments wire the real provider; tests use a deterministic stub.
 """
 
-from rare_disease.differential import DifferentialDiagnosisManager
-from rare_disease.evaluation import DiagnosisArenaAdapter, DiagnosisArenaMetrics
-from rare_disease.knowledge_base import (
+from ai.pkg_mera.platform.rare_disease.differential import DifferentialDiagnosisManager
+from ai.pkg_mera.platform.rare_disease.evaluation import DiagnosisArenaAdapter, DiagnosisArenaMetrics
+from ai.pkg_mera.platform.rare_disease.knowledge_base import (
     InMemoryRareDiseaseKnowledgeBase,
     RareDiseaseKnowledgeBase,
 )
-from rare_disease.orchestrator import ControllerOrchestrator, OrchestrationResult
-from rare_disease.pipeline import RareDiseasePipeline, build_default_pipeline
-from rare_disease.state import ConvergenceStatus, RareDiseaseState
-from rare_disease.types import (
+from ai.pkg_mera.platform.rare_disease.orchestrator import ControllerOrchestrator, OrchestrationResult
+from ai.pkg_mera.platform.rare_disease.pipeline import RareDiseasePipeline, build_default_pipeline
+from ai.pkg_mera.platform.rare_disease.state import ConvergenceStatus, RareDiseaseState
+from ai.pkg_mera.platform.rare_disease.types import (
     DifferentialEntry,
     DiseaseRarity,
     Evidence,

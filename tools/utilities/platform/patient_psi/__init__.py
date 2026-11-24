@@ -5,7 +5,5 @@ that implements the PATIENT-Ψ framework for cognitive patient simulation
 based on Case Conceptualization Diagrams (CCDs).
 """
 
-from ai.prompts.patient_psi.prompt_template import CCDPromptBuilder
-
-__all__ = ["CCDPromptBuilder"]
+__all__: list[str] = []
 __version__ = "0.1.0"

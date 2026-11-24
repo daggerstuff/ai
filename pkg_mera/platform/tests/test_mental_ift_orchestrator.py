@@ -47,8 +47,20 @@ def test_continuous_fine_tuning_run():
     with tempfile.TemporaryDirectory() as tmp:
         core = MentalHealthIFTOrchestrator(config={"output_dir": tmp, "min_continuous_examples": 2})
         feedback = [
-            {"therapist_approved": True, "client": "I'm sad", "therapist": "I hear you."},
-            {"therapist_approved": True, "client": "I'm anxious", "therapist": "That makes sense."},
+            {
+                "therapist_approved": True,
+                "quality_score": 0.9,
+                "diversity_score": 0.5,
+                "client": "I'm sad",
+                "therapist": "I hear you.",
+            },
+            {
+                "therapist_approved": True,
+                "quality_score": 0.9,
+                "diversity_score": 0.5,
+                "client": "I'm anxious",
+                "therapist": "That makes sense.",
+            },
         ]
         result = core.run_continuous_fine_tuning(feedback)
         assert result["status"] == "success"

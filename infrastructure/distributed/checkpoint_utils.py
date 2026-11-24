@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import psutil
-from checkpoint_system import (
+from ai.infrastructure.distributed.checkpoint_system import (
     CheckpointManager,
     CheckpointStatus,
     CheckpointStorage,
