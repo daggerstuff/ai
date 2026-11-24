@@ -67,8 +67,9 @@ def make_redis_mock() -> Mock:
     async def _delete(key: str) -> int:
         return 1 if store.pop(key, None) is not None else 0
 
-    async def _keys(_pattern: str = "*") -> list[str]:
-        return list(store)
+    async def _keys(pattern: str = "*") -> list[str]:
+        prefix = pattern.removesuffix("*")
+        return [key for key in store if key.startswith(prefix)]
 
     client.setex = AsyncMock(side_effect=_setex)
     client.set = AsyncMock(side_effect=_set)

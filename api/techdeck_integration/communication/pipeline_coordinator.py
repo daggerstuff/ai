@@ -323,7 +323,7 @@ class PipelineCoordinator:
         self.progress_tracker = ProgressTracker(
             redis_client, self.event_bus, self.state_manager, self.config.get("progress_tracker", {})
         )
-        self.error_recovery = ErrorRecoveryManager(self.config.get("error_recovery", {}))
+        self.error_recovery = ErrorRecoveryManager(self.config.get("error_recovery", {}), self.event_bus)
         self.bias_integration = BiasDetectionIntegration(self.config.get("bias_detection", {}))
         self.performance_monitor = PerformanceMonitor(redis_client, self.config.get("performance_monitor", {}))
 

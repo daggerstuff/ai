@@ -20,7 +20,7 @@ from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
 from ai.inference.api.techdeck_integration.utils.logger import get_request_logger
 from ai.inference.api.techdeck_integration.utils.validation import sanitize_input
 
-from .event_bus import EventMessage, EventType
+from .event_bus import EventBus, EventMessage, EventType
 
 if TYPE_CHECKING:
     from ai.inference.api.techdeck_integration.communication.pipeline_coordinator import PipelineContext
@@ -90,15 +90,17 @@ class RecoveryResult:
 class ErrorRecoveryManager:
     """Comprehensive error recovery manager for pipeline operations."""
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: dict[str, Any] | None = None, event_bus: EventBus | None = None):
         """
         Initialize error recovery manager.
 
         Args:
             config: Optional configuration dictionary
+            event_bus: Optional event bus used to broadcast recovery events
         """
         self.config = config or {}
         self.logger = get_request_logger()
+        self.event_bus = event_bus
 
         # Recovery configuration
         self.recovery_config = RecoveryConfig(**self.config.get("recovery", {}))
@@ -571,6 +573,9 @@ class ErrorRecoveryManager:
         self, context: "PipelineContext", stage_name: str, recovery_result: RecoveryResult
     ) -> None:
         """Publish recovery event for monitoring and alerting."""
+        if self.event_bus is None:
+            return
+
         try:
             event = EventMessage(
                 event_type=EventType.RECOVERY_INITIATED.value,
