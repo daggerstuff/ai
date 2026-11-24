@@ -1,32 +1,12 @@
+"""Compatibility alias for the live implementation.
+
+``ai.memory`` and ``ai.research`` had drifted into two copies of the same
+modules, so the same class had two identities depending on the import
+path. This module delegates to ai.research.foresight_local_adapter.
 """
-Adapter utilities for the local Foresight-compatible memory layer.
 
-Re-exports shared conversion helpers from local_memory_adapter and provides
-foresight-prefixed aliases used by foresight-* service modules.
-"""
+import sys
 
-from .local_memory_adapter import (
-    document_from_storage,
-    document_summary_from_storage,
-    encode_tags_json,
-    memory_record_from_storage,
-    metadata_to_tags,
-    normalize_tags,
-    parse_context_payload,
-    serialize_context,
-)
+from ai.research import foresight_local_adapter as _impl
 
-# Foresight-prefixed aliases expected by foresight-* service modules
-foresight_document_from_storage = document_from_storage
-foresight_document_summary_from_storage = document_summary_from_storage
-
-__all__ = [
-    "encode_tags_json",
-    "foresight_document_from_storage",
-    "foresight_document_summary_from_storage",
-    "memory_record_from_storage",
-    "metadata_to_tags",
-    "normalize_tags",
-    "parse_context_payload",
-    "serialize_context",
-]
+sys.modules[__name__] = _impl

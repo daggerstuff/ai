@@ -1,28 +1,12 @@
-from __future__ import annotations
+"""Compatibility alias for the live implementation.
 
-"""Mapping helpers for reflection memory records."""
+``ai.memory`` and ``ai.research`` had drifted into two copies of the same
+modules, so the same class had two identities depending on the import
+path. This module delegates to ai.research.reflection_memory_mapper.
+"""
 
+import sys
 
-from typing import Any
+from ai.research import reflection_memory_mapper as _impl
 
-from .reflection_types import Memory, MemoryCategory, MemoryMetadata
-
-
-def record_to_memory(record: dict[str, Any]) -> Memory:
-    return Memory(
-        id=record["id"],
-        content=record.get("content") or record.get("memory", ""),
-        metadata=MemoryMetadata.from_dict(record.get("metadata") or {}),
-    )
-
-
-def summary_to_record(item: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "id": item["id"],
-        "content": item.get("content", ""),
-        "memory": item.get("content", ""),
-        "metadata": {
-            "category": item.get("category", MemoryCategory.GENERAL.value),
-            "tags": item.get("tags", []),
-        },
-    }
+sys.modules[__name__] = _impl
