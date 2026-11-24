@@ -5,6 +5,7 @@ Provides interpretability tools for debugging, auditing, and understanding model
 
 import contextlib
 import hashlib
+import importlib
 import logging
 import time
 from dataclasses import dataclass, field
@@ -13,8 +14,6 @@ from enum import Enum
 from typing import Any
 
 import numpy as np
-import shap
-from lime import lime_text
 from transformers import AutoTokenizer
 
 from ai.tools.utilities.torch_proxy import torch
@@ -215,6 +214,7 @@ class ExplainabilityEngine:
         """Calculate feature importance using LIME"""
         try:
             # Create LIME explainer
+            lime_text = importlib.import_module("lime.lime_text")
             explainer = lime_text.LimeTextExplainer(class_names=["negative", "positive"])
 
             # Define prediction function for LIME
@@ -270,6 +270,7 @@ class ExplainabilityEngine:
 
             # Use KernelExplainer for simpler interpretation
             # Note: In practice, you'd want to use a more appropriate SHAP explainer
+            shap = importlib.import_module("shap")
             explainer = shap.Explainer(model_predict, input_text)
             shap_values = explainer(input_text)
 
