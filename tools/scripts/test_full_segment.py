@@ -7,7 +7,7 @@ import sys
 
 sys.path.append("/root/pixelated/ai/scripts")
 
-from smart_qa_agent import SmartQAAgent
+from ai.tools.scripts.smart_qa_agent import SmartQAAgent
 
 
 def test_with_full_text():

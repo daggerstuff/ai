@@ -8,6 +8,7 @@ with sensible defaults.
 import os
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -46,10 +47,26 @@ class Settings(BaseSettings):
     # Session storage (must match across all components)
     session_storage_path: str = os.getenv("SESSION_STORAGE_PATH", "ai/sourcing/journal/sessions")
 
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _split_cors_origins(cls, value: object) -> object:
+        """Accept the comma-separated form the project's .env files use.
+
+        pydantic-settings decodes list fields from the environment as JSON, so a
+        plain ``CORS_ORIGINS=http://a,http://b`` raises a JSONDecodeError at
+        import time and takes the whole module down with it. Splitting on commas
+        first means both spellings work.
+        """
+        if isinstance(value, str) and not value.strip().startswith("["):
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return value
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        enable_decoding=False,
+        extra="ignore",
     )
 
 

@@ -256,18 +256,35 @@ def select_rows(
             elif options.sample_max_chars is None or selection.chars <= options.sample_max_chars:
                 filler.append(selection)
 
+    # Pools hold only the light record (row_number + hashable line) at this
+    # point; the full payload is rebuilt for the kept rows in a second pass.
+    for pool in (family, routing, acute, filler):
+        for pooled in pool:
+            pooled.payload = None
+
     kept = list(family)
     kept.extend(acute)
     kept.extend(_lowest_by_hash(routing, options.routing_cap, options.seed, "routing"))
     sampled = _lowest_by_hash(filler, options.chat_sample, options.seed, "sample")
     kept.extend(sampled)
-    kept.sort(key=lambda selection: selection.row_number)
+    kept.sort(key=lambda kept_item: kept_item.row_number)
 
     counts["crisis_rows"] = len(family)
     counts["routing_rows"] = len(routing)
-    counts["routing_kept"] = sum(1 for selection in kept if "routing" in selection.reasons)
+    counts["routing_kept"] = sum(1 for kept_item in kept if "routing" in kept_item.reasons)
     counts["acute_client_rows"] = len(acute)
     counts["sample"] = len(sampled)
+
+    wanted = {kept_selection.row_number: kept_selection for kept_selection in kept}
+    with train_path.open("r", encoding="utf-8") as handle:
+        for row_number, raw in enumerate(handle, start=1):
+            matched = wanted.get(row_number)
+            if matched is None:
+                continue
+            rebuilt = _write_payload(Selection(row_number=row_number), json.loads(raw))
+            matched.payload = rebuilt.payload
+            matched.chars = rebuilt.chars
+            matched.line = rebuilt.line
     return kept, counts
 
 

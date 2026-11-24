@@ -34,13 +34,13 @@ from ai.inference.api.techdeck_integration.communication.pipeline_coordinator im
 )
 from ai.inference.api.techdeck_integration.communication.progress_tracker import ProgressTracker
 from ai.inference.api.techdeck_integration.communication.state_manager import StateManager
-from ai.inference.api.techdeck_integration.communication.utils.validation import sanitize_input
 from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
     BiasDetectionError,
     TimeoutError,
     ValidationError,
 )
 from ai.inference.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.inference.api.techdeck_integration.utils.validation import sanitize_input
 
 
 class TestEventBus:
