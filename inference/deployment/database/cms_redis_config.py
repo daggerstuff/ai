@@ -2,7 +2,7 @@
 
 Defines key patterns, TTLs, and helper functions for Redis operations
 used by the CMS business strategy system. Designed to work alongside
-the existing RedisClient from techdeck_integration.
+the shared Redis clients in ai.api.mcp_server.integration.
 """
 
 from dataclasses import dataclass, field

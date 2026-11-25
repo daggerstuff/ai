@@ -6,7 +6,6 @@ shutdown for the CMS business strategy system.
 
 Reuses patterns from:
   - ai/inference/api/mcp_server/integration/mongodb_client.py (Motor async MongoDB)
-  - ai/inference/api/techdeck_integration/integration/redis_client.py (sync Redis)
   - ai/inference/deployment/database/migrations/001_initial_schema.sql (PostgreSQL)
 """
 
