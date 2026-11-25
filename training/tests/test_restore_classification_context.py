@@ -15,7 +15,9 @@ from training.restore_classification_context import (
     RestoreRow,
     apply,
     export,
+    export_with_additions,
     restore_messages,
+    _tokenizer,
 )
 from training.tests.test_export_tinker_release import StubTokenizer
 
@@ -30,6 +32,13 @@ ROWS = [
     }
     for index in range(3)
 ]
+
+
+@pytest.fixture(autouse=True)
+def _clear_tokenizer_cache():
+    _tokenizer.cache_clear()
+    yield
+    _tokenizer.cache_clear()
 
 
 def _raw_rows() -> list[bytes]:
@@ -97,6 +106,122 @@ def fixture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Expe
 
     monkeypatch.setattr(AutoTokenizer, "from_pretrained", load_tokenizer)
     return specification, experiment, payload, raw
+
+
+def fixture_without(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, drop: int) -> tuple[Path, Experiment]:
+    """Rebuild the fixture with base-export datums at ``drop`` indices removed."""
+    raw = _raw_rows()
+    source = tmp_path / "source.jsonl"
+    source.write_bytes(b"".join(raw))
+    plan = RestorePlan(
+        schema_version="classification-context-restore-v1",
+        source_train_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+        system_instruction=INSTRUCTION,
+        system_instruction_sha256=hashlib.sha256(INSTRUCTION.encode()).hexdigest(),
+        review_state="agent_research_not_clinically_adjudicated",
+        clinical_reviewed=False,
+        rows=(
+            RestoreRow(row_number=2, row_sha256=hashlib.sha256(raw[1]).hexdigest(), selected_line=2, candidate_row=99),
+        ),
+    )
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(plan.model_dump_json())
+    restored = tmp_path / "restored.jsonl"
+    apply(source, restored, plan)
+
+    tokenizer = StubTokenizer()
+    datums = []
+    for index, row in enumerate(ROWS):
+        if index == drop:
+            continue
+        ids, weights = build_tokens(tokenizer, row["messages"])
+        datums.append(Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=weights[1:]))
+    dataset = tmp_path / "base-datums.jsonl"
+    payload = b"".join((datum.line() + "\n").encode() for datum in datums)
+    dataset.write_bytes(payload)
+    receipt = tmp_path / "receipt.json"
+    receipt.write_text(
+        json.dumps(
+            {
+                "path": str(dataset),
+                "sha256": hashlib.sha256(payload).hexdigest(),
+                "source_train_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+                "tokenizer": "stub",
+                "max_tokens": 512,
+                "end_token": "<|im_end|>",
+                "datums": len(datums),
+                "source_rows": len(ROWS),
+                "counts": {"datums": len(datums), "trained_tokens": sum(sum(d.weights) for d in datums)},
+            }
+        )
+    )
+    experiment = Experiment(
+        original_train=source,
+        restored_train=restored,
+        source_receipt=receipt,
+        source_receipt_sha256=hashlib.sha256(receipt.read_bytes()).hexdigest(),
+        restore_plan=plan_path,
+        restore_plan_sha256=hashlib.sha256(plan_path.read_bytes()).hexdigest(),
+        release_id="test-restore",
+    )
+    specification = tmp_path / "experiment.json"
+    specification.write_text(experiment.model_dump_json())
+
+    def load_tokenizer(_name: str, **_options: object) -> StubTokenizer:
+        return tokenizer
+
+    monkeypatch.setattr(AutoTokenizer, "from_pretrained", load_tokenizer)
+    return specification, experiment
+
+
+def test_export_with_additions_appends_when_the_base_export_excluded_the_row(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    specification, experiment = fixture_without(tmp_path, monkeypatch, drop=1)
+    out = tmp_path / "out"
+
+    receipt = export_with_additions(specification, out)
+
+    base_lines = (tmp_path / "base-datums.jsonl").read_bytes().splitlines(keepends=True)
+    lines = (out / "tinker-sft-train.jsonl").read_bytes().splitlines(keepends=True)
+    assert lines[: len(base_lines)] == base_lines
+    assert len(lines) == len(base_lines) + 1
+    appended = json.loads(lines[-1])
+    base = json.loads(base_lines[0])
+    assert sum(appended["weights"]) == sum(base["weights"])
+    assert (receipt.model_extra or {})["added_datums"] == 1
+    assert (receipt.model_extra or {})["changed_datums"] == 0
+    assert receipt.datums == 3
+    assert receipt.counts["datums"] == 3
+
+
+def test_export_with_additions_replaces_in_place_when_the_row_is_present(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    specification, _, payload, _ = fixture(tmp_path, monkeypatch)
+    out = tmp_path / "out"
+
+    receipt = export_with_additions(specification, out)
+
+    lines = (out / "tinker-sft-train.jsonl").read_bytes().splitlines(keepends=True)
+    before = payload.splitlines(keepends=True)
+    assert lines[0] == before[0]
+    assert lines[2] == before[2]
+    assert lines[1] != before[1]
+    assert (receipt.model_extra or {})["added_datums"] == 0
+    assert (receipt.model_extra or {})["changed_datums"] == 1
+    assert receipt.datums == 3
+
+
+def test_export_with_additions_refuses_to_overwrite_existing_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    specification, _ = fixture_without(tmp_path, monkeypatch, drop=1)
+    out = tmp_path / "out"
+    out.mkdir()
+
+    with pytest.raises(FileExistsError):
+        export_with_additions(specification, out)
 
 
 def test_apply_prepends_the_instruction_and_preserves_every_other_byte(tmp_path: Path) -> None:

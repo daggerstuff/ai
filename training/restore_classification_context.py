@@ -10,6 +10,11 @@ It never edits the frozen release, the wave-repaired corpus, or any export.
 Run:
   PYTHONPATH=ai python -m training.restore_classification_context apply SOURCE PLAN OUT
   PYTHONPATH=ai python -m training.restore_classification_context export EXPERIMENT OUT
+  PYTHONPATH=ai python -m training.restore_classification_context export-with-additions EXPERIMENT OUT
+
+Use ``export-with-additions`` when the base export excluded the planned rows
+(e.g. bare-label rows filtered at export time). Rows whose original datum is
+present are retokenized in place; rows whose datum is absent are appended.
 """
 
 from __future__ import annotations
@@ -18,6 +23,7 @@ import hashlib
 import json
 import os
 import tempfile
+from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -30,6 +36,7 @@ from training.apply_research_target_repairs import Payload, RepairInputError
 from training.export_research_target_repairs import (
     Receipt,
     Retokenized,
+    Rendered,
     render,
 )
 from training.export_tinker_release import Datum, _sha256, build_tokens
@@ -226,6 +233,92 @@ def retokenize(experiment: Experiment, plan: RestorePlan, receipt: Receipt) -> R
     return Retokenized(replacements=replacements, repaired_train_sha256=restored_hash.hexdigest())
 
 
+def render_with_additions(receipt: Receipt, repaired: Retokenized) -> tuple[Rendered, int, int]:
+    """Keep every base datum; append the planned rows the base export excluded.
+
+    Returns the rendered payload plus the number of datums replaced in place
+    and the number appended. A planned datum missing from the base export is
+    appended at the end in plan order; one present exactly once is replaced in
+    place; one present more than once is rejected as ambiguous.
+    """
+    original_lines = receipt.path.read_bytes().splitlines(keepends=True)
+    replacements = repaired.replacements
+    occurrences: Counter[str] = Counter()
+    rendered: list[bytes] = []
+    for raw in original_lines:
+        key = hashlib.sha256(raw.rstrip(b"\r\n")).hexdigest()
+        if key in replacements:
+            occurrences[key] += 1
+            rendered.append(replacements[key])
+        else:
+            rendered.append(raw)
+    for key, line in replacements.items():
+        if occurrences[key] > 1:
+            raise RepairInputError("a restored datum matches more than one base datum")
+    base_hashes = {hashlib.sha256(raw.rstrip(b"\r\n")).hexdigest() for raw in original_lines}
+    additions: list[bytes] = []
+    for key, line in replacements.items():
+        if occurrences[key]:
+            continue
+        if hashlib.sha256(line.rstrip(b"\r\n")).hexdigest() in base_hashes:
+            raise RepairInputError("a restored datum duplicates a base-export datum")
+        additions.append(line)
+    rendered.extend(additions)
+    total_tokens = trained_tokens = 0
+    for raw in rendered:
+        datum = json.loads(raw)
+        total_tokens += len(datum["input_ids"])
+        trained_tokens += sum(datum["weights"])
+    replaced = sum(1 for key in replacements if occurrences[key] == 1)
+    return (
+        Rendered(payload=b"".join(rendered), total_tokens=total_tokens, trained_tokens=trained_tokens),
+        replaced,
+        len(additions),
+    )
+
+
+def export_with_additions(experiment_path: Path, out: Path) -> Receipt:
+    """Publish an export that keeps the base export intact and appends restored rows."""
+    if out.exists():
+        raise FileExistsError(out)
+    experiment = Experiment.model_validate_json(experiment_path.read_bytes())
+    plan, receipt = load_experiment(experiment)
+    repaired = retokenize(experiment, plan, receipt)
+    rendered, replaced, added = render_with_additions(receipt, repaired)
+    path = out / "tinker-sft-train.jsonl"
+    record = receipt.model_copy(
+        update={
+            "path": path.resolve(),
+            "sha256": hashlib.sha256(rendered.payload).hexdigest(),
+            "bytes": len(rendered.payload),
+            "source_manifest": str(experiment_path.resolve()),
+            "source_manifest_sha256": _sha256(experiment_path),
+            "source_release_id": experiment.release_id,
+            "source_train_sha256": repaired.repaired_train_sha256,
+            "base_export_sha256": receipt.sha256,
+            "restore_plan_sha256": experiment.restore_plan_sha256,
+            "selection_mode": "base_export_plus_restored_rows",
+            "changed_datums": replaced,
+            "added_datums": added,
+            "clinical_reviewed": False,
+            "review_state": plan.review_state,
+            "datums": receipt.datums + added,
+            "counts": {
+                **receipt.counts,
+                "datums": receipt.counts.get("datums", receipt.datums) + added,
+                "total_tokens": rendered.total_tokens,
+                "trained_tokens": rendered.trained_tokens,
+                "added_datums": added,
+            },
+        }
+    )
+    out.mkdir(parents=True, exist_ok=False, mode=0o700)
+    path.write_bytes(rendered.payload)
+    path.chmod(0o600)
+    (out / "tinker-dataset.json").write_text(record.model_dump_json(indent=2) + "\n")
+    return record
+
+
 def export(experiment_path: Path, out: Path) -> Receipt:
     """Publish the restored-context export after every identity check passes."""
     if out.exists():
@@ -278,10 +371,21 @@ def export_cmd(experiment: Path, out: Path) -> None:
     changed = (receipt.model_extra or {})["changed_datums"]
     typer.echo(f"{receipt.datums} datums retained in original order; {changed} datums restored")
 
+
+def export_with_additions_cmd(experiment: Path, out: Path) -> None:
+    """Append restored rows missing from the base export."""
+    receipt = export_with_additions(experiment, out)
+    extra = receipt.model_extra or {}
+    typer.echo(
+        f"{receipt.datums} datums; {extra.get('changed_datums')} restored in place; "
+        f"{extra.get('added_datums')} appended"
+    )
+
 def main() -> None:
     app = typer.Typer(add_completion=False, no_args_is_help=True)
     app.command("apply")(apply_cmd)
     app.command("export")(export_cmd)
+    app.command("export-with-additions")(export_with_additions_cmd)
     app()
 
 
