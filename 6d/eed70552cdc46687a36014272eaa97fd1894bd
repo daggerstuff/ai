@@ -1,0 +1,29 @@
+training/tests/test_build_agent_tool_sft_v31.py
+  s_7d4811cf1b0ba7::t_0c48b73479351a 1-101,103-159,161-185
+  s_7d4811cf1b0ba7::t_c28ef19511a638 102
+  s_7d4811cf1b0ba7::t_3c78c5e7be937e 160
+training/build_agent_tool_sft_v31.py
+  s_7d4811cf1b0ba7::t_7c3462bfe22003 691-693
+  s_7d4811cf1b0ba7::t_e0bbe5f7d79b84 608-611,659,714-722
+  s_7d4811cf1b0ba7::t_2a51d4123d4c16 1-607,612-658,660-690,694-713,723-773
+.gitignore
+  s_7d4811cf1b0ba7::t_0c48b73479351a 307
+training/build_v31_release.py
+  s_7d4811cf1b0ba7::t_7e55b5cc85f05c 1-245
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6deed70552cdc46687a36014272eaa97fd1894bd",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
