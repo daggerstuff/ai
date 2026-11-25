@@ -80,10 +80,22 @@ def _judge_auth_header() -> dict[str, str]:
     return {"Authorization": f"Bearer {key}"} if key else {}
 
 
+def _auth_header_for(url: str) -> dict[str, str]:
+    """Pick the right bearer token for a judge endpoint URL.
+
+    Nebius TokenFactory endpoints authenticate with ``NEBIUS_API_KEY``;
+    everything else keeps the AI Gateway / Featherless behavior.
+    """
+    if "tokenfactory.nebius.com" in url or "studio.nebius" in url:
+        key = os.environ.get("NEBIUS_API_KEY", "")
+        return {"Authorization": f"Bearer {key}"} if key else {}
+    return _judge_auth_header()
+
+
 def _secondary_judge_target() -> tuple[str, dict[str, str]]:
     """Companion judge (Kimi-K3) endpoint + auth header."""
     url = os.environ.get("DUAL_JUDGE_SECONDARY_URL", "https://ai-gateway.vercel.sh/v1/chat/completions")
-    return url, _judge_auth_header()
+    return url, _auth_header_for(url)
 
 
 DIMENSIONS: tuple[str, ...] = ("relevance", "accuracy", "helpfulness", "style", "safety")
@@ -623,7 +635,7 @@ async def judge_single(
     owns_session = session is None
     session = session or aiohttp.ClientSession()
     try:
-        primary_headers = _judge_auth_header()
+        primary_headers = _auth_header_for(url)
         primary = await _judge_parts_combined(
             session,
             url=url,
@@ -696,7 +708,7 @@ async def judge_record_turns(
             )
         joined_ref = "\n".join(ref for ref, _ in pairs)
         joined_cand = "\n".join(cand for _, cand in pairs)
-        primary_headers = _judge_auth_header()
+        primary_headers = _auth_header_for(url)
         if per_turn:
             primary_turns = await asyncio.gather(
                 *[
@@ -1168,7 +1180,7 @@ async def _run_live_calibration_async(
                         model=primary_model,
                         candidate_content=asst_for_eval,
                         reference_content=user_for_eval,
-                        headers=_judge_auth_header(),
+                        headers=_auth_header_for(url),
                     )
 
                 completed_count += 1

@@ -250,6 +250,7 @@ class DualModelQualityJudge:
 
         clients = []
         for builder in (
+            DualModelQualityJudge._nebius_client,
             DualModelQualityJudge._gateway_client,
             DualModelQualityJudge._nim_client,
             DualModelQualityJudge._cloudflare_client,
@@ -263,6 +264,22 @@ class DualModelQualityJudge:
                 "provide primary_client and secondary_client explicitly."
             )
         return clients[0] if len(clients) == 1 else FallbackLLMClient(clients)
+
+    @staticmethod
+    def _nebius_client(model: str) -> Any:
+        import os
+
+        from ai.tools.utilities.common.llm_client import LLMClient
+
+        key = os.environ.get("NEBIUS_API_KEY")
+        if not key or not model.startswith("nebius/"):
+            return None
+        base = os.environ.get("NEBIUS_BASE_URL") or "https://api.tokenfactory.nebius.com/v1"
+        return LLMClient(
+            driver="openai",
+            model=model[len("nebius/") :],
+            config={"api_key": key, "base_url": base},
+        )
 
     @staticmethod
     def _gateway_client(model: str) -> Any:
