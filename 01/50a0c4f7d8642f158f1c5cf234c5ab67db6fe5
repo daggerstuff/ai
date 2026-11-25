@@ -1,0 +1,27 @@
+pipelines/data_processing/research_system/tests/unit/test_config.py
+  s_7d4811cf1b0ba7::t_1f3b5c29b47c37 6
+configs/jit_scenario_injector.py
+  s_7d4811cf1b0ba7::t_f59245381ba97b 180,205
+pipelines/data_processing/scripts/test_s3_atomic_sync.py
+  s_7d4811cf1b0ba7::t_7afe9c715114f8 8,118,126,140,151,194,203,223,242,275-276,304,315,344,375,403,417,434,447,459,477,490,509,532
+pipelines/data_processing/scripts/s3_atomic_sync.py
+  s_7d4811cf1b0ba7::t_12d814dc37e54b 126,133-140
+pipelines/data_processing/research_system/tests/unit/test_models.py
+  s_7d4811cf1b0ba7::t_1f3b5c29b47c37 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0150a0c4f7d8642f158f1c5cf234c5ab67db6fe5",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
