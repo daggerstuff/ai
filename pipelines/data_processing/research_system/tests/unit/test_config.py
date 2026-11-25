@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from research_system.config import Config
+from ai.pipelines.data_processing.research_system.config import Config
 
 
 class TestConfig:

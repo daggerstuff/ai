@@ -177,9 +177,7 @@ class JITScenarioInjector:
             registry.set_block(JIT_SCENARIO_BLOCK_LABEL, block)
             logger.info(
                 "JIT scenario injected",
-                clinician=clinician,
-                domain_gap=domain_gap,
-                difficulty=difficulty,
+                extra={"clinician": clinician, "domain_gap": domain_gap, "difficulty": difficulty},
             )
             return block.to_dict()
         except Exception:
@@ -204,7 +202,7 @@ class JITScenarioInjector:
         if not is_training:
             logger.info(
                 "HIPAA gate: JIT scenario injection blocked for non-training session",
-                session_id=session_context.get("session_id"),
+                extra={"session_id": session_context.get("session_id")},
             )
             return False
         return True

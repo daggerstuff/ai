@@ -1,18 +1,11 @@
 """Tests for S3 atomic swap sync module."""
 
-import os
-import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Ensure ai/ is on sys.path
-_ai_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _ai_root not in sys.path:
-    sys.path.insert(0, _ai_root)
-
-from pipelines.data_processing.scripts.s3_atomic_sync import (
+from ai.pipelines.data_processing.scripts.s3_atomic_sync import (
     S3AtomicSync,
     SyncFile,
     SyncReport,
@@ -122,7 +115,7 @@ class TestRun:
         assert result.returncode == 0
         assert result.stdout == ""
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_real_run_success(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(0, "output", "")
         syncer = make_syncer()
@@ -130,7 +123,7 @@ class TestRun:
         assert result.returncode == 0
         assert result.stdout == "output"
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_real_run_failure(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(1, "", "error")
         syncer = make_syncer()
@@ -144,7 +137,7 @@ class TestRun:
 
 
 class TestListRemote:
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_normal(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(
             0,
@@ -155,7 +148,7 @@ class TestListRemote:
         files = syncer._list_remote("ai/v7")
         assert files == {"shard_0000.jsonl": 1024, "shard_0001.jsonl": 2048}
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_empty(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(0, "", "")
         syncer = make_syncer()
@@ -198,7 +191,7 @@ class TestSync:
         assert not report.success
         assert any("No files found" in e for e in report.errors)
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_upload_failure_aborts(self, mock_run: MagicMock, tmp_path: Path) -> None:
         mock_run.return_value = FakeCompletedProcess(1, "", "upload error")
         d = make_local_files(tmp_path, ["shard_0000.jsonl"])
@@ -207,7 +200,7 @@ class TestSync:
         assert not report.success
         assert any("Upload failed" in e for e in report.errors)
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_verify_count_mismatch(self, mock_run: MagicMock, tmp_path: Path) -> None:
         # Upload succeeds, but listing shows fewer files
         call_count = [0]
@@ -227,7 +220,7 @@ class TestSync:
         assert not report.success
         assert any("File count mismatch" in e for e in report.errors)
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_verify_size_mismatch(self, mock_run: MagicMock, tmp_path: Path) -> None:
         call_count = [0]
 
@@ -246,7 +239,7 @@ class TestSync:
         assert not report.success
         assert any("Size mismatch" in e for e in report.errors)
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_full_success(self, mock_run: MagicMock, tmp_path: Path) -> None:
         call_count = [0]
 
@@ -279,8 +272,8 @@ class TestSync:
         assert report.success
         assert report.files_promoted == 2
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.Popen")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.Popen")
     def test_full_success_with_manifest(self, mock_popen: MagicMock, mock_run: MagicMock, tmp_path: Path) -> None:
         mock_proc = MagicMock()
         mock_proc.returncode = 0
@@ -308,7 +301,7 @@ class TestSync:
         report = syncer.sync(d, "ai/v7")
         assert report.success
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_dry_run_success(self, mock_run: MagicMock, tmp_path: Path) -> None:
         mock_run.return_value = FakeCompletedProcess(0, "", "")
         d = make_local_files(tmp_path, ["shard_0000.jsonl"])
@@ -319,7 +312,7 @@ class TestSync:
         # This is expected — dry run can't verify
         assert not report.success
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_promote_failure_aborts(self, mock_run: MagicMock, tmp_path: Path) -> None:
         call_count = [0]
 
@@ -348,7 +341,7 @@ class TestSync:
         assert not report.success
         assert any("Promote failed" in e for e in report.errors)
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_stale_files_removed(self, mock_run: MagicMock, tmp_path: Path) -> None:
         call_count = [0]
 
@@ -379,7 +372,7 @@ class TestSync:
         assert report.success
         assert "old_shard.jsonl" in report.stale_files_removed
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_no_purge_stale(self, mock_run: MagicMock, tmp_path: Path) -> None:
         call_count = [0]
 
@@ -407,7 +400,7 @@ class TestSync:
 
 
 class TestUploadToStaging:
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_success(self, mock_run: MagicMock, tmp_path: Path) -> None:
         mock_run.return_value = FakeCompletedProcess(0, "", "")
         d = make_local_files(tmp_path, ["a.jsonl", "b.jsonl"])
@@ -421,7 +414,7 @@ class TestUploadToStaging:
         assert result is True
         assert len(report.files_uploaded) == 2
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_failure(self, mock_run: MagicMock, tmp_path: Path) -> None:
         mock_run.return_value = FakeCompletedProcess(1, "", "error")
         d = make_local_files(tmp_path, ["a.jsonl"])
@@ -438,7 +431,7 @@ class TestUploadToStaging:
 
 
 class TestVerifyStaging:
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_success(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(0, "100 a.jsonl\n200 b.jsonl\n", "")
         syncer = make_syncer()
@@ -451,7 +444,7 @@ class TestVerifyStaging:
         assert result is True
         assert len(report.files_verified) == 2
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_missing_file(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(0, "100 a.jsonl\n", "")
         syncer = make_syncer()
@@ -463,7 +456,7 @@ class TestVerifyStaging:
         result = syncer._verify_staging("staging/prefix", report)
         assert result is False
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_size_mismatch(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(0, "50 a.jsonl\n", "")
         syncer = make_syncer()
@@ -481,7 +474,7 @@ class TestVerifyStaging:
 
 
 class TestPromote:
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_success(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(0, "", "")
         syncer = make_syncer()
@@ -494,7 +487,7 @@ class TestPromote:
         assert result is True
         assert report.files_promoted == 2
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_failure(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(1, "", "error")
         syncer = make_syncer()
@@ -513,7 +506,7 @@ class TestPromote:
 
 
 class TestPurgeStale:
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_removes_stale(self, mock_run: MagicMock) -> None:
         call_count = [0]
 
@@ -536,7 +529,7 @@ class TestPurgeStale:
         syncer._purge_stale_files("final", local_files, report)
         assert "old.jsonl" in report.stale_files_removed
 
-    @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
+    @patch("ai.pipelines.data_processing.scripts.s3_atomic_sync.subprocess.run")
     def test_keeps_manifest(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(
             0,

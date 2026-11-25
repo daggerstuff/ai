@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from research_system.models import (
+from ai.pipelines.data_processing.research_system.models import (
     AccessRequest,
     DatasetEvaluation,
     DatasetSource,

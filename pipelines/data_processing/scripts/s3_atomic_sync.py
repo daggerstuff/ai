@@ -123,15 +123,21 @@ class S3AtomicSync:
 
     def _list_remote(self, prefix: str) -> dict[str, int]:
         """List files under a remote prefix, returning {name: size}."""
-        cmd = ["rclone", "lsf", self._remote_path(prefix)]
+        cmd = ["rclone", "lsf", "--format", "sp", self._remote_path(prefix)]
         result = self._run(cmd)
         files: dict[str, int] = {}
         for raw_line in result.stdout.strip().splitlines():
             line = raw_line.strip()
             if not line:
                 continue
-            # lsf output: just paths (one per line)
-            files[line] = -1
+            size_text, _, name = line.partition(";")
+            if not name:
+                head, _, tail = line.partition(" ")
+                if head.isdigit() and tail:
+                    size_text, name = head, tail.strip()
+                else:
+                    size_text, name = "", line
+            files[name] = int(size_text) if size_text.isdigit() else -1
         return files
 
     # ------------------------------------------------------------------
