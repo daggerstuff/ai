@@ -1,0 +1,21 @@
+training/generate_arc_corpus.py
+  s_7d4811cf1b0ba7::t_baa770508bdd15 35-48
+qa/testing/utils/test_torch_proxy.py
+  s_7d4811cf1b0ba7::t_608d609f53afbf 9-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "415099fb9683ebcec74325687c47a6f25eea917a",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
