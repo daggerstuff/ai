@@ -27,13 +27,13 @@ os.environ.setdefault("NF_MAX_TOKENS", "4096")
 
 from pathlib import Path
 
+from dotenv import dotenv_values
+
 env_file = Path(__file__).resolve().parents[2] / ".env"
 if env_file.exists():
-    for line in env_file.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            k, _, v = line.partition("=")
-            os.environ.setdefault(k.strip(), v.strip())
+    for key, value in dotenv_values(env_file).items():
+        if value is not None:
+            os.environ.setdefault(key, value)
 
 from training.build_edge_and_nightmare_dataset import (  # noqa: E402
     _THERAPIST_VOICE_SPEC,

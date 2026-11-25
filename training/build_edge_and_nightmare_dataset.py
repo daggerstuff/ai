@@ -30,7 +30,8 @@ from dotenv import load_dotenv
 # authoritative regardless of the caller's inherited environment.
 _HERE = Path(__file__).resolve()
 sys.path.insert(0, str(_HERE.parents[1]))
-load_dotenv(_HERE.parents[2] / ".env", override=True)
+if __name__ == "__main__":
+    load_dotenv(_HERE.parents[2] / ".env", override=True)
 
 from training.cliche_gate import (  # noqa: E402
     BANNED_OPENERS,

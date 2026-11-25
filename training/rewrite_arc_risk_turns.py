@@ -40,7 +40,8 @@ from dotenv import load_dotenv
 
 _AI_ROOT = Path(__file__).resolve().parents[1]
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-load_dotenv(_REPO_ROOT / ".env", override=True)
+if __name__ == "__main__":
+    load_dotenv(_REPO_ROOT / ".env", override=True)
 
 DEFAULT_INPUT = (
     _AI_ROOT

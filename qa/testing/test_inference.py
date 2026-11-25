@@ -44,8 +44,15 @@ class TestMockLLMProvider:
 class TestOpenAIProvider:
     """OpenAIProvider wraps the openai>=1.0.0 client."""
 
-    def test_instantiate_without_api_key(self):
-        """Can be constructed without any credentials — no crash."""
+    def test_instantiate_without_api_key(self, monkeypatch):
+        """Can be constructed without any credentials — no crash.
+
+        The ambient environment is cleared first: the repo's .env carries a
+        real key, and a developer box or a suite that has already loaded it
+        would otherwise make this assert against that key instead of against
+        the no-credentials path it is named for.
+        """
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         provider = OpenAIProvider()
         assert provider.api_key is None
         assert provider.model == "gpt-4"
@@ -62,7 +69,8 @@ class TestOpenAIProvider:
         assert provider.model == "gpt-4o"
         assert provider.base_url == "https://api.openai.com/v1"
 
-    def test_generate_without_api_key_returns_message(self):
+    def test_generate_without_api_key_returns_message(self, monkeypatch):
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         provider = OpenAIProvider()
         messages = [
             {"role": "system", "content": "You are a bot."},

@@ -37,7 +37,8 @@ _TRAIN_DIR = _HERE.parents[0]  # ai/training
 _AI_DIR = _HERE.parents[1]  # ai
 _REPO_DIR = _HERE.parents[2]  # pixelated
 sys.path.insert(0, str(_AI_DIR))
-load_dotenv(_REPO_DIR / ".env", override=True)
+if __name__ == "__main__":
+    load_dotenv(_REPO_DIR / ".env", override=True)
 
 from training.featherless_keys import KeyPool, is_rotate_status  # noqa: E402
 from training.judge_edge_and_nightmare import record_key  # noqa: E402

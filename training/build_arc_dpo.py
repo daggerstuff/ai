@@ -49,7 +49,8 @@ sys.path.insert(0, str(_AI_DIR))
 
 from dotenv import load_dotenv  # noqa: E402
 
-load_dotenv(_REPO_DIR / ".env", override=True)
+if __name__ == "__main__":
+    load_dotenv(_REPO_DIR / ".env", override=True)
 
 from training.build_arc_plans import DEFAULT_SEED_FILES, _load_seeds  # noqa: E402
 from training.generate_arc_corpus import SYSTEM_PROMPT, build_session_prompt  # noqa: E402

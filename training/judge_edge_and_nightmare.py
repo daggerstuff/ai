@@ -33,7 +33,8 @@ from typing import Any
 from dotenv import load_dotenv
 
 # override=True: the launching shell may carry stale provider keys (AI_GATEWAY_API_KEY etc.).
-load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
+if __name__ == "__main__":
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 
 from training.dual_judge import (  # noqa: E402
     ACCEPT_THRESHOLD,
