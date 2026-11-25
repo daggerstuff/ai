@@ -1,0 +1,21 @@
+inference/deployment/database/cms_redis_config.py
+  s_7d4811cf1b0ba7::t_ea817b9dc97914 5
+infrastructure/database/cms_redis_config.py
+  s_7d4811cf1b0ba7::t_ea817b9dc97914 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2376bea8840a96f9aa19152fc52ab3bee7fb4dcf",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
