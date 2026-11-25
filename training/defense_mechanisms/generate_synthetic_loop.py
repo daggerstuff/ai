@@ -45,7 +45,7 @@ def generate_with_retry(client, prompt, system_instruction, max_retries=5):
     for attempt in range(max_retries):
         try:
             return client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.8-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
@@ -83,7 +83,7 @@ def main():
     with open(HANDBOOK_PATH, "r", encoding="utf-8") as f:
         handbook_content = f.read()
 
-    # Automatically uses GEMINI_API_KEY from environment
+    # genai.Client() reads GEMINI_API_KEY or GOOGLE_API_KEY from the environment
     client = genai.Client()
 
     # We will generate 100 samples per class, in batches of 10

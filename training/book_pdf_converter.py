@@ -45,7 +45,7 @@ logging.basicConfig(
 logger = logging.getLogger("book_pdf_converter")
 
 NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", os.environ.get("NIM_API_KEY", ""))
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
 
 HTTP_OK = 200
 MAX_RETRIES = 3
@@ -237,7 +237,7 @@ def query_llm(system_prompt: str, user_content: str) -> str:
     if GEMINI_API_KEY:
         gemini_response = _try_provider(
             "Gemini",
-            lambda: _call_gemini(system_prompt, user_content, "gemini-2.5-flash"),
+            lambda: _call_gemini(system_prompt, user_content, "gemini-3.8-flash"),
             use_retry=True,
         )
         if gemini_response:

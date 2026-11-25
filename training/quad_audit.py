@@ -23,7 +23,7 @@ if os.path.exists(env_path):
                     os.environ[key] = val
 
 NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", os.environ.get("NIM_API_KEY", ""))
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
 
 # Maximum characters of file content sent per LLM call.
 MAX_CONTENT_CHARS = 16_000
@@ -159,8 +159,8 @@ def _openai_compat_call(cfg: _NIMConfig, system_prompt, user_content):
 def query_llm(system_prompt, user_content):
     """
     Provider chain (fastest/most-reliable first):
-    1. Gemini -- gemini-2.5-flash (stable GA, confirmed reachable)
-    2. Gemini -- gemini-3-flash-preview (current gen, free tier, Apr 2026)
+    1. Gemini -- gemini-3.8-flash (confirmed reachable via AI Studio key, Nov 2026)
+    2. Gemini -- gemini-3.5-flash (confirmed reachable via AI Studio key, Nov 2026)
     3. NIM -- deepseek-ai/deepseek-r1 (671B, fallback)
     4. NIM -- deepseek-ai/deepseek-v3 (685B MoE, fallback)
     5. NIM -- moonshotai/kimi-k2-instruct (1T MoE, fallback)
@@ -170,8 +170,8 @@ def query_llm(system_prompt, user_content):
     # 1-2. Gemini (working from this host)
     if GEMINI_API_KEY:
         gemini_models = [
-            ("gemini-2.5-flash", "Gemini 2.5 Flash"),
-            ("gemini-3-flash-preview", "Gemini 3 Flash Preview"),
+            ("gemini-3.8-flash", "Gemini 3.8 Flash"),
+            ("gemini-3.5-flash", "Gemini 3.5 Flash"),
         ]
         for model_id, label in gemini_models:
             try:

@@ -19,7 +19,7 @@ class GeminiForesightConfig(BaseModel):
     """Configuration for Gemini integrations using local shared memory."""
 
     gemini_api_key: str = Field(..., description="Gemini/Google API key")
-    model_name: str = Field("gemini-1.5-pro", description="Gemini model to use")
+    model_name: str = Field("gemini-3.8-flash", description="Gemini model to use")
     user_id: str = Field("default_user", description="Default user ID for memory")
     db_path: str = Field(..., description="Path to the shared local memory database")
     bank_id: str = Field("pixelated", description="Shared memory bank identifier")
