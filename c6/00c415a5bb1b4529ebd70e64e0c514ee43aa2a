@@ -1,0 +1,27 @@
+training/quad_audit.py
+  s_7d4811cf1b0ba7::t_23250cc45eb286 26,162-163,173-174
+training/book_pdf_converter.py
+  s_7d4811cf1b0ba7::t_23250cc45eb286 48,240
+research/foresight_gemini/manager.py
+  s_7d4811cf1b0ba7::t_23250cc45eb286 22
+memory/foresight_gemini/manager.py
+  s_7d4811cf1b0ba7::t_23250cc45eb286 22
+training/defense_mechanisms/generate_synthetic_loop.py
+  s_7d4811cf1b0ba7::t_39412279600df7 48,86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c600c415a5bb1b4529ebd70e64e0c514ee43aa2a",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
