@@ -6,6 +6,21 @@ import ai.tools.utilities.torch_proxy as torch_proxy_mod
 from ai.tools.utilities.torch_proxy import _load_torch, _TorchAttrProxy, _TorchModuleProxy
 
 
+@pytest.fixture(autouse=True)
+def _restore_proxy_cache(monkeypatch):
+    """Leave the proxy's cache as it was found.
+
+    Every test here points the cache at a mock or at an import error and the
+    module keeps whatever it was last given. Without this, the first suite to
+    import this file leaves a MagicMock installed as ``torch`` for everything
+    collected afterwards, and every later tensor assertion compares against a
+    mock.
+    """
+    monkeypatch.setattr(torch_proxy_mod, "_torch_module", torch_proxy_mod._torch_module)
+    monkeypatch.setattr(torch_proxy_mod, "_torch_import_error", torch_proxy_mod._torch_import_error)
+
+
+
 def test_load_torch_success():
     torch_proxy_mod._torch_module = None
     torch_proxy_mod._torch_import_error = None
