@@ -1,0 +1,22 @@
+training/restore_classification_context.py
+  s_7d4811cf1b0ba7::t_23250cc45eb286 13-17,26,39,236-321,374-383,388
+training/tests/test_restore_classification_context.py
+  s_7d4811cf1b0ba7::t_23250cc45eb286 18,20,37-43,111-224
+  s_7d4811cf1b0ba7::t_3f93f94df91094 225-226
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e9bf56e8d87fac6a6a21dc5453b2af80f644d56a",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
