@@ -1,0 +1,35 @@
+qa/testing/test_inference.py
+  s_7d4811cf1b0ba7::t_5e501abe1c16d2 47-55
+  s_7d4811cf1b0ba7::t_97a3e6d03b22bb 72-73
+training/test_featherless_model.py
+  s_7d4811cf1b0ba7::t_4778b21e350d92 30-31,34-36
+training/judge_edge_and_nightmare.py
+  s_7d4811cf1b0ba7::t_0efbe764cf3793 36-37
+training/rewrite_arc_risk_turns.py
+  s_7d4811cf1b0ba7::t_7985a242ea2cdb 43-44
+training/build_edge_and_nightmare_dataset.py
+  s_7d4811cf1b0ba7::t_f949eec6a156ab 33-34
+training/build_arc_dpo.py
+  s_7d4811cf1b0ba7::t_991275d7041039 52-53
+training/build_arc_plans.py
+  s_7d4811cf1b0ba7::t_119482786d05d3 40-41
+tests/test_inference.py
+  s_7d4811cf1b0ba7::t_c57715572a9dd9 72-73
+  s_7d4811cf1b0ba7::t_164dff8ac519ef 47-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "82610b8390e69a3040591f3b63d54aa36e9a76df",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
